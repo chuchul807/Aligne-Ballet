@@ -3,8 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "presync:assets": "node --version",
     "dev": "vite",
+    "predev": "pnpm sync:assets",
     "build": "tsc --noEmit && vite build",
+    "prebuild": "pnpm sync:assets",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
