@@ -2,3 +2,10 @@
 .worktrees/
 work/
 .DS_Store
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+public/models/
+public/vendor/mediapipe/
