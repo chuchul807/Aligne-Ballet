@@ -38,7 +38,15 @@ export function App() {
             <p className="stage-kicker">Step 1 of 4</p>
             <h2>Choose your position</h2>
             <label htmlFor="position">Position</label>
-            <select id="position" value={position} onChange={(event) => setPosition(event.target.value as PoseName)}>
+            <select
+              id="position"
+              value={position}
+              onChange={(event) => {
+                const nextPosition = event.target.value as PoseName;
+                setPosition(nextPosition);
+                dispatch({ type: 'position-changed', position: nextPosition });
+              }}
+            >
               {Object.entries(positionLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}
             </select>
             <fieldset>
@@ -53,6 +61,7 @@ export function App() {
                     onClick={() => setSupportingSide(side)}
                   >
                     {side === 'left' ? 'Left' : 'Right'}
+                    {supportingSide === side && <><span aria-hidden="true"> </span><span className="selected-copy">Selected</span></>}
                   </button>
                 ))}
               </div>

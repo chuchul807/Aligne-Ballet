@@ -41,6 +41,7 @@ fieldset { margin: 20px 0; padding: 0; border: 0; }
 .choice, .primary-action, .secondary-action { min-height: 44px; border-radius: 12px; padding: 10px 14px; font-weight: 750; }
 .choice { border: 1px solid var(--line); color: var(--deep); background: var(--surface); }
 .choice.selected { border-color: var(--accent); background: var(--soft); }
+.selected-copy { margin-left: 6px; font-size: .75rem; }
 .primary-action { width: 100%; border: 1px solid var(--accent); color: white; background: var(--accent); }
 .secondary-action { width: 100%; margin-top: 20px; border: 1px solid var(--line); color: var(--deep); background: transparent; }
 .status-note { display: flex; gap: 8px; align-items: center; border-radius: 12px; padding: 12px; color: var(--deep); background: var(--soft); }
