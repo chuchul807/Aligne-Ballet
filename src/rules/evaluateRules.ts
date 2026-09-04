@@ -31,14 +31,17 @@ function normaliseObservation(observation: Observation, landmarks: readonly Land
   return {
     ...observation,
     confidence: confidenceFor(observation.evidence, landmarks),
-    severity: Math.min(1, Math.max(0, observation.severity)),
+    severity: Number.isFinite(observation.severity) ? Math.min(1, Math.max(0, observation.severity)) : 0,
   };
 }
 
 export function evaluateRules(rules: readonly Rule[], context: RuleContext): readonly Observation[] {
   return rules.flatMap((rule) => {
     if (!rule.positions.includes(context.position)) return [];
-    if (rule.requiredMeasurements.some((measurement) => context.measurements[measurement] === null)) {
+    if (rule.requiredMeasurements.some((measurement) => {
+      const value = context.measurements[measurement];
+      return value === null || !Number.isFinite(value);
+    })) {
       return [unassessable(rule)];
     }
     const observation = rule.evaluate(context);

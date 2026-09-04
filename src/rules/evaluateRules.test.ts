@@ -36,6 +36,15 @@ describe('evaluateRules', () => {
     ]);
   });
 
+  it('treats a non-finite required measurement as missing and emits it once', () => {
+    const measurements = { ...measurePose(landmarkPerson(), 'left'), pelvisSlope: Number.NaN };
+    const observations = evaluateRules(COMMON_RULES, context({ measurements }));
+
+    expect(observations.filter((item) => item.ruleId === 'pelvis-unlevel')).toEqual([
+      expect.objectContaining({ assessability: 'unassessable', severity: null }),
+    ]);
+  });
+
   it('keeps common supporting-leg IDs and directions identical for either supporting side', () => {
     const left = context({ measurements: { ...measurePose(landmarkPerson(), 'left'), supportingKneeAngle: 160 } });
     const rightLandmarks = landmarkPerson().map((point) => ({ ...point, x: 1 - point.x, name: point.name.replace(/^left|^right/, (side) => side === 'left' ? 'right' : 'left') as typeof point.name }));
@@ -44,5 +53,50 @@ describe('evaluateRules', () => {
     const finding = (value: RuleContext) => evaluateRules(COMMON_RULES, value).find((item) => item.ruleId === 'supporting-knee-bent');
     expect(finding(left)).toMatchObject({ id: 'supporting-knee-bent', direction: 'lengthen the supporting leg' });
     expect(finding(right)).toMatchObject({ id: 'supporting-knee-bent', direction: 'lengthen the supporting leg' });
+  });
+
+  it.each([
+    ['supporting-knee-bent', 'supportingKneeAngle', 172, 171, 'lengthen the supporting leg'],
+    ['pelvis-unlevel', 'pelvisSlope', 8, 9, 'level the pelvis'],
+    ['shoulders-unlevel', 'shoulderSlope', 10, 11, 'lower the raised shoulder'],
+    ['torso-off-support', 'torsoLateralOffset', 0.12, 0.13, 'bring the torso toward the supporting side'],
+    ['supporting-ankle-not-stacked', 'supportingAnkleUnderHipOffset', 0.18, 0.19, 'bring the supporting hip over the ankle'],
+    ['left-arm-line-collapsed', 'leftElbowAngle', 110, 109, 'lengthen the left arm'],
+    ['right-arm-line-collapsed', 'rightElbowAngle', 110, 109, 'lengthen the right arm'],
+    ['head-extreme-lateral-tilt', 'headTiltFromTorso', 25, 26, 'bring the head toward the torso axis'],
+  ] as const)('applies %s only beyond its threshold with a bounded severity', (ruleId, key, boundary, triggered, direction) => {
+    const base = measurePose(landmarkPerson(), 'left');
+    const atBoundary = evaluateRules(COMMON_RULES, context({ measurements: { ...base, [key]: boundary } }));
+    const beyond = evaluateRules(COMMON_RULES, context({ measurements: { ...base, [key]: triggered } }));
+    const finding = beyond.find((item) => item.ruleId === ruleId);
+
+    expect(atBoundary.find((item) => item.ruleId === ruleId)).toBeUndefined();
+    expect(finding).toMatchObject({ ruleId, direction, assessability: 'assessable' });
+    if (finding?.assessability === 'assessable') {
+      expect(finding.severity).toBeGreaterThanOrEqual(0);
+      expect(finding.severity).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('detects torso displacement on either side of support while preserving the same correction direction', () => {
+    const base = measurePose(landmarkPerson(), 'left');
+    const directions = [-0.13, 0.13].map((torsoLateralOffset) => evaluateRules(
+      COMMON_RULES,
+      context({ measurements: { ...base, torsoLateralOffset } }),
+    ).find((item) => item.ruleId === 'torso-off-support'));
+
+    expect(directions).toEqual([
+      expect.objectContaining({ direction: 'bring the torso toward the supporting side' }),
+      expect.objectContaining({ direction: 'bring the torso toward the supporting side' }),
+    ]);
+  });
+
+  it('does not let an infinite common-rule measurement become a correction', () => {
+    const measurements = { ...measurePose(landmarkPerson(), 'left'), supportingAnkleUnderHipOffset: Number.POSITIVE_INFINITY };
+    const observations = evaluateRules(COMMON_RULES, context({ measurements }));
+
+    expect(observations.filter((item) => item.ruleId === 'supporting-ankle-not-stacked')).toEqual([
+      expect.objectContaining({ assessability: 'unassessable', severity: null }),
+    ]);
   });
 });

@@ -31,15 +31,15 @@ function finding(
 }
 
 function above(value: number, threshold: number): number | null {
-  return value > threshold ? (value - threshold) / Math.max(1 - threshold, threshold) : null;
+  return Number.isFinite(value) && value > threshold ? (value - threshold) / Math.max(1 - threshold, threshold) : null;
 }
 
 function below(value: number, threshold: number): number | null {
-  return value < threshold ? (threshold - value) / threshold : null;
+  return Number.isFinite(value) && value < threshold ? (threshold - value) / threshold : null;
 }
 
 function signedSlope(value: number | null): number | null {
-  return value === null ? null : Math.abs(value);
+  return value === null || !Number.isFinite(value) ? null : Math.abs(value);
 }
 
 function rule(
@@ -67,7 +67,7 @@ export const COMMON_RULES: readonly Rule[] = [
     return amount === null ? null : finding('shoulders-unlevel', 'shoulders-arms', 'line', ['left_shoulder', 'right_shoulder'], 'The shoulders are visibly unlevel.', 'Soften the raised shoulder downward.', 'lower the raised shoulder', amount);
   }),
   rule('torso-off-support', 'torso', 'stability', ['torsoLateralOffset'], ['left_shoulder', 'right_shoulder', 'left_hip', 'right_hip'], (context) => {
-    const amount = above(context.measurements.torsoLateralOffset!, 0.12);
+    const amount = above(Math.abs(context.measurements.torsoLateralOffset!), 0.12);
     return amount === null ? null : finding('torso-off-support', 'torso', 'stability', ['left_shoulder', 'right_shoulder', 'left_hip', 'right_hip'], 'The torso is off the supporting side.', 'Bring the torso back over the supporting side.', 'bring the torso toward the supporting side', amount);
   }),
   rule('supporting-ankle-not-stacked', 'supporting-leg', 'stability', ['supportingAnkleUnderHipOffset'], ['left_hip', 'left_ankle'], (context) => {
