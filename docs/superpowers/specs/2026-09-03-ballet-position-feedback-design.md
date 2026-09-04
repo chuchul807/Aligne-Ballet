@@ -1,7 +1,9 @@
 # Ballet Position Feedback — Product and System Design
 
-**Status:** Draft for user review  
-**Date:** 2026-09-03  
+**Status:** Approved
+
+**Date:** 2026-09-03
+
 **Working product name used in mockups:** ALIGNÉ
 
 ## 1. Product summary
