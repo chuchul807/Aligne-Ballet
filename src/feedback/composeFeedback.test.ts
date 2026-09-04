@@ -6,7 +6,7 @@ import { ARABESQUE_RULES } from '../rules/arabesqueRules';
 import { ATTITUDE_RULES } from '../rules/attitudeRules';
 import { COMMON_RULES } from '../rules/commonRules';
 import { RETIRE_RULES } from '../rules/retireRules';
-import { FEEDBACK_COPY } from './copy';
+import { FEEDBACK_COPY, isSafeFeedbackText } from './copy';
 import { composeFeedback, type AssessmentCoverage } from './composeFeedback';
 import { Disclaimer } from '../ui/Disclaimer';
 
@@ -64,6 +64,15 @@ describe('composeFeedback', () => {
     expect(summary.topCorrections.map((item) => item.observationId)).toEqual(['c', 'b', 'a']);
   });
 
+  it('orders different rule IDs alphabetically when priority and severity tie', () => {
+    const laterRule = observation({ id: 'later', ruleId: 'torso-off-support', region: 'torso', priority: 'stability', severity: 0.5 });
+    const earlierRule = observation({ id: 'earlier', ruleId: 'supporting-knee-bent', priority: 'stability', severity: 0.5 });
+
+    const summary = composeFeedback([laterRule, earlierRule], allRegionsAssessable);
+
+    expect(summary.topCorrections.map((item) => item.observationId)).toEqual(['earlier', 'later']);
+  });
+
   it('qualifies medium confidence and withholds low confidence', () => {
     const mediumPelvisIssue = observation({ id: 'medium', confidence: 'medium' });
     const lowShoulderIssue = observation({ id: 'low', ruleId: 'shoulders-unlevel', region: 'shoulders-arms', priority: 'line', confidence: 'low' });
@@ -102,8 +111,26 @@ describe('composeFeedback', () => {
     ];
 
     for (const text of userFacingCopy) {
-      expect(text).not.toMatch(/\b(?:pain|injury|diagnose)\b|\bengage your\b|\d\s*°|\d\s*%/i);
+      expect(isSafeFeedbackText(text)).toBe(true);
     }
+  });
+
+  it.each([
+    '30 degrees',
+    '20 percent',
+    'degree',
+    'percentages',
+    'Use ° for this angle.',
+    'Confidence: %.',
+  ])('rejects forbidden numeric or unit language: %s', (text) => {
+    expect(isSafeFeedbackText(text)).toBe(false);
+  });
+
+  it.each([
+    'Lengthen your working leg back and slightly upward.',
+    'No visible issue found in this view.',
+  ])('allows safe feedback text: %s', (text) => {
+    expect(isSafeFeedbackText(text)).toBe(true);
   });
 
   it('renders the approved practice disclaimer', () => {

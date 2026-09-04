@@ -3,6 +3,12 @@ export interface FeedbackCopyVariants {
   medium: string;
 }
 
+const UNSAFE_FEEDBACK_TEXT = /\b(?:pain|injury|diagnose|engage\s+your|degrees?|percent(?:age)?s?)\b|[°%]/i;
+
+export function isSafeFeedbackText(text: string): boolean {
+  return !UNSAFE_FEEDBACK_TEXT.test(text);
+}
+
 export const FEEDBACK_COPY = {
   'supporting-knee-bent': { high: 'Straighten your supporting knee.', medium: 'Your supporting knee appears slightly bent; try lengthening it.' },
   'pelvis-unlevel': { high: 'Level your pelvis before increasing the leg height.', medium: 'Your pelvis may be lifting on the working side; try bringing it level.' },
