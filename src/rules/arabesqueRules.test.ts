@@ -43,6 +43,11 @@ function mirrored(value: ArabesqueFixture): ArabesqueFixture {
   };
 }
 
+function fixtureForSupportingSide(supportingSide: SupportingSide): ArabesqueFixture {
+  const input = fixture(acceptable);
+  return supportingSide === 'left' ? input : mirrored(input);
+}
+
 describe('Arabesque rules', () => {
   it.each([acceptable, bentKnees, pelvisCompensation])('keeps all 33 named landmarks in its fixture', (value) => {
     const input = fixture(value);
@@ -113,21 +118,55 @@ describe('Arabesque rules', () => {
     expect(observations.map((item) => item.ruleId)).not.toContain('arabesque-working-leg-too-low');
   });
 
-  it.each([
-    ['arabesque-working-knee-bent', ['right_hip', 'right_knee', 'right_ankle']],
-    ['arabesque-lower-leg-for-pelvis', ['left_hip', 'right_hip', 'right_ankle']],
-    ['arabesque-working-leg-too-low', ['right_hip', 'right_knee', 'right_ankle']],
-  ] as const)('keeps %s unassessable evidence on the actual missing working-leg side', (ruleId, evidence) => {
-    const input = fixture(acceptable);
-    const landmarks = input.landmarks.filter((landmark) => landmark.name !== 'right_ankle');
+  it.each(['left', 'right'] as const)('keeps missing-working-leg fallback evidence unbiased for %s support', (supportingSide) => {
+    const input = fixtureForSupportingSide(supportingSide);
+    const workingSide = supportingSide === 'left' ? 'right' : 'left';
+    const missingAnkle = `${workingSide}_ankle` as Landmark['name'];
+    const landmarks = input.landmarks.filter((landmark) => landmark.name !== missingAnkle);
     const observations = evaluateRules(ARABESQUE_RULES, {
-      position: 'arabesque', supportingSide: 'left', landmarks,
-      measurements: measurePose(landmarks, 'left'),
+      position: 'arabesque', supportingSide, landmarks,
+      measurements: measurePose(landmarks, supportingSide),
     });
 
-    expect(observations.find((item) => item.ruleId === ruleId)).toMatchObject({
-      assessability: 'unassessable',
-      evidence: expect.arrayContaining([...evidence]),
-    });
+    const fallbackEvidence = [
+      ['arabesque-working-knee-bent', ['left_hip', 'left_knee', 'left_ankle', 'right_hip', 'right_knee', 'right_ankle']],
+      ['arabesque-lower-leg-for-pelvis', ['left_hip', 'right_hip', 'left_ankle', 'right_ankle']],
+      ['arabesque-working-leg-too-low', ['left_hip', 'left_knee', 'left_ankle', 'right_hip', 'right_knee', 'right_ankle']],
+    ] as const;
+    for (const [ruleId, expectedEvidence] of fallbackEvidence) {
+      const observation = observations.find((item) => item.ruleId === ruleId);
+      expect(observation).toMatchObject({
+        assessability: 'unassessable',
+        evidence: expectedEvidence,
+      });
+      expect(observation?.evidence).toContain(missingAnkle);
+    }
+  });
+
+  it.each(['left', 'right'] as const)('uses only the actual working leg in assessable evidence and annotations for %s support', (supportingSide) => {
+    const input = fixtureForSupportingSide(supportingSide);
+    const workingSide = supportingSide === 'left' ? 'right' : 'left';
+    const legEvidence = [`${workingSide}_hip`, `${workingSide}_knee`, `${workingSide}_ankle`] as Landmark['name'][];
+    const measurements = measurePose(input.landmarks, supportingSide);
+    const cases = [
+      ['arabesque-working-knee-bent', { workingKneeAngle: 164 }, legEvidence, 'joint', [`${workingSide}_knee`]],
+      ['arabesque-lower-leg-for-pelvis', { workingAnkleHeightFromHip: 0.01, pelvisSlope: 11 }, ['left_hip', 'right_hip', `${workingSide}_ankle`], 'region', ['left_hip', 'right_hip', `${workingSide}_ankle`]],
+      ['arabesque-working-leg-too-low', { workingAnkleHeightFromHip: -0.31, pelvisSlope: 8 }, legEvidence, 'region', legEvidence],
+      ['arabesque-torso-collapse', { torsoLateralOffset: -0.19 }, ['left_shoulder', 'right_shoulder', 'left_hip', 'right_hip'], 'region', ['left_shoulder', 'right_shoulder', 'left_hip', 'right_hip']],
+    ] as const;
+
+    for (const [ruleId, overrides, evidence, annotationType, annotationJoints] of cases) {
+      const observation = evaluateRules(ARABESQUE_RULES, {
+        position: 'arabesque', supportingSide, landmarks: input.landmarks,
+        measurements: { ...measurements, ...overrides },
+      }).find((item) => item.ruleId === ruleId);
+
+      expect(observation).toMatchObject({ assessability: 'assessable', evidence });
+      expect(observation?.annotation).toEqual([{
+        observationId: ruleId,
+        type: annotationType,
+        joints: annotationJoints,
+      }]);
+    }
   });
 });
