@@ -9,6 +9,13 @@ export interface DecodedImage {
 
 type DecodeFailure = { code: Extract<ImageErrorCode, 'image-too-small' | 'image-too-large' | 'decode-failed'> };
 
+function isDimensionFailure(error: unknown): error is DecodeFailure {
+  return typeof error === 'object'
+    && error !== null
+    && 'code' in error
+    && (error.code === 'image-too-small' || error.code === 'image-too-large');
+}
+
 function dimensionFailure(width: number, height: number): DecodeFailure | null {
   if (Math.min(width, height) < 480) {
     return { code: 'image-too-small' };
@@ -87,7 +94,7 @@ export async function decodeImage(file: File): Promise<DecodedImage> {
     try {
       return decodedBitmap(await createImageBitmap(file, { imageOrientation: 'from-image' }));
     } catch (error) {
-      if (typeof error === 'object' && error !== null && 'code' in error) {
+      if (isDimensionFailure(error)) {
         throw error;
       }
     }

@@ -35,4 +35,28 @@ describe('decodeImage', () => {
       code: 'image-too-large',
     });
   });
+
+  it('falls back to an image element when bitmap decoding rejects with a DOMException code', async () => {
+    class FallbackImage {
+      naturalWidth = 640;
+      naturalHeight = 960;
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+
+      set src(value: string) {
+        if (value) queueMicrotask(() => this.onload?.());
+      }
+    }
+
+    const bitmapFailure = new DOMException('Cannot decode this image', 'EncodingError');
+    expect(bitmapFailure.code).toEqual(expect.any(Number));
+    vi.stubGlobal('createImageBitmap', vi.fn().mockRejectedValue(bitmapFailure));
+    vi.stubGlobal('Image', FallbackImage);
+    const createUrl = vi.spyOn(URL, 'createObjectURL');
+
+    const decoded = await decodeImage(new File(['x'], 'pose.jpg', { type: 'image/jpeg' }));
+
+    expect(createUrl).toHaveBeenCalledOnce();
+    expect(decoded.source).toBeInstanceOf(FallbackImage);
+  });
 });
