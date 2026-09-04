@@ -57,7 +57,7 @@ export const ARABESQUE_RULES: readonly Rule[] = [
     requiredMeasurements: ['workingKneeAngle'],
     region: 'working-leg',
     priority: 'line',
-    evidence: ['left_hip', 'left_knee', 'left_ankle'],
+    evidence: ['left_hip', 'left_knee', 'left_ankle', 'right_hip', 'right_knee', 'right_ankle'],
     evaluate: (context) => {
       const amount = below(context.measurements.workingKneeAngle!, 165);
       if (amount === null) return null;
@@ -77,7 +77,7 @@ export const ARABESQUE_RULES: readonly Rule[] = [
     requiredMeasurements: ['workingAnkleHeightFromHip', 'pelvisSlope'],
     region: 'pelvis',
     priority: 'structure',
-    evidence: ['left_hip', 'right_hip', 'left_ankle'],
+    evidence: ['left_hip', 'right_hip', 'left_ankle', 'right_ankle'],
     evaluate: (context) => {
       const heightAmount = above(context.measurements.workingAnkleHeightFromHip!, 0);
       const pelvisAmount = above(absolute(context.measurements.pelvisSlope!), 10);
@@ -99,7 +99,7 @@ export const ARABESQUE_RULES: readonly Rule[] = [
     requiredMeasurements: ['workingAnkleHeightFromHip', 'pelvisSlope'],
     region: 'working-leg',
     priority: 'line',
-    evidence: ['left_hip', 'left_knee', 'left_ankle'],
+    evidence: ['left_hip', 'left_knee', 'left_ankle', 'right_hip', 'right_knee', 'right_ankle'],
     evaluate: (context) => {
       const amount = below(context.measurements.workingAnkleHeightFromHip!, -0.30);
       if (amount === null || absolute(context.measurements.pelvisSlope!) > 8) return null;

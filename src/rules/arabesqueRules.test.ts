@@ -112,4 +112,22 @@ describe('Arabesque rules', () => {
 
     expect(observations.map((item) => item.ruleId)).not.toContain('arabesque-working-leg-too-low');
   });
+
+  it.each([
+    ['arabesque-working-knee-bent', ['right_hip', 'right_knee', 'right_ankle']],
+    ['arabesque-lower-leg-for-pelvis', ['left_hip', 'right_hip', 'right_ankle']],
+    ['arabesque-working-leg-too-low', ['right_hip', 'right_knee', 'right_ankle']],
+  ] as const)('keeps %s unassessable evidence on the actual missing working-leg side', (ruleId, evidence) => {
+    const input = fixture(acceptable);
+    const landmarks = input.landmarks.filter((landmark) => landmark.name !== 'right_ankle');
+    const observations = evaluateRules(ARABESQUE_RULES, {
+      position: 'arabesque', supportingSide: 'left', landmarks,
+      measurements: measurePose(landmarks, 'left'),
+    });
+
+    expect(observations.find((item) => item.ruleId === ruleId)).toMatchObject({
+      assessability: 'unassessable',
+      evidence: expect.arrayContaining([...evidence]),
+    });
+  });
 });
