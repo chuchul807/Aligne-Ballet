@@ -11,6 +11,7 @@ export interface MeasurementSet {
   torsoLateralOffset: number | null;
   workingAnkleToSupportingKnee: number | null;
   workingKneeLateralOffset: number | null;
+  workingKneeHeightFromHip: number | null;
   workingAnkleHeightFromHip: number | null;
   supportingAnkleUnderHipOffset: number | null;
   leftElbowAngle: number | null;
@@ -76,6 +77,7 @@ export function measurePose(landmarks: readonly Landmark[], supportingSide: Supp
       : null,
     workingAnkleToSupportingKnee: workingAnkle && supportKnee ? normalisedDistance(workingAnkle, supportKnee, torsoLength) : null,
     workingKneeLateralOffset: normalisedHorizontalOffset(workingKnee, supportHip, torsoLength),
+    workingKneeHeightFromHip: normalisedHeight(supportHip, workingKnee, torsoLength),
     workingAnkleHeightFromHip: normalisedHeight(supportHip, workingAnkle, torsoLength),
     supportingAnkleUnderHipOffset: normalisedHorizontalOffset(supportHip, supportAnkle, torsoLength),
     leftElbowAngle: threePointAngle(points, 'left_shoulder', 'left_elbow', 'left_wrist'),
