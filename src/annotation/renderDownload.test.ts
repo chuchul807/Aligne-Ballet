@@ -26,6 +26,10 @@ function result(): AnalysisResult {
   };
 }
 
+function canvasFor(context: RecordingContext): HTMLCanvasElement {
+  return { width: 0, height: 0, getContext: () => context, toBlob: (callback: BlobCallback) => callback(new Blob(['png'], { type: 'image/png' })) } as unknown as HTMLCanvasElement;
+}
+
 describe('renderDownload', () => {
   it('writes the position, numbered correction, exact disclaimer, and a wrapped date into one PNG', async () => {
     const context = new RecordingContext();
@@ -50,6 +54,27 @@ describe('renderDownload', () => {
 
     await expect(renderDownload({ image: { width: 100, height: 100 } as unknown as CanvasImageSource, result: result(), generatedAt: new Date('2026-09-04T12:00:00.000Z') })).rejects.toThrow('Unable to create downloadable PNG.');
 
+    createElement.mockRestore();
+  });
+
+  it('caps its own rendered correction list at three items before wrapping and sizing the text area', async () => {
+    const threeContext = new RecordingContext();
+    const fourContext = new RecordingContext();
+    const threeCanvas = canvasFor(threeContext);
+    const fourCanvas = canvasFor(fourContext);
+    const createElement = vi.spyOn(document, 'createElement').mockReturnValueOnce(threeCanvas).mockReturnValueOnce(fourCanvas);
+    const corrections = ['First correction.', 'Second correction.', 'Third correction.', 'Fourth correction must never be rendered.'].map((text, index) => ({
+      observationId: String(index + 1), text, region: 'working-leg' as const, priority: 'line' as const, confidence: 'high' as const,
+    }));
+    const image = { width: 1000, height: 200 } as unknown as CanvasImageSource;
+
+    await renderDownload({ image, result: { ...result(), topCorrections: corrections.slice(0, 3) }, generatedAt: new Date('2026-09-04T12:00:00.000Z') });
+    await renderDownload({ image, result: { ...result(), topCorrections: corrections }, generatedAt: new Date('2026-09-04T12:00:00.000Z') });
+
+    expect(fourContext.text).toEqual(expect.arrayContaining(['1. First correction.', '2. Second correction.', '3. Third correction.']));
+    expect(fourContext.text.join(' ')).not.toContain('Fourth correction must never be rendered.');
+    expect(fourContext.text).not.toContain('4. Fourth correction must never be rendered.');
+    expect(fourCanvas.height).toBe(threeCanvas.height);
     createElement.mockRestore();
   });
 });

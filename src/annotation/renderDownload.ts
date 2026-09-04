@@ -49,9 +49,10 @@ export function renderDownload(input: DownloadRenderInput): Promise<Blob> {
   context.font = font;
   const generatedAt = input.generatedAt ?? new Date();
   const date = generatedAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const topCorrections = input.result.topCorrections.slice(0, 3);
   const lines = [
     ...wrapText(context, titleCasePosition(input.result.position), width - padding * 2),
-    ...input.result.topCorrections.flatMap((item, index) => wrapText(context, `${index + 1}. ${item.text}`, width - padding * 2)),
+    ...topCorrections.flatMap((item, index) => wrapText(context, `${index + 1}. ${item.text}`, width - padding * 2)),
     ...wrapText(context, PRACTICE_DISCLAIMER, width - padding * 2),
     ...wrapText(context, `Generated ${date}`, width - padding * 2),
   ];
