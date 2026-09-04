@@ -38,6 +38,13 @@ describe('Attitude derrière rules', () => {
     const ids = (value: unknown) => { const input = fixture(value); return evaluateRules(ATTITUDE_RULES, { position: input.position, supportingSide: input.supportingSide, landmarks: input.landmarks, measurements: measurePose(input.landmarks, input.supportingSide) }).map((item) => item.ruleId).sort(); };
     expect(ids(mirrored)).toEqual(ids(commonErrors));
   });
+  it.each(['left', 'right'] as const)('keeps missing working-knee fallback evidence bilateral for %s support', (supportingSide) => {
+    const base = context();
+    const source = supportingSide === 'left' ? base.landmarks : base.landmarks.map((landmark) => ({ ...landmark, x: 1 - landmark.x, name: landmark.name.replace(/^left|^right/, (side) => side === 'left' ? 'right' : 'left') as Landmark['name'] }));
+    const landmarks = source.filter((landmark) => landmark.name !== (supportingSide === 'left' ? 'right_knee' : 'left_knee'));
+    const findings = evaluateRules(ATTITUDE_RULES, { ...base, supportingSide, landmarks, measurements: measurePose(landmarks, supportingSide) });
+    expect(findings.find((item) => item.ruleId === 'attitude-lift-thigh')).toMatchObject({ assessability: 'unassessable', evidence: ['left_hip', 'left_knee', 'right_hip', 'right_knee'] });
+  });
   it('distinguishes a straight working knee from an attitude shape', () => {
     const ids = evaluateRules(ATTITUDE_RULES, context({ workingKneeAngle: 146 })).map((item) => item.ruleId);
     expect(ids).toContain('attitude-working-knee-too-straight');

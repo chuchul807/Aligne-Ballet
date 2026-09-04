@@ -33,6 +33,13 @@ describe('measurePose', () => {
     expect(measurePose(right, 'right').torsoLateralOffset).toBeCloseTo(expected, 5);
   });
 
+  it('measures working-knee height from the working hip and preserves it after mirroring', () => {
+    const landmarks = landmarkPerson().map((point) => point.name === 'right_hip' ? { ...point, y: 0.6 } : point.name === 'right_knee' ? { ...point, y: 0.9 } : point);
+    const expected = -0.3 / 0.35;
+    expect(measurePose(landmarks, 'left').workingKneeHeightFromHip).toBeCloseTo(expected, 5);
+    expect(measurePose(mirroredPerson(landmarks), 'right').workingKneeHeightFromHip).toBeCloseTo(expected, 5);
+  });
+
   it('returns null measurements rather than non-finite values for non-finite landmarks', () => {
     const landmarks = landmarkPerson().map((point) => point.name === 'left_hip' ? { ...point, x: Number.NaN } : point);
     const measurements = measurePose(landmarks, 'left');

@@ -55,6 +55,20 @@ describe('Retiré / Passé rules', () => {
     expect(evaluateRules(RETIRE_RULES, context(measures, 'front')).map((item) => item.ruleId)).toContain('retire-open-working-knee');
   });
 
+  it('keeps knee-placement assessable when the unused working ankle has low visibility', () => {
+    const base = context({ workingKneeLateralOffset: 0.27 }, 'front');
+    const landmarks = base.landmarks.map((landmark) => landmark.name === 'right_ankle' ? { ...landmark, visibility: 0.2 } : landmark);
+    const finding = evaluateRules(RETIRE_RULES, { ...base, landmarks, measurements: { ...base.measurements, workingKneeLateralOffset: 0.27 } }).find((item) => item.ruleId === 'retire-open-working-knee');
+    expect(finding).toMatchObject({ assessability: 'assessable', confidence: 'high', evidence: ['left_hip', 'right_knee'] });
+  });
+
+  it.each(['left', 'right'] as const)('uses bilateral measurement fallback evidence when the working knee is absent for %s support', (supportingSide) => {
+    const base = context({}, 'front');
+    const landmarks = (supportingSide === 'left' ? base.landmarks : base.landmarks.map((landmark) => ({ ...landmark, x: 1 - landmark.x, name: landmark.name.replace(/^left|^right/, (side) => side === 'left' ? 'right' : 'left') as Landmark['name'] }))).filter((landmark) => landmark.name !== (supportingSide === 'left' ? 'right_knee' : 'left_knee'));
+    const finding = evaluateRules(RETIRE_RULES, { ...base, supportingSide, view: 'front', landmarks, measurements: measurePose(landmarks, supportingSide) }).find((item) => item.ruleId === 'retire-open-working-knee');
+    expect(finding).toMatchObject({ assessability: 'unassessable', evidence: ['left_hip', 'left_knee', 'right_hip', 'right_knee'] });
+  });
+
   it.each([
     ['retire-place-foot-at-knee', { workingAnkleToSupportingKnee: 0.32 }, { workingAnkleToSupportingKnee: 0.33 }],
     ['retire-open-working-knee', { workingKneeLateralOffset: 0.28 }, { workingKneeLateralOffset: 0.27 }],

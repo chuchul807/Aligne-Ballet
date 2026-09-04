@@ -63,6 +63,7 @@ export function measurePose(landmarks: readonly Landmark[], supportingSide: Supp
   const supportKnee = point(points, sideLandmark(supportingSide, 'knee'));
   const supportAnkle = point(points, sideLandmark(supportingSide, 'ankle'));
   const workingKnee = point(points, sideLandmark(workingSide, 'knee'));
+  const workingHip = point(points, sideLandmark(workingSide, 'hip'));
   const workingAnkle = point(points, sideLandmark(workingSide, 'ankle'));
   const nose = point(points, 'nose');
 
@@ -77,7 +78,7 @@ export function measurePose(landmarks: readonly Landmark[], supportingSide: Supp
       : null,
     workingAnkleToSupportingKnee: workingAnkle && supportKnee ? normalisedDistance(workingAnkle, supportKnee, torsoLength) : null,
     workingKneeLateralOffset: normalisedHorizontalOffset(workingKnee, supportHip, torsoLength),
-    workingKneeHeightFromHip: normalisedHeight(supportHip, workingKnee, torsoLength),
+    workingKneeHeightFromHip: normalisedHeight(workingHip, workingKnee, torsoLength),
     workingAnkleHeightFromHip: normalisedHeight(supportHip, workingAnkle, torsoLength),
     supportingAnkleUnderHipOffset: normalisedHorizontalOffset(supportHip, supportAnkle, torsoLength),
     leftElbowAngle: threePointAngle(points, 'left_shoulder', 'left_elbow', 'left_wrist'),

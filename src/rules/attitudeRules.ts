@@ -52,11 +52,12 @@ export const ATTITUDE_RULES: readonly Rule[] = [
     },
   },
   {
-    id: 'attitude-lift-thigh', positions: ['attitude-derriere'], requiredMeasurements: ['workingKneeHeightFromHip', 'pelvisSlope'], region: 'working-leg', priority: 'line', evidence: bothLegs,
+    id: 'attitude-lift-thigh', positions: ['attitude-derriere'], requiredMeasurements: ['workingKneeHeightFromHip', 'pelvisSlope'], region: 'working-leg', priority: 'line', evidence: ['left_hip', 'left_knee', 'right_hip', 'right_knee'],
     evaluate: (context) => {
       const amount = below(context.measurements.workingKneeHeightFromHip!, -0.25);
       if (amount === null || Math.abs(context.measurements.pelvisSlope!) > 8) return null;
-      const evidence = workingLeg(context);
+      const [hip, knee] = workingLeg(context);
+      const evidence = [hip, knee] as const;
       return finding('attitude-lift-thigh', 'working-leg', 'line', evidence, [{ observationId: 'attitude-lift-thigh', type: 'region', joints: evidence }], 'The working knee sits visibly below the hip line.', 'Lift the working thigh slightly while keeping the pelvis level.', 'lift the working thigh slightly', amount);
     },
   },
