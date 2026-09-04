@@ -11,8 +11,13 @@ export type QualityReasonCode =
   | 'low-contrast'
   | 'blurred';
 
+export interface QualityReason {
+  code: QualityReasonCode;
+  message: string;
+}
+
 export interface QualityReport {
   status: 'pass' | 'partial' | 'fail';
-  reasons: readonly { code: QualityReasonCode; message: string }[];
+  reasons: readonly QualityReason[];
   unassessableRegions: readonly BodyRegion[];
 }
