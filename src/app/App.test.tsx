@@ -1,8 +1,15 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
 import { landmarkPerson } from '../../tests/builders/landmarks';
+import type { LandmarkSet } from '../domain/types';
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((next) => { resolve = next; });
+  return { promise, resolve };
+}
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
@@ -52,5 +59,41 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Analyse position' }));
     expect(screen.getByLabelText('Your feedback')).toBeInTheDocument();
     expect(screen.queryByLabelText('Photo check')).not.toBeInTheDocument();
+  });
+
+  it('ignores and disposes a stale analysis after the position changes', async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    const detection = deferred<LandmarkSet>();
+    const dispose = vi.fn();
+    render(<App services={{
+      createDetector: vi.fn().mockResolvedValue({ detect: vi.fn(() => detection.promise), close: vi.fn() }), now: () => '2026-09-03T12:00:00.000Z',
+      analysis: { decode: vi.fn().mockResolvedValue({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose }), metrics: vi.fn(() => ({ meanLuminance: .5, contrast: .2, edgeEnergy: .1 })), quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })) },
+    }} />);
+
+    await user.click(screen.getByRole('button', { name: 'Continue to framing' }));
+    await user.upload(screen.getByLabelText('Choose a photo'), new File(['photo'], 'pose.jpg', { type: 'image/jpeg' }));
+    await user.click(screen.getByRole('tab', { name: 'Select' }));
+    await user.click(screen.getByRole('radio', { name: 'Retiré / Passé' }));
+    detection.resolve({ people: [landmarkPerson()], sourceWidth: 1000, sourceHeight: 1500 });
+
+    expect(await screen.findByRole('button', { name: 'Continue to framing' })).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Analyse position' })).not.toBeInTheDocument();
+    expect(dispose).toHaveBeenCalledOnce();
+  });
+
+  it('disposes a successful decoded image when unmounted while detection is pending', async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    const detection = deferred<LandmarkSet>();
+    const dispose = vi.fn();
+    const rendered = render(<App services={{
+      createDetector: vi.fn().mockResolvedValue({ detect: vi.fn(() => detection.promise), close: vi.fn() }), now: () => '2026-09-03T12:00:00.000Z',
+      analysis: { decode: vi.fn().mockResolvedValue({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose }), metrics: vi.fn(() => ({ meanLuminance: .5, contrast: .2, edgeEnergy: .1 })), quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })) },
+    }} />);
+
+    await user.click(screen.getByRole('button', { name: 'Continue to framing' }));
+    await user.upload(screen.getByLabelText('Choose a photo'), new File(['photo'], 'pose.jpg', { type: 'image/jpeg' }));
+    rendered.unmount();
+    detection.resolve({ people: [landmarkPerson()], sourceWidth: 1000, sourceHeight: 1500 });
+    await waitFor(() => expect(dispose).toHaveBeenCalledOnce());
   });
 });

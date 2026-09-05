@@ -22,19 +22,25 @@ function positionLabel(position: AnalysisResult['position']): string {
 export function ResultCard({ result, image, onAnotherPhoto }: ResultCardProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [annotationError, setAnnotationError] = useState<string | null>(null);
+  const [annotationReady, setAnnotationReady] = useState(false);
+  const [annotationAttempt, setAnnotationAttempt] = useState(0);
   const label = positionLabel(result.position);
 
   useEffect(() => {
     if (!canvas.current || !image) return;
     try {
       drawAnnotatedPose(canvas.current, image, result.landmarks, result.annotations);
+      setAnnotationReady(true);
+      setAnnotationError(null);
     } catch {
-      // The app keeps feedback available if a device cannot initialise its canvas.
+      setAnnotationReady(false);
+      setAnnotationError('Annotated image could not be prepared. Please try again.');
     }
-  }, [image, result]);
+  }, [annotationAttempt, image, result]);
 
   const download = async () => {
-    if (!canvas.current || !image) return;
+    if (!canvas.current || !image || !annotationReady) return;
     try {
       const blob = await renderDownload({ image: canvas.current, result });
       const url = URL.createObjectURL(blob);
@@ -53,10 +59,11 @@ export function ResultCard({ result, image, onAnotherPhoto }: ResultCardProps) {
     <section className="stage-card result-card" aria-label="Your feedback">
       <p className="stage-kicker">Step 4 of 4</p>
       <h2>Your feedback</h2>
-      {image && <canvas className="annotated-pose" ref={canvas} role="img" aria-label={`Annotated ${label} pose with highlighted corrections`} />}
+      {image && <canvas className="annotated-pose" ref={canvas} hidden={!annotationReady} role={annotationReady ? 'img' : undefined} aria-label={annotationReady ? `Annotated ${label} pose with highlighted corrections` : undefined} />}
+      {annotationError && <><p role="alert">{annotationError}</p><button className="secondary-action" type="button" onClick={() => setAnnotationAttempt((attempt) => attempt + 1)}>Retry annotation</button></>}
       <h3>Focus first</h3>
       <ol className="corrections">
-        {result.topCorrections.map((correction, index) => <li key={correction.observationId}>{index + 1}. {correction.text}</li>)}
+        {result.topCorrections.map((correction) => <li key={correction.observationId}>{correction.text}</li>)}
       </ol>
       <details>
         <summary>Full-body review</summary>
@@ -70,7 +77,7 @@ export function ResultCard({ result, image, onAnotherPhoto }: ResultCardProps) {
         </div>
       </details>
       <Disclaimer />
-      <button className="primary-action" type="button" onClick={() => void download()} disabled={!image}>Download result</button>
+      <button className="primary-action" type="button" onClick={() => void download()} disabled={!image || !annotationReady}>Download result</button>
       {downloadError && <p role="alert">{downloadError}</p>}
       <button className="secondary-action" type="button" onClick={onAnotherPhoto}>Analyse another photo</button>
     </section>
