@@ -58,4 +58,22 @@ describe('scoreAgreement', () => {
       qualityGateRate: 0.5,
     });
   });
+
+  it('does not let duplicate labels count as two matches', () => {
+    const report = scoreAgreement([{
+      ...caseWithTwoMatches,
+      actualTop3: [
+        { region: 'pelvis', direction: 'level-pelvis' },
+        { region: 'pelvis', direction: 'level-pelvis' },
+      ],
+    }]);
+
+    expect(report).toMatchObject({ matchedCount: 0, rate: 0, passesTarget: false });
+  });
+
+  it('has no passing primary rate or quality-gate rate when its denominator is zero', () => {
+    const report = scoreAgreement([]);
+
+    expect(report).toMatchObject({ assessableCount: 0, rate: 0, passesTarget: false, unassessableCount: 0, qualityGateRate: null });
+  });
 });

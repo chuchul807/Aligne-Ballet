@@ -11,8 +11,8 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 const result: AnalysisResult = {
   sessionId: 'session', position: 'arabesque', landmarks: [], annotations: [], createdAt: '2026-09-03T12:00:00.000Z',
   topCorrections: [
-    { observationId: 'one', text: 'Straighten the supporting knee.', region: 'supporting-leg', priority: 'stability', confidence: 'high' },
-    { observationId: 'two', text: 'Level the pelvis.', region: 'pelvis', priority: 'structure', confidence: 'high' },
+    { observationId: 'one', ruleId: 'supporting-knee-bent', direction: 'straighten-supporting-knee', text: 'Straighten the supporting knee.', region: 'supporting-leg', priority: 'stability', confidence: 'high' },
+    { observationId: 'two', ruleId: 'pelvis-unlevel', direction: 'level-pelvis', text: 'Level the pelvis.', region: 'pelvis', priority: 'structure', confidence: 'high' },
   ],
   fullBodyReview: [{ region: 'torso', status: 'clear', items: [{ observationId: 'clear', text: 'No visible issue found in this view.', region: 'torso', priority: 'line', confidence: 'high' }] }],
 };

@@ -89,6 +89,11 @@ export interface FeedbackItem {
   confidence: Exclude<Confidence, 'low'>;
 }
 
+export interface CorrectionFeedbackItem extends FeedbackItem {
+  ruleId: string;
+  direction: string;
+}
+
 export interface FullBodySection {
   region: BodyRegion;
   status: 'finding' | 'clear' | 'unassessable';
@@ -99,7 +104,7 @@ export interface AnalysisResult {
   sessionId: string;
   position: PoseName;
   landmarks: readonly Landmark[];
-  topCorrections: readonly FeedbackItem[];
+  topCorrections: readonly CorrectionFeedbackItem[];
   fullBodyReview: readonly FullBodySection[];
   annotations: readonly DrawingCommand[];
   createdAt: string;

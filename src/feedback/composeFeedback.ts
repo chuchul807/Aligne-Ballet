@@ -1,10 +1,10 @@
-import type { BodyRegion, FeedbackItem, FullBodySection, Observation, Priority } from '../domain/types';
+import type { BodyRegion, CorrectionFeedbackItem, FeedbackItem, FullBodySection, Observation, Priority } from '../domain/types';
 import { feedbackCopyFor } from './copy';
 
 export type AssessmentCoverage = Readonly<Record<BodyRegion, 'assessable' | 'unassessable'>>;
 
 export interface FeedbackSummary {
-  topCorrections: readonly FeedbackItem[];
+  topCorrections: readonly CorrectionFeedbackItem[];
   fullBodyReview: readonly FullBodySection[];
 }
 
@@ -25,13 +25,15 @@ function isActionable(observation: Observation): observation is Extract<Observat
   return observation.assessability === 'assessable' && (observation.confidence === 'high' || observation.confidence === 'medium');
 }
 
-function toFeedbackItem(observation: Extract<Observation, { assessability: 'assessable' }> & { confidence: 'high' | 'medium' }): FeedbackItem {
+function toFeedbackItem(observation: Extract<Observation, { assessability: 'assessable' }> & { confidence: 'high' | 'medium' }): CorrectionFeedbackItem {
   return {
     observationId: observation.id,
+    ruleId: observation.ruleId,
     text: feedbackCopyFor(observation.ruleId, observation.confidence),
     region: observation.region,
     priority: observation.priority,
     confidence: observation.confidence,
+    direction: observation.direction,
   };
 }
 

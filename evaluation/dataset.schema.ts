@@ -15,6 +15,8 @@ export const correctionLabelSchema = z.object({
   direction: z.string().trim().min(1),
 });
 
+export type CorrectionLabel = z.infer<typeof correctionLabelSchema>;
+
 export const labelledCaseSchema = z.object({
   id: z.string().min(1),
   position: z.enum(['arabesque', 'attitude-derriere', 'retire-passe']),

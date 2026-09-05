@@ -22,7 +22,7 @@ function result(): AnalysisResult {
     annotations: [],
     fullBodyReview: [],
     createdAt: '2026-09-03T12:00:00.000Z',
-    topCorrections: [{ observationId: 'one', text: 'Lengthen your working leg back and slightly upward without changing your pelvis.', region: 'working-leg', priority: 'line', confidence: 'high' }],
+    topCorrections: [{ observationId: 'one', ruleId: 'arabesque-working-leg-too-low', direction: 'lift-working-leg', text: 'Lengthen your working leg back and slightly upward without changing your pelvis.', region: 'working-leg', priority: 'line', confidence: 'high' }],
   };
 }
 
@@ -64,7 +64,7 @@ describe('renderDownload', () => {
     const fourCanvas = canvasFor(fourContext);
     const createElement = vi.spyOn(document, 'createElement').mockReturnValueOnce(threeCanvas).mockReturnValueOnce(fourCanvas);
     const corrections = ['First correction.', 'Second correction.', 'Third correction.', 'Fourth correction must never be rendered.'].map((text, index) => ({
-      observationId: String(index + 1), text, region: 'working-leg' as const, priority: 'line' as const, confidence: 'high' as const,
+      observationId: String(index + 1), ruleId: 'arabesque-working-leg-too-low', direction: 'lift-working-leg', text, region: 'working-leg' as const, priority: 'line' as const, confidence: 'high' as const,
     }));
     const image = { width: 1000, height: 200 } as unknown as CanvasImageSource;
 

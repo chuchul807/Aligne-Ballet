@@ -52,6 +52,7 @@ describe('composeFeedback', () => {
     const summary = composeFeedback([lineIssue, structureIssue, stabilityIssue, secondLineIssue], allRegionsAssessable);
 
     expect(summary.topCorrections.map((item) => item.priority)).toEqual(['stability', 'structure', 'line']);
+    expect(summary.topCorrections.map((item) => item.direction)).toEqual(['correct it', 'correct it', 'correct it']);
   });
 
   it('uses severity then rule ID as stable tie breakers', () => {
