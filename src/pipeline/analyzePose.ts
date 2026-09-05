@@ -1,0 +1,118 @@
+import { measurePose, type MeasurementSet } from '../analysis/measurePose';
+import { buildAnnotationCommands } from '../annotation/buildCommands';
+import type { DrawingCommand, Landmark, Observation, AnalysisResult, PoseName, SupportingSide, ViewType } from '../domain/types';
+import { composeFeedback, type FeedbackSummary } from '../feedback/composeFeedback';
+import { decodeImage, type DecodedImage } from '../image/decodeImage';
+import { measureImageMetrics, type ImageMetrics } from '../image/imageMetrics';
+import type { PoseDetector } from '../pose/PoseDetector';
+import { evaluateQuality } from '../quality/evaluateQuality';
+import type { QualityReport } from '../quality/types';
+import { ATTITUDE_RULES } from '../rules/attitudeRules';
+import { ARABESQUE_RULES } from '../rules/arabesqueRules';
+import { COMMON_RULES } from '../rules/commonRules';
+import { evaluateRules } from '../rules/evaluateRules';
+import { RETIRE_RULES } from '../rules/retireRules';
+import type { Rule, RuleContext } from '../rules/types';
+
+export interface AnalysisRequest {
+  file: File;
+  position: PoseName;
+  supportingSide: SupportingSide;
+  expectedView: ViewType;
+}
+
+export type AnalysisOutcome =
+  | { status: 'retake'; quality: QualityReport }
+  | { status: 'success'; quality: QualityReport; result: AnalysisResult; decoded: DecodedImage }
+  | { status: 'error'; message: 'Analysis could not be completed. Please try again.' };
+
+export interface AnalysisServices {
+  detector: PoseDetector;
+  now?: () => string;
+  decode?: (file: File) => Promise<DecodedImage>;
+  metrics?: (source: CanvasImageSource, width: number, height: number) => ImageMetrics;
+  quality?: typeof evaluateQuality;
+  measure?: (landmarks: readonly Landmark[], supportingSide: SupportingSide) => MeasurementSet;
+  evaluate?: (rules: readonly Rule[], context: RuleContext) => readonly Observation[];
+  feedback?: (observations: readonly Observation[], coverage: Parameters<typeof composeFeedback>[1]) => FeedbackSummary;
+  annotations?: (observations: readonly Observation[], landmarks: readonly Landmark[], supportingSide: SupportingSide) => readonly DrawingCommand[];
+}
+
+function rulesFor(position: PoseName): readonly Rule[] {
+  const positionRules = position === 'arabesque'
+    ? ARABESQUE_RULES
+    : position === 'attitude-derriere'
+      ? ATTITUDE_RULES
+      : RETIRE_RULES;
+  return [...COMMON_RULES, ...positionRules];
+}
+
+function selectedObservations(observations: readonly Observation[], feedback: FeedbackSummary): readonly Observation[] {
+  const selected = new Set(feedback.topCorrections.map((item) => item.observationId));
+  return observations.filter((observation) => selected.has(observation.id));
+}
+
+/** Runs every expensive browser boundary once and leaves the decoded source owned by a successful caller. */
+export async function analyzePose(request: AnalysisRequest, services: AnalysisServices): Promise<AnalysisOutcome> {
+  const decode = services.decode ?? decodeImage;
+  const metrics = services.metrics ?? measureImageMetrics;
+  const quality = services.quality ?? evaluateQuality;
+  const measure = services.measure ?? measurePose;
+  const evaluate = services.evaluate ?? evaluateRules;
+  const feedback = services.feedback ?? composeFeedback;
+  const annotations = services.annotations ?? buildAnnotationCommands;
+  const now = services.now ?? (() => new Date().toISOString());
+  let decoded: DecodedImage | null = null;
+
+  try {
+    decoded = await decode(request.file);
+    const pixelMetrics = metrics(decoded.source, decoded.width, decoded.height);
+    const landmarkSet = await services.detector.detect(decoded.source, decoded.width, decoded.height);
+    const qualityReport = quality({
+      landmarks: landmarkSet,
+      position: request.position,
+      supportingSide: request.supportingSide,
+      expectedView: request.expectedView,
+      metrics: pixelMetrics,
+    });
+
+    if (qualityReport.status === 'fail') {
+      decoded.dispose();
+      return { status: 'retake', quality: qualityReport };
+    }
+
+    const landmarks = landmarkSet.people[0];
+    if (!landmarks) {
+      decoded.dispose();
+      return { status: 'error', message: 'Analysis could not be completed. Please try again.' };
+    }
+    const measurements = measure(landmarks, request.supportingSide);
+    const observations = evaluate(rulesFor(request.position), {
+      position: request.position,
+      supportingSide: request.supportingSide,
+      view: request.expectedView,
+      landmarks,
+      measurements,
+    });
+    const summary = feedback(observations, Object.fromEntries(
+      ['supporting-leg', 'working-leg', 'pelvis', 'torso', 'shoulders-arms', 'head', 'feet'].map((region) => [
+        region,
+        qualityReport.unassessableRegions.includes(region as import('../domain/types').BodyRegion) ? 'unassessable' : 'assessable',
+      ]),
+    ) as Parameters<typeof composeFeedback>[1]);
+    const markedObservations = selectedObservations(observations, summary);
+    const result: AnalysisResult = {
+      sessionId: crypto.randomUUID(),
+      position: request.position,
+      landmarks,
+      topCorrections: summary.topCorrections,
+      fullBodyReview: summary.fullBodyReview,
+      annotations: annotations(markedObservations, landmarks, request.supportingSide),
+      createdAt: now(),
+    };
+    return { status: 'success', quality: qualityReport, result, decoded };
+  } catch {
+    decoded?.dispose();
+    return { status: 'error', message: 'Analysis could not be completed. Please try again.' };
+  }
+}

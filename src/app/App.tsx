@@ -1,102 +1,77 @@
-import { useReducer, useState } from 'react';
-import type { PoseName, SupportingSide } from '../domain/types';
+import { useEffect, useReducer, useRef, useState } from 'react';
+import type { DecodedImage } from '../image/decodeImage';
+import type { PoseName, SupportingSide, ViewType } from '../domain/types';
+import type { AnalysisResult } from '../domain/types';
+import { createMediaPipePoseDetector } from '../pose/MediaPipePoseDetector';
+import type { PoseDetector } from '../pose/PoseDetector';
+import { analyzePose, type AnalysisServices } from '../pipeline/analyzePose';
 import { initialSessionState, sessionReducer } from '../session/sessionReducer';
+import { CheckCard } from '../ui/CheckCard';
+import { FrameCard } from '../ui/FrameCard';
+import { ResultCard } from '../ui/ResultCard';
+import { SelectCard } from '../ui/SelectCard';
 import { StepTabs } from '../ui/StepTabs';
 
-const positionLabels: Record<PoseName, string> = {
-  arabesque: 'Arabesque',
-  'attitude-derriere': 'Attitude derrière',
-  'retire-passe': 'Retiré passé',
-};
+export interface AppServices {
+  createDetector(): Promise<PoseDetector>;
+  now(): string;
+  analysis?: Omit<AnalysisServices, 'detector' | 'now'>;
+}
 
-export function App() {
+const browserServices: AppServices = { createDetector: createMediaPipePoseDetector, now: () => new Date().toISOString() };
+const viewFor = (position: PoseName): ViewType => position === 'retire-passe' ? 'front' : 'three-quarter-side';
+
+export function App({ services = browserServices }: { services?: AppServices }) {
   const [session, dispatch] = useReducer(sessionReducer, initialSessionState);
   const [position, setPosition] = useState<PoseName>('arabesque');
   const [supportingSide, setSupportingSide] = useState<SupportingSide>('left');
+  const [isAnalysing, setIsAnalysing] = useState(false);
+  const [pendingResult, setPendingResult] = useState<AnalysisResult | null>(null);
+  const detector = useRef<PoseDetector | null>(null);
+  const decoded = useRef<DecodedImage | null>(null);
+  const previewUrl = useRef<string | null>(null);
 
-  const confirmSelection = () => {
-    dispatch({ type: 'selection-confirmed', position, supportingSide });
+  const releaseImage = () => {
+    decoded.current?.dispose(); decoded.current = null;
+    if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
+    previewUrl.current = null;
+  };
+  useEffect(() => () => { releaseImage(); detector.current?.close(); detector.current = null; }, []);
+
+  const beginAnalysis = async (file: File) => {
+    if (!session.position || !session.supportingSide) return;
+    setIsAnalysing(true);
+    try {
+      detector.current ??= await services.createDetector();
+      const outcome = await analyzePose({ file, position: session.position, supportingSide: session.supportingSide, expectedView: viewFor(session.position) }, { detector: detector.current, now: services.now, ...services.analysis });
+      if (outcome.status === 'retake') dispatch({ type: 'quality-completed', report: outcome.quality });
+      else if (outcome.status === 'success') {
+        decoded.current?.dispose(); decoded.current = outcome.decoded;
+        setPendingResult(outcome.result);
+        dispatch({ type: 'quality-completed', report: outcome.quality });
+      } else dispatch({ type: 'analysis-failed', message: outcome.message });
+    } catch {
+      dispatch({ type: 'analysis-failed', message: 'Analysis could not be completed. Please try again.' });
+    } finally { setIsAnalysing(false); }
   };
 
-  return (
-    <div className="app-shell">
-      <main className="app-card" aria-label="ALIGNÉ ballet feedback">
-        <header className="app-header">
-          <p className="eyebrow">ALIGNÉ</p>
-          <h1>Practice with a clearer eye</h1>
-          <p>One focused check at a time.</p>
-        </header>
+  const selectFile = (file: File) => {
+    releaseImage(); setPendingResult(null); previewUrl.current = URL.createObjectURL(file);
+    dispatch({ type: 'image-selected', image: { file, previewUrl: previewUrl.current } });
+    void beginAnalysis(file);
+  };
+  const reset = () => { releaseImage(); setPendingResult(null); dispatch({ type: 'reset' }); setPosition('arabesque'); setSupportingSide('left'); };
 
-        <StepTabs
-          stage={session.stage}
-          unlockedStages={session.unlockedStages}
-          onSelect={(stage) => dispatch({ type: 'stage-requested', stage })}
-        />
-
-        {session.stage === 'select' && (
-          <section className="stage-card" id="select-stage" role="tabpanel" aria-label="Select">
-            <p className="stage-kicker">Step 1 of 4</p>
-            <h2>Choose your position</h2>
-            <label htmlFor="position">Position</label>
-            <select
-              id="position"
-              value={position}
-              onChange={(event) => {
-                const nextPosition = event.target.value as PoseName;
-                setPosition(nextPosition);
-                dispatch({ type: 'position-changed', position: nextPosition });
-              }}
-            >
-              {Object.entries(positionLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}
-            </select>
-            <fieldset>
-              <legend>Supporting side</legend>
-              <div className="choice-row">
-                {(['left', 'right'] as const).map((side) => (
-                  <button
-                    className={supportingSide === side ? 'choice selected' : 'choice'}
-                    type="button"
-                    key={side}
-                    aria-pressed={supportingSide === side}
-                    onClick={() => setSupportingSide(side)}
-                  >
-                    {side === 'left' ? 'Left' : 'Right'}
-                    {supportingSide === side && <><span aria-hidden="true"> </span><span className="selected-copy">Selected</span></>}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            <button className="primary-action" type="button" onClick={confirmSelection}>Continue to framing</button>
-          </section>
-        )}
-
-        {session.stage === 'frame' && (
-          <section className="stage-card" id="frame-stage" role="tabpanel" aria-label="Frame">
-            <p className="stage-kicker">Step 2 of 4</p>
-            <h2>Frame your photo</h2>
-            <p>Use a clear, full-body photo from the recommended angle. Photo selection will be available in the next step of this experience.</p>
-            <div className="status-note"><span aria-hidden="true">◌</span> Ready when your full body is visible.</div>
-            <button className="secondary-action" type="button" onClick={() => dispatch({ type: 'stage-requested', stage: 'select' })}>Edit selection</button>
-          </section>
-        )}
-
-        {session.stage === 'check' && (
-          <section className="stage-card" id="check-stage" role="tabpanel" aria-label="Check">
-            <p className="stage-kicker">Step 3 of 4</p>
-            <h2>Photo check</h2>
-            <p>Your framing check will appear here once a photo is selected.</p>
-            <div className="status-note"><span aria-hidden="true">◌</span> Waiting for a photo.</div>
-          </section>
-        )}
-
-        {session.stage === 'result' && (
-          <section className="stage-card" id="result-stage" role="tabpanel" aria-label="Result">
-            <p className="stage-kicker">Step 4 of 4</p>
-            <h2>Your feedback</h2>
-            <p>Your focused corrections will appear here after analysis.</p>
-          </section>
-        )}
-      </main>
-    </div>
-  );
+  return <div className="app-shell"><main className="app-card" aria-label="ALIGNÉ ballet feedback">
+    <header className="app-header"><p className="eyebrow">ALIGNÉ</p><h1>Practice with a clearer eye</h1><p>One focused check at a time.</p></header>
+    <StepTabs stage={session.stage} unlockedStages={session.unlockedStages} onSelect={(stage) => dispatch({ type: 'stage-requested', stage })} />
+    {session.stage === 'select' && <SelectCard position={position} supportingSide={supportingSide} onPositionChange={(next) => { setPosition(next); dispatch({ type: 'position-changed', position: next }); }} onSupportingSideChange={setSupportingSide} onConfirm={() => dispatch({ type: 'selection-confirmed', position, supportingSide })} />}
+    {session.stage === 'frame' && session.position && <FrameCard view={viewFor(session.position)} onFileSelected={selectFile} />}
+    {session.stage === 'check' && (isAnalysing
+      ? <section className="stage-card" aria-label="Photo check"><p role="status" className="status-note">Checking your photo…</p></section>
+      : session.quality
+        ? <CheckCard report={session.quality} onAnalyse={() => { if (pendingResult) dispatch({ type: 'analysis-succeeded', result: pendingResult }); }} onRetake={() => dispatch({ type: 'stage-requested', stage: 'frame' })} />
+        : <section className="stage-card" aria-label="Photo check"><p role="alert">{session.error}</p>{session.image && <button className="primary-action" type="button" onClick={() => void beginAnalysis(session.image!.file)}>Try again</button>}</section>)}
+    {session.stage === 'result' && session.result && <ResultCard result={session.result} image={decoded.current?.source ?? null} onAnotherPhoto={reset} />}
+  </main></div>;
 }
