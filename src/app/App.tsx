@@ -43,7 +43,10 @@ export function App({ services = browserServices }: { services?: AppServices }) 
     releaseImage(); detector.current?.close(); detector.current = null;
   }, []);
 
-  const invalidateAnalysis = () => { generation.current += 1; };
+  const cancelAnalysis = () => {
+    generation.current += 1;
+    if (mounted.current) setIsAnalysing(false);
+  };
 
   const beginAnalysis = async (file: File) => {
     if (!session.position || !session.supportingSide) return;
@@ -76,21 +79,21 @@ export function App({ services = browserServices }: { services?: AppServices }) 
   };
 
   const selectFile = (file: File) => {
-    releaseImage(); setPendingResult(null); previewUrl.current = URL.createObjectURL(file);
+    cancelAnalysis(); releaseImage(); setPendingResult(null); previewUrl.current = URL.createObjectURL(file);
     dispatch({ type: 'image-selected', image: { file, previewUrl: previewUrl.current } });
     void beginAnalysis(file);
   };
-  const reset = () => { invalidateAnalysis(); releaseImage(); setPendingResult(null); dispatch({ type: 'reset' }); setPosition('arabesque'); setSupportingSide('left'); };
+  const reset = () => { cancelAnalysis(); releaseImage(); setPendingResult(null); dispatch({ type: 'reset' }); setPosition('arabesque'); setSupportingSide('left'); };
 
   return <div className="app-shell"><main className="app-card" aria-label="ALIGNÉ ballet feedback">
     <header className="app-header"><p className="eyebrow">ALIGNÉ</p><h1>Practice with a clearer eye</h1><p>One focused check at a time.</p></header>
-    <StepTabs stage={session.stage} unlockedStages={session.unlockedStages} onSelect={(stage) => { invalidateAnalysis(); dispatch({ type: 'stage-requested', stage }); }} />
-    {session.stage === 'select' && <SelectCard position={position} supportingSide={supportingSide} onPositionChange={(next) => { invalidateAnalysis(); setPosition(next); dispatch({ type: 'position-changed', position: next }); }} onSupportingSideChange={(next) => { invalidateAnalysis(); setSupportingSide(next); }} onConfirm={() => { invalidateAnalysis(); dispatch({ type: 'selection-confirmed', position, supportingSide }); }} />}
+    <StepTabs stage={session.stage} unlockedStages={session.unlockedStages} onSelect={(stage) => { if (stage !== session.stage) { cancelAnalysis(); dispatch({ type: 'stage-requested', stage }); } }} />
+    {session.stage === 'select' && <SelectCard position={position} supportingSide={supportingSide} onPositionChange={(next) => { cancelAnalysis(); setPosition(next); dispatch({ type: 'position-changed', position: next }); }} onSupportingSideChange={(next) => { cancelAnalysis(); setSupportingSide(next); }} onConfirm={() => { cancelAnalysis(); dispatch({ type: 'selection-confirmed', position, supportingSide }); }} />}
     {session.stage === 'frame' && session.position && <FrameCard view={viewFor(session.position)} onFileSelected={selectFile} />}
     {session.stage === 'check' && (isAnalysing
       ? <section className="stage-card" aria-label="Photo check"><p role="status" className="status-note">Checking your photo…</p></section>
       : session.quality
-        ? <CheckCard report={session.quality} onAnalyse={() => { if (pendingResult) dispatch({ type: 'analysis-succeeded', result: pendingResult }); }} onRetake={() => { invalidateAnalysis(); dispatch({ type: 'stage-requested', stage: 'frame' }); }} />
+        ? <CheckCard report={session.quality} onAnalyse={() => { if (pendingResult) dispatch({ type: 'analysis-succeeded', result: pendingResult }); }} onRetake={() => { cancelAnalysis(); dispatch({ type: 'stage-requested', stage: 'frame' }); }} />
         : <section className="stage-card" aria-label="Photo check"><p role="alert">{session.error}</p>{session.image && <button className="primary-action" type="button" onClick={() => void beginAnalysis(session.image!.file)}>Try again</button>}</section>)}
     {session.stage === 'result' && session.result && <ResultCard result={session.result} image={decoded.current?.source ?? null} onAnotherPhoto={reset} />}
   </main></div>;

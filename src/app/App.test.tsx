@@ -96,4 +96,49 @@ describe('App', () => {
     detection.resolve({ people: [landmarkPerson()], sourceWidth: 1000, sourceHeight: 1500 });
     await waitFor(() => expect(dispose).toHaveBeenCalledOnce());
   });
+
+  it('keeps the active Check tab analysis alive and completes its result path', async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    const detection = deferred<LandmarkSet>();
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+    render(<App services={{
+      createDetector: vi.fn().mockResolvedValue({ detect: vi.fn(() => detection.promise), close: vi.fn() }), now: () => '2026-09-03T12:00:00.000Z',
+      analysis: { decode: vi.fn().mockResolvedValue({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose: vi.fn() }), metrics: vi.fn(() => ({ meanLuminance: .5, contrast: .2, edgeEnergy: .1 })), quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })) },
+    }} />);
+
+    await user.click(screen.getByRole('button', { name: 'Continue to framing' }));
+    await user.upload(screen.getByLabelText('Choose a photo'), new File(['photo'], 'pose.jpg', { type: 'image/jpeg' }));
+    expect(screen.getByRole('status')).toHaveTextContent('Checking your photo');
+    await user.click(screen.getByRole('tab', { name: 'Check' }));
+    detection.resolve({ people: [landmarkPerson()], sourceWidth: 1000, sourceHeight: 1500 });
+    await user.click(await screen.findByRole('button', { name: 'Analyse position' }));
+    expect(screen.getByLabelText('Your feedback')).toBeInTheDocument();
+  });
+
+  it('clears cancelled progress after leaving Check and protects a replacement analysis from the old finally', async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    const firstDetection = deferred<LandmarkSet>();
+    const secondDetection = deferred<LandmarkSet>();
+    const detect = vi.fn().mockImplementationOnce(() => firstDetection.promise).mockImplementationOnce(() => secondDetection.promise);
+    const firstDispose = vi.fn();
+    const secondDispose = vi.fn();
+    render(<App services={{
+      createDetector: vi.fn().mockResolvedValue({ detect, close: vi.fn() }), now: () => '2026-09-03T12:00:00.000Z',
+      analysis: { decode: vi.fn().mockResolvedValueOnce({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose: firstDispose }).mockResolvedValueOnce({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose: secondDispose }), metrics: vi.fn(() => ({ meanLuminance: .5, contrast: .2, edgeEnergy: .1 })), quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })) },
+    }} />);
+
+    await user.click(screen.getByRole('button', { name: 'Continue to framing' }));
+    await user.upload(screen.getByLabelText('Choose a photo'), new File(['photo'], 'pose.jpg', { type: 'image/jpeg' }));
+    await user.click(screen.getByRole('tab', { name: 'Frame' }));
+    expect(screen.getByLabelText('Photo framing')).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Check' }));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    firstDetection.resolve({ people: [landmarkPerson()], sourceWidth: 1000, sourceHeight: 1500 });
+    await waitFor(() => expect(firstDispose).toHaveBeenCalledOnce());
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    secondDetection.resolve({ people: [landmarkPerson()], sourceWidth: 1000, sourceHeight: 1500 });
+    expect(await screen.findByRole('button', { name: 'Analyse position' })).toBeEnabled();
+  });
 });
