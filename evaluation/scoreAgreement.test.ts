@@ -76,4 +76,10 @@ describe('scoreAgreement', () => {
 
     expect(report).toMatchObject({ assessableCount: 0, rate: 0, passesTarget: false, unassessableCount: 0, qualityGateRate: null });
   });
+
+  it('keeps the primary gate false while calculating an unassessable quality-gate rate without assessable photos', () => {
+    const report = scoreAgreement([{ ...caseWithTwoMatches, assessable: false, actualTop3: [] }]);
+
+    expect(report).toMatchObject({ assessableCount: 0, rate: 0, passesTarget: false, unassessableCount: 1, qualityGateRate: 1 });
+  });
 });

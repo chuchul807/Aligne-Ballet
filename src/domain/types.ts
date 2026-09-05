@@ -91,6 +91,7 @@ export interface FeedbackItem {
 
 export interface CorrectionFeedbackItem extends FeedbackItem {
   ruleId: string;
+  /** Natural-language audit context; evaluation uses the ruleId codebook instead. */
   direction: string;
 }
 
