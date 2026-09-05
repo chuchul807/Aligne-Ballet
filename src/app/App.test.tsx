@@ -61,6 +61,21 @@ describe('App', () => {
     expect(screen.queryByLabelText('Photo check')).not.toBeInTheDocument();
   });
 
+  it('shows an actionable Retake photo control for decoded dimension failures instead of the generic error', async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    render(<App services={{
+      createDetector: vi.fn().mockResolvedValue({ detect: vi.fn(), close: vi.fn() }), now: () => '2026-09-03T12:00:00.000Z',
+      analysis: { decode: vi.fn().mockRejectedValue({ code: 'image-too-small' }) },
+    }} />);
+
+    await user.click(screen.getByRole('button', { name: 'Continue to framing' }));
+    await user.upload(screen.getByLabelText('Choose a photo'), new File(['photo'], 'pose.jpg', { type: 'image/jpeg' }));
+
+    expect(await screen.findByRole('button', { name: 'Retake photo' })).toBeEnabled();
+    expect(screen.getByRole('alert')).toHaveTextContent('shortest side of at least 480 pixels');
+    expect(screen.queryByText('Analysis could not be completed. Please try again.')).toBeNull();
+  });
+
   it('ignores and disposes a stale analysis after the position changes', async () => {
     const user = userEvent.setup({ applyAccept: false });
     const detection = deferred<LandmarkSet>();

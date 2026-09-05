@@ -6,6 +6,7 @@ import { decodeImage, type DecodedImage } from '../image/decodeImage';
 import { measureImageMetrics, type ImageMetrics } from '../image/imageMetrics';
 import type { PoseDetector } from '../pose/PoseDetector';
 import { evaluateQuality } from '../quality/evaluateQuality';
+import { QUALITY_MESSAGES } from '../quality/messages';
 import type { QualityReport } from '../quality/types';
 import { ATTITUDE_RULES } from '../rules/attitudeRules';
 import { ARABESQUE_RULES } from '../rules/arabesqueRules';
@@ -48,8 +49,17 @@ function rulesFor(position: PoseName): readonly Rule[] {
 }
 
 function selectedObservations(observations: readonly Observation[], feedback: FeedbackSummary): readonly Observation[] {
-  const selected = new Set(feedback.topCorrections.map((item) => item.observationId));
-  return observations.filter((observation) => selected.has(observation.id));
+  const byId = new Map(observations.map((observation) => [observation.id, observation]));
+  return feedback.topCorrections.flatMap((item) => {
+    const observation = byId.get(item.observationId);
+    return observation ? [observation] : [];
+  });
+}
+
+function dimensionRetake(error: unknown): QualityReport | null {
+  const code = typeof error === 'object' && error !== null && 'code' in error ? error.code : null;
+  if (code !== 'image-too-small' && code !== 'image-too-large') return null;
+  return { status: 'fail', reasons: [{ code, message: QUALITY_MESSAGES[code] }], unassessableRegions: [] };
 }
 
 /** Runs every expensive browser boundary once and leaves the decoded source owned by a successful caller. */
@@ -94,10 +104,13 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
       landmarks,
       measurements,
     });
+    const ruleUnassessableRegions = new Set(observations
+      .filter((observation) => observation.assessability === 'unassessable')
+      .map((observation) => observation.region));
     const summary = feedback(observations, Object.fromEntries(
       ['supporting-leg', 'working-leg', 'pelvis', 'torso', 'shoulders-arms', 'head', 'feet'].map((region) => [
         region,
-        qualityReport.unassessableRegions.includes(region as import('../domain/types').BodyRegion) ? 'unassessable' : 'assessable',
+        qualityReport.unassessableRegions.includes(region as import('../domain/types').BodyRegion) || ruleUnassessableRegions.has(region as import('../domain/types').BodyRegion) ? 'unassessable' : 'assessable',
       ]),
     ) as Parameters<typeof composeFeedback>[1]);
     const markedObservations = selectedObservations(observations, summary);
@@ -111,8 +124,10 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
       createdAt: now(),
     };
     return { status: 'success', quality: qualityReport, result, decoded };
-  } catch {
+  } catch (error) {
     decoded?.dispose();
+    const quality = dimensionRetake(error);
+    if (quality) return { status: 'retake', quality };
     return { status: 'error', message: 'Analysis could not be completed. Please try again.' };
   }
 }

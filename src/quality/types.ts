@@ -9,7 +9,9 @@ export type QualityReasonCode =
   | 'too-dark'
   | 'too-bright'
   | 'low-contrast'
-  | 'blurred';
+  | 'blurred'
+  | 'image-too-small'
+  | 'image-too-large';
 
 export interface QualityReason {
   code: QualityReasonCode;

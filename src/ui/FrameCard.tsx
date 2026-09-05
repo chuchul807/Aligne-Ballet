@@ -21,7 +21,7 @@ const guides: Record<ViewType, { title: string; instruction: string }> = {
 
 const errors: Record<Extract<ImageErrorCode, 'unsupported-type' | 'file-too-large'>, string> = {
   'unsupported-type': 'Choose a JPEG, PNG, or WebP photo.',
-  'file-too-large': 'Choose a photo smaller than 12 MiB.',
+  'file-too-large': 'Choose a photo that is 12 MiB or smaller.',
 };
 
 export function FrameCard({ view, onFileSelected }: FrameCardProps) {

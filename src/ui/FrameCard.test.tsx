@@ -27,4 +27,14 @@ describe('FrameCard', () => {
     expect(onFileSelected).toHaveBeenCalledOnce();
     expect(onFileSelected).toHaveBeenCalledWith(file);
   });
+
+  it('says that the inclusive file-size limit is 12 MiB', async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    render(<FrameCard view="front" onFileSelected={vi.fn()} />);
+    const file = new File([new Uint8Array(12 * 1024 * 1024 + 1)], 'oversized.jpg', { type: 'image/jpeg' });
+
+    await user.upload(screen.getByLabelText('Choose a photo'), file);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Choose a photo that is 12 MiB or smaller.');
+  });
 });
