@@ -1,11 +1,8 @@
+import { cloudflare } from '@cloudflare/vite-plugin';
+import { sites } from '@openai/sites-vite-plugin';
 import react from '@vitejs/plugin-react';
-import { configDefaults, defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
-  plugins: [react()],
-  test: {
-    environment: 'jsdom',
-    setupFiles: './src/test/setup.ts',
-    exclude: [...configDefaults.exclude, 'tests/e2e/**', '.worktrees/**', '.pnpm-store/**'],
-  },
+  plugins: [react(), sites(), cloudflare({ viteEnvironment: { name: 'server' } })],
 });
