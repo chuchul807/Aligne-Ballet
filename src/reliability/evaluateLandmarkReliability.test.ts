@@ -35,6 +35,19 @@ describe('evaluateLandmarkReliability', () => {
     });
   });
 
+  it('rejects a collapsed arm chain with a non-finite segment ratio', () => {
+    const collapsed = landmarkPerson().map((point) => (
+      point.name === 'left_shoulder' || point.name === 'left_elbow' || point.name === 'left_wrist'
+        ? { ...point, x: 0.4, y: 0.3 }
+        : point
+    ));
+
+    expect(evaluateLandmarkReliability(collapsed, 'front').get('left_elbow')).toMatchObject({
+      assessability: 'unassessable',
+      reasons: expect.arrayContaining(['implausible-chain']),
+    });
+  });
+
   it('marks overlapping same-joint sides ambiguous without changing unrelated joints', () => {
     const overlapped = overlapPair(landmarkPerson(), 'left_wrist', 'right_wrist');
     const result = evaluateLandmarkReliability(overlapped, 'three-quarter-side');

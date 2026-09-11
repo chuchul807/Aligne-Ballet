@@ -117,8 +117,7 @@ export function evaluateLandmarkReliability(
     const secondSegment = distance(middle, last);
     const ratio = firstSegment / secondSegment;
     if (
-      ratio < MIN_ADJACENT_SEGMENT_RATIO
-      || ratio > MAX_ADJACENT_SEGMENT_RATIO
+      !(ratio >= MIN_ADJACENT_SEGMENT_RATIO && ratio <= MAX_ADJACENT_SEGMENT_RATIO)
       || (torso !== null && torso > 0 && (
         firstSegment > MAX_CONNECTED_SEGMENT_IN_TORSOS * torso
         || secondSegment > MAX_CONNECTED_SEGMENT_IN_TORSOS * torso
