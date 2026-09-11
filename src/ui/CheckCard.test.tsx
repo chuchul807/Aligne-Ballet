@@ -16,6 +16,13 @@ const failedReport: QualityReport = {
 };
 
 describe('CheckCard', () => {
+  it('shows the resize notice without adding another step', () => {
+    render(<CheckCard report={{ status: 'pass', reasons: [], unassessableRegions: [], imageWasResized: true }} onRetake={vi.fn()} onAnalyse={vi.fn()} />);
+
+    expect(screen.getByText('Large photo resized for analysis. Its proportions were preserved.')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Analyse position' })).toBeEnabled();
+  });
+
   it('lists every retake reason in an alert and never offers analysis for a failed check', async () => {
     const onRetake = vi.fn();
     const user = userEvent.setup();

@@ -13,6 +13,7 @@ import { ATTITUDE_RULES } from '../rules/attitudeRules';
 import { ARABESQUE_RULES } from '../rules/arabesqueRules';
 import { COMMON_RULES } from '../rules/commonRules';
 import { evaluateRules } from '../rules/evaluateRules';
+import { deduplicateObservations } from '../rules/deduplicateObservations';
 import { RETIRE_RULES } from '../rules/retireRules';
 import type { Rule, RuleContext } from '../rules/types';
 
@@ -34,8 +35,10 @@ export interface AnalysisServices {
   decode?: (file: File) => Promise<DecodedImage>;
   metrics?: (source: CanvasImageSource, width: number, height: number) => ImageMetrics;
   quality?: typeof evaluateQuality;
+  reliability?: typeof evaluateLandmarkReliability;
   measure?: (landmarks: readonly Landmark[], supportingSide: SupportingSide, reliability: LandmarkReliabilityMap, view: ViewType) => MeasurementSet;
   evaluate?: (rules: readonly Rule[], context: RuleContext) => readonly Observation[];
+  deduplicate?: typeof deduplicateObservations;
   feedback?: (observations: readonly Observation[], coverage: Parameters<typeof composeFeedback>[1]) => FeedbackSummary;
   annotations?: (observations: readonly Observation[], landmarks: readonly Landmark[], reliability: LandmarkReliabilityMap, supportingSide: SupportingSide) => readonly DrawingCommand[];
 }
@@ -57,7 +60,7 @@ function selectedObservations(observations: readonly Observation[], feedback: Fe
   });
 }
 
-function dimensionRetake(error: unknown): QualityReport | null {
+function imageRetake(error: unknown): QualityReport | null {
   const code = typeof error === 'object' && error !== null && 'code' in error ? error.code : null;
   if (code !== 'image-too-small' && code !== 'normalisation-failed') return null;
   return { status: 'fail', reasons: [{ code, message: QUALITY_MESSAGES[code] }], unassessableRegions: [] };
@@ -68,8 +71,10 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
   const decode = services.decode ?? decodeImage;
   const metrics = services.metrics ?? measureImageMetrics;
   const quality = services.quality ?? evaluateQuality;
+  const reliabilityFor = services.reliability ?? evaluateLandmarkReliability;
   const measure = services.measure ?? measurePose;
   const evaluate = services.evaluate ?? evaluateRules;
+  const deduplicate = services.deduplicate ?? deduplicateObservations;
   const feedback = services.feedback ?? composeFeedback;
   const annotations = services.annotations ?? buildAnnotationCommands;
   const now = services.now ?? (() => new Date().toISOString());
@@ -79,13 +84,18 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
     decoded = await decode(request.file);
     const pixelMetrics = metrics(decoded.source, decoded.width, decoded.height);
     const landmarkSet = await services.detector.detect(decoded.source, decoded.width, decoded.height);
-    const qualityReport = quality({
+    const qualityResult = quality({
       landmarks: landmarkSet,
       position: request.position,
       supportingSide: request.supportingSide,
       expectedView: request.expectedView,
       metrics: pixelMetrics,
     });
+
+    const qualityReport: QualityReport = {
+      ...qualityResult,
+      imageWasResized: decoded.normalisation.wasResized,
+    };
 
     if (qualityReport.status === 'fail') {
       decoded.dispose();
@@ -97,16 +107,16 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
       decoded.dispose();
       return { status: 'error', message: 'Analysis could not be completed. Please try again.' };
     }
-    const reliability = evaluateLandmarkReliability(landmarks, request.expectedView);
+    const reliability = reliabilityFor(landmarks, request.expectedView);
     const measurements = measure(landmarks, request.supportingSide, reliability, request.expectedView);
-    const observations = evaluate(rulesFor(request.position), {
+    const observations = deduplicate(evaluate(rulesFor(request.position), {
       position: request.position,
       supportingSide: request.supportingSide,
       view: request.expectedView,
       landmarks,
       reliability,
       measurements,
-    });
+    }));
     const summary = feedback(observations, Object.fromEntries(
       ['supporting-leg', 'working-leg', 'pelvis', 'torso', 'shoulders-arms', 'head', 'feet'].map((region) => [
         region,
@@ -128,7 +138,7 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
     return { status: 'success', quality: qualityReport, result, decoded };
   } catch (error) {
     decoded?.dispose();
-    const quality = dimensionRetake(error);
+    const quality = imageRetake(error);
     if (quality) return { status: 'retake', quality };
     return { status: 'error', message: 'Analysis could not be completed. Please try again.' };
   }

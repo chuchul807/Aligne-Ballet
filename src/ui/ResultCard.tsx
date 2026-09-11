@@ -65,7 +65,7 @@ export function ResultCard({ result, image, onAnotherPhoto }: ResultCardProps) {
       <ol className="corrections">
         {result.topCorrections.map((correction) => <li key={correction.observationId}>{correction.text}</li>)}
       </ol>
-      <details>
+      <details open>
         <summary>Full-body review</summary>
         <div role="group" aria-label="Full-body review">
           {result.fullBodyReview.map((section) => (

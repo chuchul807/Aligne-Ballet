@@ -4,11 +4,23 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
 import { landmarkPerson } from '../../tests/builders/landmarks';
 import type { LandmarkSet } from '../domain/types';
+import type { DecodedImage } from '../image/decodeImage';
+import * as annotation from '../annotation/drawAnnotatedPose';
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
   const promise = new Promise<T>((next) => { resolve = next; });
   return { promise, resolve };
+}
+
+function decodedImage(source: HTMLCanvasElement, dispose = vi.fn(), wasResized = false): DecodedImage {
+  return {
+    source,
+    width: source.width,
+    height: source.height,
+    normalisation: { wasResized, originalWidth: wasResized ? 8000 : source.width, originalHeight: wasResized ? 4000 : source.height },
+    dispose,
+  };
 }
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
@@ -46,7 +58,7 @@ describe('App', () => {
       createDetector: vi.fn().mockResolvedValue({ detect: vi.fn().mockResolvedValue({ people: [landmarkPerson()], sourceWidth: 1000, sourceHeight: 1500 }), close: vi.fn() }),
       now: () => '2026-09-03T12:00:00.000Z',
       analysis: {
-        decode: vi.fn().mockResolvedValue({ source, width: 1000, height: 1500, dispose: vi.fn() }),
+        decode: vi.fn().mockResolvedValue(decodedImage(source)),
         metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
         quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })),
       },
@@ -59,6 +71,31 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Analyse position' }));
     expect(screen.getByLabelText('Your feedback')).toBeInTheDocument();
     expect(screen.queryByLabelText('Photo check')).not.toBeInTheDocument();
+  });
+
+  it('keeps the normalised source through Result and releases it on reset', async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    const source = document.createElement('canvas'); source.width = 4096; source.height = 2048;
+    const dispose = vi.fn();
+    const draw = vi.spyOn(annotation, 'drawAnnotatedPose').mockImplementation((canvas) => canvas);
+    render(<App services={{
+      createDetector: vi.fn().mockResolvedValue({ detect: vi.fn().mockResolvedValue({ people: [landmarkPerson()], sourceWidth: 4096, sourceHeight: 2048 }), close: vi.fn() }),
+      now: () => '2026-09-03T12:00:00.000Z',
+      analysis: {
+        decode: vi.fn().mockResolvedValue(decodedImage(source, dispose, true)),
+        metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
+        quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })),
+      },
+    }} />);
+
+    await user.click(screen.getByRole('button', { name: 'Continue to framing' }));
+    await user.upload(screen.getByLabelText('Choose a photo'), new File(['photo'], 'pose.jpg', { type: 'image/jpeg' }));
+    expect(await screen.findByText('Large photo resized for analysis. Its proportions were preserved.')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Analyse position' }));
+    await waitFor(() => expect(draw).toHaveBeenCalledWith(expect.any(HTMLCanvasElement), source, expect.anything(), expect.anything()));
+
+    await user.click(screen.getByRole('button', { name: 'Analyse another photo' }));
+    expect(dispose).toHaveBeenCalledOnce();
   });
 
   it('shows an actionable Retake photo control for decoded dimension failures instead of the generic error', async () => {
@@ -82,7 +119,7 @@ describe('App', () => {
     const dispose = vi.fn();
     render(<App services={{
       createDetector: vi.fn().mockResolvedValue({ detect: vi.fn(() => detection.promise), close: vi.fn() }), now: () => '2026-09-03T12:00:00.000Z',
-      analysis: { decode: vi.fn().mockResolvedValue({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose }), metrics: vi.fn(() => ({ meanLuminance: .5, contrast: .2, edgeEnergy: .1 })), quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })) },
+      analysis: { decode: vi.fn().mockResolvedValue(decodedImage(Object.assign(document.createElement('canvas'), { width: 1000, height: 1500 }), dispose, true)), metrics: vi.fn(() => ({ meanLuminance: .5, contrast: .2, edgeEnergy: .1 })), quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })) },
     }} />);
 
     await user.click(screen.getByRole('button', { name: 'Continue to framing' }));
@@ -102,7 +139,7 @@ describe('App', () => {
     const dispose = vi.fn();
     const rendered = render(<App services={{
       createDetector: vi.fn().mockResolvedValue({ detect: vi.fn(() => detection.promise), close: vi.fn() }), now: () => '2026-09-03T12:00:00.000Z',
-      analysis: { decode: vi.fn().mockResolvedValue({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose }), metrics: vi.fn(() => ({ meanLuminance: .5, contrast: .2, edgeEnergy: .1 })), quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })) },
+      analysis: { decode: vi.fn().mockResolvedValue(decodedImage(Object.assign(document.createElement('canvas'), { width: 1000, height: 1500 }), dispose)), metrics: vi.fn(() => ({ meanLuminance: .5, contrast: .2, edgeEnergy: .1 })), quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })) },
     }} />);
 
     await user.click(screen.getByRole('button', { name: 'Continue to framing' }));
@@ -118,7 +155,7 @@ describe('App', () => {
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
     render(<App services={{
       createDetector: vi.fn().mockResolvedValue({ detect: vi.fn(() => detection.promise), close: vi.fn() }), now: () => '2026-09-03T12:00:00.000Z',
-      analysis: { decode: vi.fn().mockResolvedValue({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose: vi.fn() }), metrics: vi.fn(() => ({ meanLuminance: .5, contrast: .2, edgeEnergy: .1 })), quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })) },
+      analysis: { decode: vi.fn().mockResolvedValue(decodedImage(Object.assign(document.createElement('canvas'), { width: 1000, height: 1500 }))), metrics: vi.fn(() => ({ meanLuminance: .5, contrast: .2, edgeEnergy: .1 })), quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })) },
     }} />);
 
     await user.click(screen.getByRole('button', { name: 'Continue to framing' }));
@@ -139,7 +176,7 @@ describe('App', () => {
     const secondDispose = vi.fn();
     render(<App services={{
       createDetector: vi.fn().mockResolvedValue({ detect, close: vi.fn() }), now: () => '2026-09-03T12:00:00.000Z',
-      analysis: { decode: vi.fn().mockResolvedValueOnce({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose: firstDispose }).mockResolvedValueOnce({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose: secondDispose }), metrics: vi.fn(() => ({ meanLuminance: .5, contrast: .2, edgeEnergy: .1 })), quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })) },
+      analysis: { decode: vi.fn().mockResolvedValueOnce(decodedImage(Object.assign(document.createElement('canvas'), { width: 1000, height: 1500 }), firstDispose)).mockResolvedValueOnce(decodedImage(Object.assign(document.createElement('canvas'), { width: 1000, height: 1500 }), secondDispose)), metrics: vi.fn(() => ({ meanLuminance: .5, contrast: .2, edgeEnergy: .1 })), quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })) },
     }} />);
 
     await user.click(screen.getByRole('button', { name: 'Continue to framing' }));

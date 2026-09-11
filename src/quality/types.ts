@@ -22,4 +22,5 @@ export interface QualityReport {
   status: 'pass' | 'partial' | 'fail';
   reasons: readonly QualityReason[];
   unassessableRegions: readonly BodyRegion[];
+  imageWasResized?: boolean;
 }

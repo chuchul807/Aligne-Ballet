@@ -42,6 +42,9 @@ export function CheckCard({ report, onRetake, onAnalyse }: CheckCardProps) {
         <PassedCheck>Camera view matches the guide</PassedCheck>
         <PassedCheck>Required joints visible</PassedCheck>
       </ul>
+      {report.imageWasResized && (
+        <p className="status-note">Large photo resized for analysis. Its proportions were preserved.</p>
+      )}
       {report.status === 'partial' && (
         <ul>
           {report.unassessableRegions.map((region) => (

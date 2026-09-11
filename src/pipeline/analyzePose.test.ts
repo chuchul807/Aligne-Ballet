@@ -3,7 +3,10 @@ import { landmarkPerson } from '../../tests/builders/landmarks';
 import type { LandmarkSet } from '../domain/types';
 import type { QualityReport } from '../quality/types';
 import type { Observation } from '../domain/types';
-import { analyzePose, type AnalysisRequest } from './analyzePose';
+import { evaluateLandmarkReliability } from '../reliability/evaluateLandmarkReliability';
+import { measurePose } from '../analysis/measurePose';
+import type { DecodedImage } from '../image/decodeImage';
+import { analyzePose, type AnalysisRequest, type AnalysisServices } from './analyzePose';
 
 const file = new File(['pose'], 'pose.jpg', { type: 'image/jpeg' });
 const request: AnalysisRequest = {
@@ -21,12 +24,72 @@ function observation(id: string, region: Observation['region'], priority: Observ
   return { id, ruleId: id === 'head-missing' ? 'head-extreme-lateral-tilt' : 'supporting-knee-bent', dedupeKey: id, region, priority, confidence: 'high', evidence: [], annotation: [], assessability: 'assessable', issue: 'Visible issue.', action: 'Correct it.', direction: 'correct it', severity };
 }
 
+function decodedImage(): DecodedImage {
+  const source = document.createElement('canvas');
+  source.width = 1000;
+  source.height = 1500;
+  return {
+    source,
+    width: 1000,
+    height: 1500,
+    normalisation: { wasResized: false, originalWidth: 1000, originalHeight: 1500 },
+    dispose: vi.fn(),
+  };
+}
+
+function resizedDecodedImage(
+  width: number,
+  height: number,
+  originalWidth: number,
+  originalHeight: number,
+): DecodedImage {
+  const source = document.createElement('canvas');
+  source.width = width;
+  source.height = height;
+  return {
+    source,
+    width,
+    height,
+    normalisation: { wasResized: true, originalWidth, originalHeight },
+    dispose: vi.fn(),
+  };
+}
+
+function servicesThatRecord(calls: string[], decoded: DecodedImage): AnalysisServices {
+  const landmarks = landmarkPerson();
+  const reliability = evaluateLandmarkReliability(landmarks, request.expectedView);
+  return {
+    detector: {
+      detect: async () => { calls.push('detect'); return { people: [landmarks], sourceWidth: decoded.width, sourceHeight: decoded.height }; },
+      close: vi.fn(),
+    },
+    decode: async () => decoded,
+    metrics: () => { calls.push('metrics'); return { meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 }; },
+    quality: () => { calls.push('quality'); return { status: 'pass', reasons: [], unassessableRegions: [] }; },
+    reliability: () => { calls.push('reliability'); return reliability; },
+    measure: () => { calls.push('measure'); return measurePose(landmarks, 'left', reliability, request.expectedView); },
+    evaluate: () => { calls.push('evaluate'); return []; },
+    deduplicate: (items) => { calls.push('deduplicate'); return items; },
+    feedback: () => { calls.push('feedback'); return { topCorrections: [], fullBodyReview: [] }; },
+    annotations: () => { calls.push('annotations'); return []; },
+  };
+}
+
 describe('analyzePose', () => {
+  it('passes one normalised source through metrics, detection, reliability, measurement, and annotations', async () => {
+    const calls: string[] = [];
+    const decoded = resizedDecodedImage(4096, 2048, 8000, 4000);
+    const outcome = await analyzePose(request, servicesThatRecord(calls, decoded));
+
+    expect(calls).toEqual(['metrics', 'detect', 'quality', 'reliability', 'measure', 'evaluate', 'deduplicate', 'feedback', 'annotations']);
+    expect(outcome).toMatchObject({ status: 'success', quality: { imageWasResized: true } });
+  });
+
   it('runs the quality gate before rules and links marked corrections to annotations', async () => {
     const evaluate = vi.fn(() => []);
     const outcome = await analyzePose(request, {
       detector: { detect: vi.fn().mockResolvedValue(validLandmarks), close: vi.fn() },
-      decode: vi.fn().mockResolvedValue({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose: vi.fn() }),
+      decode: vi.fn().mockResolvedValue(decodedImage()),
       metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
       quality: vi.fn((): QualityReport => ({ status: 'pass', reasons: [], unassessableRegions: [] })),
       evaluate,
@@ -45,7 +108,7 @@ describe('analyzePose', () => {
     const evaluate = vi.fn();
     const outcome = await analyzePose(request, {
       detector: { detect: vi.fn().mockResolvedValue({ ...validLandmarks, people: [] }), close: vi.fn() },
-      decode: vi.fn().mockResolvedValue({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose: vi.fn() }),
+      decode: vi.fn().mockResolvedValue(decodedImage()),
       metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
       quality: vi.fn((): QualityReport => ({ status: 'fail', reasons: [{ code: 'no-person', message: 'No full body was detected. Step back and try again.' }], unassessableRegions: [] })),
       evaluate,
@@ -67,7 +130,7 @@ describe('analyzePose', () => {
     });
     const outcome = await analyzePose(request, {
       detector: { detect: vi.fn().mockResolvedValue(validLandmarks), close: vi.fn() },
-      decode: vi.fn().mockResolvedValue({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose: vi.fn() }),
+      decode: vi.fn().mockResolvedValue(decodedImage()),
       metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
       quality: vi.fn((): QualityReport => ({ status: 'pass', reasons: [], unassessableRegions: [] })),
       evaluate: vi.fn(() => observations), annotations,
@@ -83,7 +146,7 @@ describe('analyzePose', () => {
     const lowConfidence = { ...observation('low-pelvis', 'pelvis', 'structure', 0.7), confidence: 'low' as const };
     const outcome = await analyzePose(request, {
       detector: { detect: vi.fn().mockResolvedValue(validLandmarks), close: vi.fn() },
-      decode: vi.fn().mockResolvedValue({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose: vi.fn() }),
+      decode: vi.fn().mockResolvedValue(decodedImage()),
       metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
       quality: vi.fn((): QualityReport => ({ status: 'pass', reasons: [], unassessableRegions: [] })),
       evaluate: vi.fn(() => [unassessable, lowConfidence]),
@@ -116,7 +179,7 @@ describe('analyzePose', () => {
     };
     const outcome = await analyzePose(request, {
       detector: { detect: vi.fn().mockResolvedValue(validLandmarks), close: vi.fn() },
-      decode: vi.fn().mockResolvedValue({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose: vi.fn() }),
+      decode: vi.fn().mockResolvedValue(decodedImage()),
       metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
       quality: vi.fn((): QualityReport => ({ status: 'pass', reasons: [], unassessableRegions: [] })),
       evaluate: vi.fn(() => [unassessable, highConfidence]),

@@ -18,6 +18,22 @@ const result: AnalysisResult = {
 };
 
 describe('ResultCard', () => {
+  it('shows fewer than three corrections and evidence-insufficient body copy', () => {
+    const resultWithOneCorrectionAndUnassessableHead: AnalysisResult = {
+      ...result,
+      topCorrections: [result.topCorrections[0]!],
+      fullBodyReview: [{
+        region: 'head',
+        status: 'unassessable',
+        items: [{ observationId: 'insufficient-head', text: 'Not enough evidence in this photo to recommend a change.', region: 'head', priority: 'line', confidence: 'medium' }],
+      }],
+    };
+    render(<ResultCard result={resultWithOneCorrectionAndUnassessableHead} image={null} onAnotherPhoto={vi.fn()} />);
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.getByText('Not enough evidence in this photo to recommend a change.')).toBeVisible();
+  });
+
   it('shows only available numbered corrections, full review, disclaimer, and reset action', () => {
     render(<ResultCard result={result} image={null} onAnotherPhoto={vi.fn()} />);
 
