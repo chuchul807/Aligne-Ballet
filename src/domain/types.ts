@@ -31,6 +31,23 @@ export interface Landmark {
   visibility: number;
 }
 
+export type ReliabilityReason =
+  | 'missing'
+  | 'non-finite'
+  | 'low-visibility'
+  | 'outside-frame'
+  | 'implausible-chain'
+  | 'possible-occlusion';
+
+export interface LandmarkReliability {
+  name: LandmarkName;
+  confidence: Confidence;
+  assessability: Assessability;
+  reasons: readonly ReliabilityReason[];
+}
+
+export type LandmarkReliabilityMap = ReadonlyMap<LandmarkName, LandmarkReliability>;
+
 export interface LandmarkSet {
   people: ReadonlyArray<ReadonlyArray<Landmark>>;
   sourceWidth: number;

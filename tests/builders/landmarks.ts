@@ -8,7 +8,7 @@ const points: Partial<Record<Landmark['name'], readonly [number, number]>> = {
   left_wrist: [0.2, 0.46], right_wrist: [0.8, 0.46],
   left_hip: [0.4, 0.7], right_hip: [0.6, 0.7],
   left_knee: [0.4, 0.85], right_knee: [0.6, 0.85],
-  left_ankle: [0.4, 1], right_ankle: [0.6, 1],
+  left_ankle: [0.4, 0.95], right_ankle: [0.6, 0.95],
   left_ear: [0.46, 0.12], right_ear: [0.54, 0.12],
 };
 
