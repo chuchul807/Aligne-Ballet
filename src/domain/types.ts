@@ -126,6 +126,7 @@ export interface AnnotationInstruction {
 
 export type DrawingCommand =
   | { type: 'skeleton-segment'; from: LandmarkName; to: LandmarkName }
+  | { type: 'structural-joint'; joint: LandmarkName }
   | { type: 'highlight-joint'; observationId: string; joint: LandmarkName; label: 1 | 2 | 3 }
   | { type: 'highlight-region'; observationId: string; joints: readonly LandmarkName[]; label: 1 | 2 | 3 }
   | { type: 'direction-arrow'; observationId: string; anchor: LandmarkName; dx: number; dy: number; label: 1 | 2 | 3 };

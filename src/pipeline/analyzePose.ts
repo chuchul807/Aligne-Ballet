@@ -37,7 +37,7 @@ export interface AnalysisServices {
   measure?: (landmarks: readonly Landmark[], supportingSide: SupportingSide, reliability: LandmarkReliabilityMap, view: ViewType) => MeasurementSet;
   evaluate?: (rules: readonly Rule[], context: RuleContext) => readonly Observation[];
   feedback?: (observations: readonly Observation[], coverage: Parameters<typeof composeFeedback>[1]) => FeedbackSummary;
-  annotations?: (observations: readonly Observation[], landmarks: readonly Landmark[], supportingSide: SupportingSide) => readonly DrawingCommand[];
+  annotations?: (observations: readonly Observation[], landmarks: readonly Landmark[], reliability: LandmarkReliabilityMap, supportingSide: SupportingSide) => readonly DrawingCommand[];
 }
 
 function rulesFor(position: PoseName): readonly Rule[] {
@@ -122,7 +122,7 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
       landmarks,
       topCorrections: summary.topCorrections,
       fullBodyReview: summary.fullBodyReview,
-      annotations: annotations(markedObservations, landmarks, request.supportingSide),
+      annotations: annotations(markedObservations, landmarks, reliability, request.supportingSide),
       createdAt: now(),
     };
     return { status: 'success', quality: qualityReport, result, decoded };

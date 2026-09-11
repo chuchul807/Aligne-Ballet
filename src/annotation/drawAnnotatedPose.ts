@@ -2,6 +2,7 @@ import type { DrawingCommand, Landmark } from '../domain/types';
 
 const MAX_RENDER_SIDE = 4096;
 const SKELETON_COLOUR = '#9d6678';
+const STRUCTURAL_OUTLINE_COLOUR = '#fff8fa';
 const CORRECTION_COLOUR = '#35101f';
 const LABEL_COLOUR = '#fff8fa';
 
@@ -50,6 +51,15 @@ export function drawAnnotatedPose(
     context.stroke();
   }
 
+  const structuralRadius = Math.max(2.5, shorterSide / 220);
+  context.globalAlpha = 0.78;
+  for (const command of commands) {
+    if (command.type !== 'structural-joint') continue;
+    const point = pointByName.get(command.joint);
+    if (point !== undefined) drawNeutralJoint(context, point.x, point.y, structuralRadius);
+  }
+  context.globalAlpha = 1;
+
   for (const command of commands) {
     if (command.type === 'highlight-joint') {
       const point = pointByName.get(command.joint);
@@ -70,6 +80,16 @@ export function drawAnnotatedPose(
   }
 
   return canvas;
+}
+
+function drawNeutralJoint(context: CanvasRenderingContext2D, x: number, y: number, radius: number): void {
+  context.beginPath();
+  context.fillStyle = SKELETON_COLOUR;
+  context.arc(x, y, radius, 0, Math.PI * 2);
+  context.fill();
+  context.strokeStyle = STRUCTURAL_OUTLINE_COLOUR;
+  context.lineWidth = Math.max(1, radius / 4);
+  context.stroke();
 }
 
 function drawMarker(context: CanvasRenderingContext2D, x: number, y: number, radius: number, label: 1 | 2 | 3): void {
