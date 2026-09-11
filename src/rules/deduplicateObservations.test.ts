@@ -48,4 +48,20 @@ describe('deduplicateObservations', () => {
 
     expect(result.map((item) => item.id)).toEqual(['first', 'second', 'winner']);
   });
+
+  it('uses lexical rule ID to break equal null-severity ties regardless of input order', () => {
+    const a: Observation = {
+      ...finding({ id: 'a', ruleId: 'a' }),
+      assessability: 'unassessable', confidence: 'low', issue: null, action: null,
+      direction: null, severity: null,
+    };
+    const z: Observation = {
+      ...finding({ id: 'z', ruleId: 'z' }),
+      assessability: 'unassessable', confidence: 'low', issue: null, action: null,
+      direction: null, severity: null,
+    };
+
+    expect(deduplicateObservations([z, a]).map((item) => item.id)).toEqual(['a']);
+    expect(deduplicateObservations([a, z]).map((item) => item.id)).toEqual(['a']);
+  });
 });

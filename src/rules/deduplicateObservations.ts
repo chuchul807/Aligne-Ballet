@@ -11,9 +11,10 @@ function compareCandidates(left: Observation, right: Observation): number {
   if (confidence !== 0) return confidence;
   const priority = priorityOrder[left.priority] - priorityOrder[right.priority];
   if (priority !== 0) return priority;
-  const severity = (right.severity ?? Number.NEGATIVE_INFINITY)
-    - (left.severity ?? Number.NEGATIVE_INFINITY);
-  if (severity !== 0) return severity;
+  if (left.severity !== right.severity) {
+    return (right.severity ?? Number.NEGATIVE_INFINITY)
+      - (left.severity ?? Number.NEGATIVE_INFINITY);
+  }
   return left.ruleId.localeCompare(right.ruleId);
 }
 
