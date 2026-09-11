@@ -8,6 +8,12 @@ import acceptable from '../../tests/fixtures/retire-acceptable.json';
 import commonErrors from '../../tests/fixtures/retire-common-errors.json';
 import { landmarkNames } from '../domain/landmarks';
 import type { Landmark } from '../domain/types';
+import { retireFrontStraightSupport } from '../../tests/fixtures/retire-front-straight-support';
+import { evaluateLandmarkReliability } from '../reliability/evaluateLandmarkReliability';
+import { measurePose } from '../analysis/measurePose';
+import { COMMON_RULES } from './commonRules';
+import { deduplicateObservations } from './deduplicateObservations';
+import { FEEDBACK_COPY } from '../feedback/copy';
 
 interface Fixture { position: 'retire-passe'; supportingSide: 'left' | 'right'; expectedRuleIds: readonly string[]; landmarks: readonly Landmark[]; }
 const fixture = (value: unknown) => value as Fixture;
@@ -22,9 +28,29 @@ function context(overrides: MeasurementValueOverrides = {}, view: 'front' | 'thr
 }
 
 describe('Retiré / Passé rules', () => {
-  it.each([acceptable, commonErrors])('keeps all 33 named landmarks in every fixture', (value) => {
+  it.each([acceptable, commonErrors, retireFrontStraightSupport])('keeps all 33 named landmarks in every fixture', (value) => {
     expect(value.landmarks).toHaveLength(33);
     expect(value.landmarks.map((landmark) => landmark.name).sort()).toEqual([...landmarkNames].sort());
+  });
+
+  it('does not call the reported straight supporting leg bent or make unsupported stacking claims', () => {
+    const fixture = retireFrontStraightSupport;
+    const reliability = evaluateLandmarkReliability(fixture.landmarks, fixture.view);
+    const measurements = measurePose(fixture.landmarks, fixture.supportingSide, reliability, fixture.view);
+    const ids = deduplicateObservations(evaluateRules(
+      [...COMMON_RULES, ...RETIRE_RULES],
+      { ...fixture, measurements, reliability },
+    )).filter((item) => item.assessability === 'assessable').map((item) => item.ruleId);
+
+    for (const ruleId of fixture.expectedPresentRuleIds) expect(ids).toContain(ruleId);
+    for (const ruleId of fixture.expectedAbsentRuleIds) expect(ids).not.toContain(ruleId);
+    expect([
+      FEEDBACK_COPY['pelvis-unlevel'].high,
+      FEEDBACK_COPY['pelvis-unlevel'].medium,
+      FEEDBACK_COPY['supporting-lateral-offset'].high,
+      FEEDBACK_COPY['supporting-lateral-offset'].medium,
+    ].join(' '))
+      .not.toMatch(/directly over|centre of mass|forward|backward/i);
   });
 
   it('matches the declared acceptable and common-error fixture findings with confirmed frontal view', () => {

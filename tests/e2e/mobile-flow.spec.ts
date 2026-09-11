@@ -1,24 +1,51 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import type { BodyRegion, CorrectionFeedbackItem, FullBodySection } from '../../src/domain/types';
 
 async function useFakeServices(page: import('@playwright/test').Page) {
   await page.addInitScript(() => {
-    const fullBodyReview = ['supporting-leg', 'working-leg', 'pelvis', 'torso', 'shoulders-arms', 'head', 'feet'].map((region) => ({ region, status: 'clear', items: [] }));
+    const correction: CorrectionFeedbackItem = {
+      observationId: 'synthetic-pelvis-unlevel',
+      ruleId: 'pelvis-unlevel',
+      text: 'The pelvis appears uneven in this photo. Gently level the hip line.',
+      region: 'pelvis',
+      priority: 'structure',
+      confidence: 'high',
+      direction: 'level the hip line',
+    };
+    const regions: BodyRegion[] = ['supporting-leg', 'working-leg', 'pelvis', 'torso', 'shoulders-arms', 'head', 'feet'];
+    const fullBodyReview: FullBodySection[] = regions.map((region) => ({
+      region,
+      status: region === 'head' ? 'unassessable' : region === 'pelvis' ? 'finding' : 'clear',
+      items: region === 'pelvis' ? [correction] : [{
+        observationId: `synthetic-${region}`,
+        text: region === 'head'
+          ? 'Not enough evidence in this photo to recommend a change.'
+          : 'No visible issue found in this view.',
+        region,
+        priority: 'line',
+        confidence: region === 'head' ? 'medium' : 'high',
+      }],
+    }));
     (window as Window & { __ALIGNE_TEST_SERVICES__?: unknown }).__ALIGNE_TEST_SERVICES__ = {
-      createDetector: async () => ({ detect: async () => ({ people: [[]], sourceWidth: 1000, sourceHeight: 1500 }), close: () => {} }),
+      createDetector: async () => ({ detect: async () => ({ people: [[]], sourceWidth: 2048, sourceHeight: 4096 }), close: () => {} }),
       now: () => '2026-09-03T12:00:00.000Z',
       analysis: {
         decode: async () => {
           const source = document.createElement('canvas');
-          source.width = 1000;
-          source.height = 1500;
-          return { source, width: 1000, height: 1500, dispose: () => {} };
+          source.width = 2048;
+          source.height = 4096;
+          return {
+            source, width: 2048, height: 4096,
+            normalisation: { wasResized: true, originalWidth: 4096, originalHeight: 8192 },
+            dispose: () => {},
+          };
         },
         metrics: () => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 }),
-        quality: () => ({ status: 'pass', reasons: [], unassessableRegions: [] }),
+        quality: () => ({ status: 'pass', reasons: [], unassessableRegions: ['head'] }),
         measure: () => ({}),
         evaluate: () => [],
-        feedback: () => ({ topCorrections: [], fullBodyReview }),
+        feedback: () => ({ topCorrections: [correction], fullBodyReview }),
         annotations: () => [],
       },
     };
@@ -61,6 +88,23 @@ test('has no serious or critical accessibility violations', async ({ page }) => 
 
   const results = await new AxeBuilder({ page }).analyze();
 
+  expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+});
+
+test('shows resized-photo guidance and one supported correction without filling uncertain regions', async ({ page }) => {
+  await page.goto('/');
+  await unlockFrame(page);
+  await page.getByLabel('Choose a photo').setInputFiles({ name: 'synthetic-fixture.png', mimeType: 'image/png', buffer: Buffer.from('synthetic fixture') });
+
+  await expect(page.getByText('Large photo resized for analysis. Its proportions were preserved.')).toBeVisible();
+  await expect(page.locator('main.app-card > section:visible')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Analyse position' }).click();
+  await expect(page.getByLabel('Your feedback')).toBeVisible();
+  await expect(page.locator('.corrections > li')).toHaveCount(1);
+  await expect(page.getByText('Not enough evidence in this photo to recommend a change.')).toBeVisible();
+  await expect(page.locator('main.app-card > section:visible')).toHaveCount(1);
+
+  const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
 });
 

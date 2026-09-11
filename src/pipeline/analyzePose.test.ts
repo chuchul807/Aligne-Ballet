@@ -55,33 +55,48 @@ function resizedDecodedImage(
   };
 }
 
-function servicesThatRecord(calls: string[], decoded: DecodedImage): AnalysisServices {
+function servicesThatRecord(calls: string[], decoded: DecodedImage) {
   const landmarks = landmarkPerson();
   const reliability = evaluateLandmarkReliability(landmarks, request.expectedView);
-  return {
+  const services = {
     detector: {
-      detect: async () => { calls.push('detect'); return { people: [landmarks], sourceWidth: decoded.width, sourceHeight: decoded.height }; },
+      detect: vi.fn<AnalysisServices['detector']['detect']>(async () => { calls.push('detect'); return { people: [landmarks], sourceWidth: decoded.width, sourceHeight: decoded.height }; }),
       close: vi.fn(),
     },
     decode: async () => decoded,
-    metrics: () => { calls.push('metrics'); return { meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 }; },
+    metrics: vi.fn<NonNullable<AnalysisServices['metrics']>>(() => { calls.push('metrics'); return { meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 }; }),
     quality: () => { calls.push('quality'); return { status: 'pass', reasons: [], unassessableRegions: [] }; },
-    reliability: () => { calls.push('reliability'); return reliability; },
-    measure: () => { calls.push('measure'); return measurePose(landmarks, 'left', reliability, request.expectedView); },
+    reliability: vi.fn<NonNullable<AnalysisServices['reliability']>>(() => { calls.push('reliability'); return reliability; }),
+    measure: vi.fn<NonNullable<AnalysisServices['measure']>>(() => { calls.push('measure'); return measurePose(landmarks, 'left', reliability, request.expectedView); }),
     evaluate: () => { calls.push('evaluate'); return []; },
     deduplicate: (items) => { calls.push('deduplicate'); return items; },
     feedback: () => { calls.push('feedback'); return { topCorrections: [], fullBodyReview: [] }; },
-    annotations: () => { calls.push('annotations'); return []; },
-  };
+    annotations: vi.fn<NonNullable<AnalysisServices['annotations']>>(() => { calls.push('annotations'); return []; }),
+  } satisfies AnalysisServices;
+  return { services, landmarks, reliability };
 }
 
 describe('analyzePose', () => {
   it('passes one normalised source through metrics, detection, reliability, measurement, and annotations', async () => {
     const calls: string[] = [];
     const decoded = resizedDecodedImage(4096, 2048, 8000, 4000);
-    const outcome = await analyzePose(request, servicesThatRecord(calls, decoded));
+    const { services, landmarks, reliability } = servicesThatRecord(calls, decoded);
+    const outcome = await analyzePose(request, services);
 
     expect(calls).toEqual(['metrics', 'detect', 'quality', 'reliability', 'measure', 'evaluate', 'deduplicate', 'feedback', 'annotations']);
+    expect(services.metrics.mock.calls[0]?.[0]).toBe(decoded.source);
+    expect(services.metrics.mock.calls[0]?.slice(1)).toEqual([4096, 2048]);
+    expect(services.detector.detect.mock.calls[0]?.[0]).toBe(decoded.source);
+    expect(services.detector.detect.mock.calls[0]?.slice(1)).toEqual([4096, 2048]);
+    expect(services.reliability.mock.calls[0]?.[0]).toBe(landmarks);
+    expect(services.reliability.mock.calls[0]?.[1]).toBe(request.expectedView);
+    expect(services.measure.mock.calls[0]?.[0]).toBe(landmarks);
+    expect(services.measure.mock.calls[0]?.[2]).toBe(reliability);
+    expect(services.measure.mock.calls[0]?.[1]).toBe(request.supportingSide);
+    expect(services.measure.mock.calls[0]?.[3]).toBe(request.expectedView);
+    expect(services.annotations.mock.calls[0]?.[1]).toBe(landmarks);
+    expect(services.annotations.mock.calls[0]?.[2]).toBe(reliability);
+    expect(services.annotations.mock.calls[0]?.[3]).toBe(request.supportingSide);
     expect(outcome).toMatchObject({ status: 'success', quality: { imageWasResized: true } });
   });
 
