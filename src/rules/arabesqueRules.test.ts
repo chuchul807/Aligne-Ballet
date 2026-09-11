@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import acceptable from '../../tests/fixtures/arabesque-acceptable.json';
 import bentKnees from '../../tests/fixtures/arabesque-bent-knees.json';
 import pelvisCompensation from '../../tests/fixtures/arabesque-pelvis-compensation.json';
-import { measurePose, type MeasurementSet } from '../analysis/measurePose';
 import { landmarkNames } from '../domain/landmarks';
 import type { Landmark, SupportingSide } from '../domain/types';
+import { measuredPose, type MeasurementValueOverrides } from '../../tests/builders/measurements';
 import { COMMON_RULES } from './commonRules';
 import { evaluateRules } from './evaluateRules';
 import { ARABESQUE_RULES } from './arabesqueRules';
@@ -23,12 +23,20 @@ function fixture(value: unknown): ArabesqueFixture {
 
 function evaluateFixture(value: unknown) {
   const input = fixture(value);
+  const view = 'three-quarter-side';
+  const { reliability, measurements } = measuredPose(input.landmarks, input.supportingSide, view);
   return evaluateRules([...COMMON_RULES, ...ARABESQUE_RULES], {
     position: input.position,
     supportingSide: input.supportingSide,
+    view,
     landmarks: input.landmarks,
-    measurements: measurePose(input.landmarks, input.supportingSide),
+    reliability,
+    measurements,
   });
+}
+
+function findingIds(observations: ReturnType<typeof evaluateFixture>): readonly string[] {
+  return observations.filter((item) => item.assessability === 'assessable').map((item) => item.ruleId);
 }
 
 function mirrored(value: ArabesqueFixture): ArabesqueFixture {
@@ -55,14 +63,16 @@ describe('Arabesque rules', () => {
     expect(input.landmarks.map((landmark) => landmark.name).sort()).toEqual([...landmarkNames].sort());
   });
 
-  it('finds both bent knees even when the pose is far from the standard', () => {
+  it('finds the reliable bent working knee and withholds the edge-cropped supporting chain', () => {
     const observations = evaluateFixture(bentKnees);
-    expect(observations.map((item) => item.ruleId)).toEqual(expect.arrayContaining([...fixture(bentKnees).expectedRuleIds]));
+    expect(findingIds(observations)).toEqual(expect.arrayContaining([...fixture(bentKnees).expectedRuleIds]));
+    expect(observations.find((item) => item.ruleId === 'supporting-knee-bent'))
+      .toMatchObject({ assessability: 'unassessable' });
   });
 
   it.each([acceptable, bentKnees, pelvisCompensation])('matches the declared expected rule IDs for each fixture', (value) => {
     const input = fixture(value);
-    expect(evaluateFixture(input).map((item) => item.ruleId)).toEqual(input.expectedRuleIds);
+    expect(findingIds(evaluateFixture(input))).toEqual(input.expectedRuleIds);
   });
 
   it('does not force more leg height when pelvic control is already lost', () => {
@@ -75,14 +85,14 @@ describe('Arabesque rules', () => {
 
   it('leaves a stable, extended acceptable Arabesque without stability or structure findings', () => {
     const observations = evaluateFixture(acceptable);
-    expect(observations.filter((item) => item.priority === 'stability' || item.priority === 'structure')).toEqual([]);
-    expect(observations.map((item) => item.ruleId)).toEqual(fixture(acceptable).expectedRuleIds);
+    expect(observations.filter((item) => item.assessability === 'assessable' && (item.priority === 'stability' || item.priority === 'structure'))).toEqual([]);
+    expect(findingIds(observations)).toEqual(fixture(acceptable).expectedRuleIds);
   });
 
   it('reports identical rule IDs after left-right mirroring', () => {
     const input = fixture(bentKnees);
-    expect(evaluateFixture(input).map((item) => item.ruleId).sort())
-      .toEqual(evaluateFixture(mirrored(input)).map((item) => item.ruleId).sort());
+    expect([...findingIds(evaluateFixture(input))].sort())
+      .toEqual([...findingIds(evaluateFixture(mirrored(input)))].sort());
   });
 
   it.each([
@@ -92,11 +102,11 @@ describe('Arabesque rules', () => {
     ['arabesque-torso-collapse', { torsoLateralOffset: -0.18 }, { torsoLateralOffset: -0.19 }, ['left_shoulder', 'right_shoulder', 'left_hip', 'right_hip'], 'region'],
   ] as const)('applies %s only beyond its threshold with reviewable evidence annotations', (ruleId, boundary, triggered, evidence, annotationType) => {
     const input = fixture(acceptable);
-    const measurements = measurePose(input.landmarks, input.supportingSide);
-    const context = (overrides: Partial<MeasurementSet>): RuleContext => ({
-      position: 'arabesque', supportingSide: 'left', landmarks: input.landmarks,
-      measurements: { ...measurements, ...overrides },
-    });
+    const context = (overrides: MeasurementValueOverrides): RuleContext => {
+      const view = 'three-quarter-side';
+      const { reliability, measurements } = measuredPose(input.landmarks, input.supportingSide, view, overrides);
+      return { position: 'arabesque', supportingSide: 'left', view, landmarks: input.landmarks, reliability, measurements };
+    };
     const atBoundary = evaluateRules(ARABESQUE_RULES, context(boundary));
     const observation = evaluateRules(ARABESQUE_RULES, context(triggered)).find((item) => item.ruleId === ruleId);
 
@@ -109,10 +119,14 @@ describe('Arabesque rules', () => {
 
   it('suppresses the low-leg suggestion once pelvis slope exceeds 8 degrees', () => {
     const input = fixture(acceptable);
-    const measurements = measurePose(input.landmarks, input.supportingSide);
+    const view = 'three-quarter-side';
+    const { reliability, measurements } = measuredPose(input.landmarks, input.supportingSide, view, {
+      workingAnkleHeightFromHip: -0.31,
+      pelvisSlope: 8.01,
+    });
     const observations = evaluateRules(ARABESQUE_RULES, {
-      position: 'arabesque', supportingSide: 'left', landmarks: input.landmarks,
-      measurements: { ...measurements, workingAnkleHeightFromHip: -0.31, pelvisSlope: 8.01 },
+      position: 'arabesque', supportingSide: 'left', view, landmarks: input.landmarks,
+      reliability, measurements,
     });
 
     expect(observations.map((item) => item.ruleId)).not.toContain('arabesque-working-leg-too-low');
@@ -123,9 +137,10 @@ describe('Arabesque rules', () => {
     const workingSide = supportingSide === 'left' ? 'right' : 'left';
     const missingAnkle = `${workingSide}_ankle` as Landmark['name'];
     const landmarks = input.landmarks.filter((landmark) => landmark.name !== missingAnkle);
+    const view = 'three-quarter-side';
+    const { reliability, measurements } = measuredPose(landmarks, supportingSide, view);
     const observations = evaluateRules(ARABESQUE_RULES, {
-      position: 'arabesque', supportingSide, landmarks,
-      measurements: measurePose(landmarks, supportingSide),
+      position: 'arabesque', supportingSide, view, landmarks, reliability, measurements,
     });
 
     const fallbackEvidence = [
@@ -147,7 +162,6 @@ describe('Arabesque rules', () => {
     const input = fixtureForSupportingSide(supportingSide);
     const workingSide = supportingSide === 'left' ? 'right' : 'left';
     const legEvidence = [`${workingSide}_hip`, `${workingSide}_knee`, `${workingSide}_ankle`] as Landmark['name'][];
-    const measurements = measurePose(input.landmarks, supportingSide);
     const cases = [
       ['arabesque-working-knee-bent', { workingKneeAngle: 164 }, legEvidence, 'joint', [`${workingSide}_knee`]],
       ['arabesque-lower-leg-for-pelvis', { workingAnkleHeightFromHip: 0.01, pelvisSlope: 11 }, ['left_hip', 'right_hip', `${workingSide}_ankle`], 'region', ['left_hip', 'right_hip', `${workingSide}_ankle`]],
@@ -156,9 +170,11 @@ describe('Arabesque rules', () => {
     ] as const;
 
     for (const [ruleId, overrides, evidence, annotationType, annotationJoints] of cases) {
+      const view = 'three-quarter-side';
+      const { reliability, measurements } = measuredPose(input.landmarks, supportingSide, view, overrides);
       const observation = evaluateRules(ARABESQUE_RULES, {
-        position: 'arabesque', supportingSide, landmarks: input.landmarks,
-        measurements: { ...measurements, ...overrides },
+        position: 'arabesque', supportingSide, view, landmarks: input.landmarks,
+        reliability, measurements,
       }).find((item) => item.ruleId === ruleId);
 
       expect(observation).toMatchObject({ assessability: 'assessable', evidence });

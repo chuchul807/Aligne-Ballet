@@ -11,10 +11,10 @@ export function isSafeFeedbackText(text: string): boolean {
 
 export const FEEDBACK_COPY = {
   'supporting-knee-bent': { high: 'Straighten your supporting knee.', medium: 'Your supporting knee appears slightly bent; try lengthening it.' },
-  'pelvis-unlevel': { high: 'Level your pelvis before increasing the leg height.', medium: 'Your pelvis may be lifting on the working side; try bringing it level.' },
+  'pelvis-unlevel': { high: 'From this view, level the visible line of your pelvis.', medium: 'From this view, your pelvis may appear uneven.' },
   'shoulders-unlevel': { high: 'Lower the raised shoulder slightly.', medium: 'One shoulder appears higher; soften it downward.' },
   'torso-off-support': { high: 'Bring your torso back over your supporting side.', medium: 'Your torso appears slightly off your supporting side; bring it back toward centre.' },
-  'supporting-ankle-not-stacked': { high: 'Stack your supporting hip more directly over your ankle.', medium: 'Your supporting hip may be drifting away from your ankle; bring them closer into line.' },
+  'supporting-lateral-offset': { high: 'From this front view, bring your supporting hip and ankle into closer side-to-side alignment.', medium: 'There is not enough evidence to confirm your side-to-side support alignment.' },
   'left-arm-line-collapsed': { high: 'Lengthen through your left elbow to restore the arm line.', medium: 'Your left elbow appears compressed; lengthen gently through the arm.' },
   'right-arm-line-collapsed': { high: 'Lengthen through your right elbow to restore the arm line.', medium: 'Your right elbow appears compressed; lengthen gently through the arm.' },
   'head-extreme-lateral-tilt': { high: 'Bring your head closer to the line of your torso.', medium: 'Your head appears strongly tilted; bring it slightly closer to your torso line.' },
@@ -27,9 +27,7 @@ export const FEEDBACK_COPY = {
   'attitude-level-pelvis': { high: 'Lower your working leg slightly and level your pelvis.', medium: 'Your pelvis may be lifting with the thigh; lower the leg slightly and re-level it.' },
   'attitude-lift-thigh': { high: 'Lift your working thigh slightly while keeping your pelvis level.', medium: 'Your working thigh appears low; lift it slightly without changing the pelvis.' },
   'retire-place-foot-at-knee': { high: 'Bring your working foot closer to the supporting knee.', medium: 'Your working foot appears away from the supporting knee; bring it closer.' },
-  'retire-open-working-knee': { high: 'Move your working knee farther to the side without shifting your pelvis.', medium: 'Your working knee may be too far forward; move it slightly farther to the side.' },
-  'retire-keep-pelvis-level': { high: 'Level your pelvis over the supporting leg.', medium: 'Your pelvis appears uneven; bring it closer to level over the supporting leg.' },
-  'retire-stack-over-support': { high: 'Bring your pelvis more directly over your supporting ankle.', medium: 'Your balance may be drifting from the supporting ankle; bring your pelvis toward it.' },
+  'retire-open-working-knee': { high: 'From this front view, move your visible working knee slightly farther to the side.', medium: 'From this front view, your working knee may appear close to the standing side.' },
 } satisfies Record<string, FeedbackCopyVariants>;
 
 export function feedbackCopyFor(ruleId: string, confidence: 'high' | 'medium'): string {

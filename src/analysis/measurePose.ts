@@ -1,22 +1,91 @@
 import { oppositeSide, sideLandmark } from '../domain/landmarks';
-import type { Landmark, SupportingSide } from '../domain/types';
+import type { LandmarkName } from '../domain/landmarks';
+import type {
+  Confidence,
+  Landmark,
+  LandmarkReliabilityMap,
+  MeasurementSet,
+  PoseMeasurement,
+  SupportingSide,
+  ViewType,
+} from '../domain/types';
 import { angleDeg, distance, midpoint, normalisedDistance, slopeDeg, type Point } from './geometry';
 
-export interface MeasurementSet {
-  torsoLength: number;
-  supportingKneeAngle: number | null;
-  workingKneeAngle: number | null;
-  pelvisSlope: number | null;
-  shoulderSlope: number | null;
-  torsoLateralOffset: number | null;
-  workingAnkleToSupportingKnee: number | null;
-  workingKneeLateralOffset: number | null;
-  workingKneeHeightFromHip: number | null;
-  workingAnkleHeightFromHip: number | null;
-  supportingAnkleUnderHipOffset: number | null;
-  leftElbowAngle: number | null;
-  rightElbowAngle: number | null;
-  headTiltFromTorso: number | null;
+export type { MeasurementSet } from '../domain/types';
+
+const confidenceRank: Record<Confidence, number> = { low: 0, medium: 1, high: 2 };
+
+function lowestConfidence(
+  evidence: readonly LandmarkName[],
+  reliability: LandmarkReliabilityMap,
+): Confidence {
+  return evidence.reduce<Confidence>((lowest, name) => {
+    const confidence = reliability.get(name)?.confidence ?? 'low';
+    return confidenceRank[confidence] < confidenceRank[lowest] ? confidence : lowest;
+  }, 'high');
+}
+
+function uniqueEvidence(...groups: readonly (readonly LandmarkName[])[]): readonly LandmarkName[] {
+  return [...new Set(groups.flat())];
+}
+
+function measurement(
+  evidence: readonly LandmarkName[],
+  reliability: LandmarkReliabilityMap,
+  calculate: () => number | null,
+): PoseMeasurement {
+  const confidence = lowestConfidence(evidence, reliability);
+  for (const name of evidence) {
+    const entry = reliability.get(name);
+    if (!entry || entry.assessability === 'unassessable') {
+      return {
+        value: null,
+        confidence,
+        assessability: 'unassessable',
+        evidence,
+        reason: entry?.reasons[0] ?? 'missing',
+      };
+    }
+  }
+
+  const value = calculate();
+  if (value === null || !Number.isFinite(value)) {
+    return { value: null, confidence, assessability: 'unassessable', evidence, reason: 'missing-geometry' };
+  }
+  return { value, confidence, assessability: 'assessable', evidence };
+}
+
+function normalisedMeasurement(
+  evidence: readonly LandmarkName[],
+  torso: PoseMeasurement,
+  reliability: LandmarkReliabilityMap,
+  calculate: (torsoLength: number) => number | null,
+): PoseMeasurement {
+  const combinedEvidence = uniqueEvidence(evidence, torso.evidence);
+  const confidence = lowestConfidence(combinedEvidence, reliability);
+  if (torso.assessability !== 'assessable' || torso.value === null || torso.value <= 0) {
+    return {
+      value: null,
+      confidence,
+      assessability: 'unassessable',
+      evidence: combinedEvidence,
+      reason: 'missing-geometry',
+    };
+  }
+  return measurement(combinedEvidence, reliability, () => calculate(torso.value!));
+}
+
+function unsupportedViewMeasurement(
+  evidence: readonly LandmarkName[],
+  reliability: LandmarkReliabilityMap,
+): PoseMeasurement {
+  return {
+    value: null,
+    confidence: lowestConfidence(evidence, reliability),
+    assessability: 'unassessable',
+    evidence,
+    reason: 'unsupported-view',
+  };
 }
 
 function indexed(landmarks: readonly Landmark[]): Map<Landmark['name'], Landmark> {
@@ -49,7 +118,12 @@ function axisDifference(first: number | null, second: number | null): number | n
   return raw > 90 ? 180 - raw : raw;
 }
 
-export function measurePose(landmarks: readonly Landmark[], supportingSide: SupportingSide): MeasurementSet {
+export function measurePose(
+  landmarks: readonly Landmark[],
+  supportingSide: SupportingSide,
+  reliability: LandmarkReliabilityMap,
+  view: ViewType,
+): MeasurementSet {
   const points = indexed(landmarks);
   const workingSide = oppositeSide(supportingSide);
   const leftShoulder = point(points, 'left_shoulder');
@@ -58,7 +132,10 @@ export function measurePose(landmarks: readonly Landmark[], supportingSide: Supp
   const rightHip = point(points, 'right_hip');
   const shoulderMidpoint = leftShoulder && rightShoulder ? midpoint(leftShoulder, rightShoulder) : null;
   const hipMidpoint = leftHip && rightHip ? midpoint(leftHip, rightHip) : null;
-  const torsoLength = shoulderMidpoint && hipMidpoint ? distance(shoulderMidpoint, hipMidpoint) ?? 0 : 0;
+  const torsoEvidence = ['left_shoulder', 'right_shoulder', 'left_hip', 'right_hip'] as const;
+  const torsoLength = measurement(torsoEvidence, reliability, () => (
+    shoulderMidpoint && hipMidpoint ? distance(shoulderMidpoint, hipMidpoint) : null
+  ));
   const supportHip = point(points, sideLandmark(supportingSide, 'hip'));
   const supportKnee = point(points, sideLandmark(supportingSide, 'knee'));
   const supportAnkle = point(points, sideLandmark(supportingSide, 'ankle'));
@@ -69,20 +146,59 @@ export function measurePose(landmarks: readonly Landmark[], supportingSide: Supp
 
   return {
     torsoLength,
-    supportingKneeAngle: threePointAngle(points, sideLandmark(supportingSide, 'hip'), sideLandmark(supportingSide, 'knee'), sideLandmark(supportingSide, 'ankle')),
-    workingKneeAngle: threePointAngle(points, sideLandmark(workingSide, 'hip'), sideLandmark(workingSide, 'knee'), sideLandmark(workingSide, 'ankle')),
-    pelvisSlope: leftHip && rightHip ? slopeDeg(leftHip, rightHip) : null,
-    shoulderSlope: leftShoulder && rightShoulder ? slopeDeg(leftShoulder, rightShoulder) : null,
-    torsoLateralOffset: shoulderMidpoint && supportHip && torsoLength > 0
-      ? ((shoulderMidpoint.x - supportHip.x) * (supportingSide === 'left' ? 1 : -1)) / torsoLength
-      : null,
-    workingAnkleToSupportingKnee: workingAnkle && supportKnee ? normalisedDistance(workingAnkle, supportKnee, torsoLength) : null,
-    workingKneeLateralOffset: normalisedHorizontalOffset(workingKnee, supportHip, torsoLength),
-    workingKneeHeightFromHip: normalisedHeight(workingHip, workingKnee, torsoLength),
-    workingAnkleHeightFromHip: normalisedHeight(supportHip, workingAnkle, torsoLength),
-    supportingAnkleUnderHipOffset: normalisedHorizontalOffset(supportHip, supportAnkle, torsoLength),
-    leftElbowAngle: threePointAngle(points, 'left_shoulder', 'left_elbow', 'left_wrist'),
-    rightElbowAngle: threePointAngle(points, 'right_shoulder', 'right_elbow', 'right_wrist'),
-    headTiltFromTorso: axisDifference(nose && shoulderMidpoint ? slopeDeg(nose, shoulderMidpoint) : null, shoulderMidpoint && hipMidpoint ? slopeDeg(shoulderMidpoint, hipMidpoint) : null),
+    supportingKneeAngle: measurement([
+      sideLandmark(supportingSide, 'hip'),
+      sideLandmark(supportingSide, 'knee'),
+      sideLandmark(supportingSide, 'ankle'),
+    ], reliability, () => threePointAngle(points, sideLandmark(supportingSide, 'hip'), sideLandmark(supportingSide, 'knee'), sideLandmark(supportingSide, 'ankle'))),
+    workingKneeAngle: measurement([
+      sideLandmark(workingSide, 'hip'),
+      sideLandmark(workingSide, 'knee'),
+      sideLandmark(workingSide, 'ankle'),
+    ], reliability, () => threePointAngle(points, sideLandmark(workingSide, 'hip'), sideLandmark(workingSide, 'knee'), sideLandmark(workingSide, 'ankle'))),
+    pelvisSlope: measurement(['left_hip', 'right_hip'], reliability, () => (
+      leftHip && rightHip ? slopeDeg(leftHip, rightHip) : null
+    )),
+    shoulderSlope: measurement(['left_shoulder', 'right_shoulder'], reliability, () => (
+      leftShoulder && rightShoulder ? slopeDeg(leftShoulder, rightShoulder) : null
+    )),
+    torsoLateralOffset: normalisedMeasurement([
+      'left_shoulder', 'right_shoulder', sideLandmark(supportingSide, 'hip'),
+    ], torsoLength, reliability, (torso) => shoulderMidpoint && supportHip
+      ? ((shoulderMidpoint.x - supportHip.x) * (supportingSide === 'left' ? 1 : -1)) / torso
+      : null),
+    workingAnkleToSupportingKnee: normalisedMeasurement([
+      sideLandmark(workingSide, 'ankle'), sideLandmark(supportingSide, 'knee'),
+    ], torsoLength, reliability, (torso) => workingAnkle && supportKnee
+      ? normalisedDistance(workingAnkle, supportKnee, torso)
+      : null),
+    workingKneeLateralOffset: normalisedMeasurement([
+      sideLandmark(workingSide, 'knee'), sideLandmark(supportingSide, 'hip'),
+    ], torsoLength, reliability, (torso) => normalisedHorizontalOffset(workingKnee, supportHip, torso)),
+    workingKneeHeightFromHip: normalisedMeasurement([
+      sideLandmark(workingSide, 'hip'), sideLandmark(workingSide, 'knee'),
+    ], torsoLength, reliability, (torso) => normalisedHeight(workingHip, workingKnee, torso)),
+    workingAnkleHeightFromHip: normalisedMeasurement([
+      sideLandmark(supportingSide, 'hip'), sideLandmark(workingSide, 'ankle'),
+    ], torsoLength, reliability, (torso) => normalisedHeight(supportHip, workingAnkle, torso)),
+    frontalSupportingHipAnkleOffset: view === 'front'
+      ? normalisedMeasurement([
+        sideLandmark(supportingSide, 'hip'), sideLandmark(supportingSide, 'ankle'),
+      ], torsoLength, reliability, (torso) => normalisedHorizontalOffset(supportHip, supportAnkle, torso))
+      : unsupportedViewMeasurement(uniqueEvidence([
+        sideLandmark(supportingSide, 'hip'), sideLandmark(supportingSide, 'ankle'),
+      ], torsoLength.evidence), reliability),
+    leftElbowAngle: measurement(['left_shoulder', 'left_elbow', 'left_wrist'], reliability, () => (
+      threePointAngle(points, 'left_shoulder', 'left_elbow', 'left_wrist')
+    )),
+    rightElbowAngle: measurement(['right_shoulder', 'right_elbow', 'right_wrist'], reliability, () => (
+      threePointAngle(points, 'right_shoulder', 'right_elbow', 'right_wrist')
+    )),
+    headTiltFromTorso: measurement([
+      'nose', 'left_shoulder', 'right_shoulder', 'left_hip', 'right_hip',
+    ], reliability, () => axisDifference(
+      nose && shoulderMidpoint ? slopeDeg(nose, shoulderMidpoint) : null,
+      shoulderMidpoint && hipMidpoint ? slopeDeg(shoulderMidpoint, hipMidpoint) : null,
+    )),
   };
 }

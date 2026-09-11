@@ -1,11 +1,12 @@
 import { measurePose, type MeasurementSet } from '../analysis/measurePose';
 import { buildAnnotationCommands } from '../annotation/buildCommands';
-import type { DrawingCommand, Landmark, Observation, AnalysisResult, PoseName, SupportingSide, ViewType } from '../domain/types';
+import type { DrawingCommand, Landmark, LandmarkReliabilityMap, Observation, AnalysisResult, PoseName, SupportingSide, ViewType } from '../domain/types';
 import { composeFeedback, type FeedbackSummary } from '../feedback/composeFeedback';
 import { decodeImage, type DecodedImage } from '../image/decodeImage';
 import { measureImageMetrics, type ImageMetrics } from '../image/imageMetrics';
 import type { PoseDetector } from '../pose/PoseDetector';
 import { evaluateQuality } from '../quality/evaluateQuality';
+import { evaluateLandmarkReliability } from '../reliability/evaluateLandmarkReliability';
 import { QUALITY_MESSAGES } from '../quality/messages';
 import type { QualityReport } from '../quality/types';
 import { ATTITUDE_RULES } from '../rules/attitudeRules';
@@ -33,7 +34,7 @@ export interface AnalysisServices {
   decode?: (file: File) => Promise<DecodedImage>;
   metrics?: (source: CanvasImageSource, width: number, height: number) => ImageMetrics;
   quality?: typeof evaluateQuality;
-  measure?: (landmarks: readonly Landmark[], supportingSide: SupportingSide) => MeasurementSet;
+  measure?: (landmarks: readonly Landmark[], supportingSide: SupportingSide, reliability: LandmarkReliabilityMap, view: ViewType) => MeasurementSet;
   evaluate?: (rules: readonly Rule[], context: RuleContext) => readonly Observation[];
   feedback?: (observations: readonly Observation[], coverage: Parameters<typeof composeFeedback>[1]) => FeedbackSummary;
   annotations?: (observations: readonly Observation[], landmarks: readonly Landmark[], supportingSide: SupportingSide) => readonly DrawingCommand[];
@@ -96,21 +97,22 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
       decoded.dispose();
       return { status: 'error', message: 'Analysis could not be completed. Please try again.' };
     }
-    const measurements = measure(landmarks, request.supportingSide);
+    const reliability = evaluateLandmarkReliability(landmarks, request.expectedView);
+    const measurements = measure(landmarks, request.supportingSide, reliability, request.expectedView);
     const observations = evaluate(rulesFor(request.position), {
       position: request.position,
       supportingSide: request.supportingSide,
       view: request.expectedView,
       landmarks,
+      reliability,
       measurements,
     });
-    const ruleUnassessableRegions = new Set(observations
-      .filter((observation) => observation.assessability === 'unassessable')
-      .map((observation) => observation.region));
     const summary = feedback(observations, Object.fromEntries(
       ['supporting-leg', 'working-leg', 'pelvis', 'torso', 'shoulders-arms', 'head', 'feet'].map((region) => [
         region,
-        qualityReport.unassessableRegions.includes(region as import('../domain/types').BodyRegion) || ruleUnassessableRegions.has(region as import('../domain/types').BodyRegion) ? 'unassessable' : 'assessable',
+        qualityReport.unassessableRegions.includes(region as import('../domain/types').BodyRegion)
+          ? 'unassessable'
+          : 'assessable',
       ]),
     ) as Parameters<typeof composeFeedback>[1]);
     const markedObservations = selectedObservations(observations, summary);

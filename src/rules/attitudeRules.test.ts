@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { measurePose, type MeasurementSet } from '../analysis/measurePose';
 import { landmarkPerson } from '../../tests/builders/landmarks';
+import { measuredPose, type MeasurementValueOverrides } from '../../tests/builders/measurements';
 import { evaluateRules } from './evaluateRules';
 import { ATTITUDE_RULES } from './attitudeRules';
 import type { RuleContext } from './types';
@@ -12,11 +12,12 @@ import type { Landmark } from '../domain/types';
 interface Fixture { position: 'attitude-derriere'; supportingSide: 'left' | 'right'; expectedRuleIds: readonly string[]; landmarks: readonly Landmark[]; }
 const fixture = (value: unknown) => value as Fixture;
 
-function context(overrides: Partial<MeasurementSet> = {}): RuleContext {
+function context(overrides: MeasurementValueOverrides = {}): RuleContext {
   const landmarks = landmarkPerson();
+  const view = 'three-quarter-side';
+  const { reliability, measurements } = measuredPose(landmarks, 'left', view, overrides);
   return {
-    position: 'attitude-derriere', supportingSide: 'left', landmarks,
-    measurements: { ...measurePose(landmarks, 'left'), ...overrides },
+    position: 'attitude-derriere', supportingSide: 'left', view, landmarks, reliability, measurements,
   };
 }
 
@@ -29,20 +30,24 @@ describe('Attitude derrière rules', () => {
   it('matches the declared acceptable and common-error fixture findings', () => {
     for (const value of [acceptable, commonErrors]) {
       const input = fixture(value);
-      expect(evaluateRules(ATTITUDE_RULES, { position: input.position, supportingSide: input.supportingSide, landmarks: input.landmarks, measurements: measurePose(input.landmarks, input.supportingSide) }).map((item) => item.ruleId)).toEqual(input.expectedRuleIds);
+      const view = 'three-quarter-side';
+      const { reliability, measurements } = measuredPose(input.landmarks, input.supportingSide, view);
+      expect(evaluateRules(ATTITUDE_RULES, { position: input.position, supportingSide: input.supportingSide, view, landmarks: input.landmarks, reliability, measurements }).filter((item) => item.assessability === 'assessable').map((item) => item.ruleId)).toEqual(input.expectedRuleIds);
     }
   });
 
   it('keeps common-error rule IDs after left-right mirroring', () => {
     const mirrored = { ...commonErrors, supportingSide: 'right' as const, landmarks: commonErrors.landmarks.map((landmark) => ({ ...landmark, x: 1 - landmark.x, name: landmark.name.replace(/^left|^right/, (side) => side === 'left' ? 'right' : 'left') as Landmark['name'] })) };
-    const ids = (value: unknown) => { const input = fixture(value); return evaluateRules(ATTITUDE_RULES, { position: input.position, supportingSide: input.supportingSide, landmarks: input.landmarks, measurements: measurePose(input.landmarks, input.supportingSide) }).map((item) => item.ruleId).sort(); };
+    const ids = (value: unknown) => { const input = fixture(value); const view = 'three-quarter-side'; const { reliability, measurements } = measuredPose(input.landmarks, input.supportingSide, view); return evaluateRules(ATTITUDE_RULES, { position: input.position, supportingSide: input.supportingSide, view, landmarks: input.landmarks, reliability, measurements }).filter((item) => item.assessability === 'assessable').map((item) => item.ruleId).sort(); };
     expect(ids(mirrored)).toEqual(ids(commonErrors));
   });
   it.each(['left', 'right'] as const)('keeps missing working-knee fallback evidence bilateral for %s support', (supportingSide) => {
     const base = context();
     const source = supportingSide === 'left' ? base.landmarks : base.landmarks.map((landmark) => ({ ...landmark, x: 1 - landmark.x, name: landmark.name.replace(/^left|^right/, (side) => side === 'left' ? 'right' : 'left') as Landmark['name'] }));
     const landmarks = source.filter((landmark) => landmark.name !== (supportingSide === 'left' ? 'right_knee' : 'left_knee'));
-    const findings = evaluateRules(ATTITUDE_RULES, { ...base, supportingSide, landmarks, measurements: measurePose(landmarks, supportingSide) });
+    const view = 'three-quarter-side';
+    const { reliability, measurements } = measuredPose(landmarks, supportingSide, view);
+    const findings = evaluateRules(ATTITUDE_RULES, { ...base, supportingSide, view, landmarks, reliability, measurements });
     expect(findings.find((item) => item.ruleId === 'attitude-lift-thigh')).toMatchObject({ assessability: 'unassessable', evidence: ['left_hip', 'left_knee', 'right_hip', 'right_knee'] });
   });
   it('distinguishes a straight working knee from an attitude shape', () => {

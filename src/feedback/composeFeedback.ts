@@ -1,4 +1,5 @@
 import type { BodyRegion, CorrectionFeedbackItem, FeedbackItem, FullBodySection, Observation, Priority } from '../domain/types';
+import { deduplicateObservations } from '../rules/deduplicateObservations';
 import { feedbackCopyFor } from './copy';
 
 export type AssessmentCoverage = Readonly<Record<BodyRegion, 'assessable' | 'unassessable'>>;
@@ -20,12 +21,13 @@ const PRIORITY_ORDER: Readonly<Record<Priority, number>> = {
 
 const CLEAR_TEXT = 'No visible issue found in this view.';
 const UNASSESSABLE_TEXT = 'Unable to assess this area from the current image.';
+export const INSUFFICIENT_EVIDENCE_TEXT = 'Not enough evidence in this photo to recommend a change.';
 
-function isActionable(observation: Observation): observation is Extract<Observation, { assessability: 'assessable' }> & { confidence: 'high' | 'medium' } {
-  return observation.assessability === 'assessable' && (observation.confidence === 'high' || observation.confidence === 'medium');
+function isActionable(observation: Observation): observation is Extract<Observation, { assessability: 'assessable' }> & { confidence: 'high' } {
+  return observation.assessability === 'assessable' && observation.confidence === 'high';
 }
 
-function toFeedbackItem(observation: Extract<Observation, { assessability: 'assessable' }> & { confidence: 'high' | 'medium' }): CorrectionFeedbackItem {
+function toFeedbackItem(observation: Extract<Observation, { assessability: 'assessable' }> & { confidence: 'high' }): CorrectionFeedbackItem {
   return {
     observationId: observation.id,
     ruleId: observation.ruleId,
@@ -49,7 +51,8 @@ export function composeFeedback(
   observations: readonly Observation[],
   coverage: AssessmentCoverage,
 ): FeedbackSummary {
-  const actionable = observations.filter(isActionable).sort(compareObservations);
+  const deduplicated = deduplicateObservations(observations);
+  const actionable = deduplicated.filter(isActionable).sort(compareObservations);
   const itemsByRegion = new Map<BodyRegion, readonly FeedbackItem[]>();
 
   for (const region of BODY_REGIONS) {
@@ -63,8 +66,13 @@ export function composeFeedback(
         return { region, status: 'unassessable', items: [{ observationId: `coverage-${region}`, text: UNASSESSABLE_TEXT, region, priority: 'line', confidence: 'medium' }] };
       }
       const items = itemsByRegion.get(region) ?? [];
-      return items.length > 0
-        ? { region, status: 'finding', items }
+      if (items.length > 0) return { region, status: 'finding', items };
+      const hasInsufficientEvidence = deduplicated.some((observation) => (
+        observation.region === region
+        && (observation.assessability === 'unassessable' || observation.confidence !== 'high')
+      ));
+      return hasInsufficientEvidence
+        ? { region, status: 'unassessable', items: [{ observationId: `insufficient-${region}`, text: INSUFFICIENT_EVIDENCE_TEXT, region, priority: 'line', confidence: 'medium' }] }
         : { region, status: 'clear', items: [{ observationId: `clear-${region}`, text: CLEAR_TEXT, region, priority: 'line', confidence: 'high' }] };
     }),
   };

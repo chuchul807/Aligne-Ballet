@@ -1,18 +1,25 @@
-import type { Confidence, Landmark, Observation } from '../domain/types';
+import type { Confidence, Observation, PoseMeasurement } from '../domain/types';
 import type { Rule, RuleContext } from './types';
 
-function confidenceFor(evidence: readonly string[], landmarks: readonly Landmark[]): Confidence {
-  const visible = new Map<string, number>(landmarks.map((landmark) => [landmark.name, landmark.visibility]));
-  const values = evidence.map((name) => visible.get(name));
-  if (values.length > 0 && values.every((value) => value !== undefined && value >= 0.8)) return 'high';
-  if (values.length > 0 && values.every((value) => value !== undefined && value >= 0.6)) return 'medium';
-  return 'low';
+const confidenceRank: Record<Confidence, number> = { low: 0, medium: 1, high: 2 };
+
+function lowestConfidence(values: readonly Confidence[]): Confidence {
+  return values.reduce<Confidence>((lowest, value) => (
+    confidenceRank[value] < confidenceRank[lowest] ? value : lowest
+  ), 'high');
+}
+
+function isUsable(measurement: PoseMeasurement): boolean {
+  return measurement.assessability === 'assessable'
+    && measurement.value !== null
+    && Number.isFinite(measurement.value);
 }
 
 function unassessable(rule: Rule): Observation {
   return {
     id: rule.id,
     ruleId: rule.id,
+    dedupeKey: rule.dedupeKey,
     region: rule.region ?? 'torso',
     priority: rule.priority ?? 'structure',
     confidence: 'low',
@@ -26,25 +33,38 @@ function unassessable(rule: Rule): Observation {
   };
 }
 
-function normaliseObservation(observation: Observation, landmarks: readonly Landmark[]): Observation {
-  if (observation.assessability === 'unassessable') return { ...observation, confidence: 'low' };
+function normaliseObservation(
+  observation: Observation,
+  rule: Rule,
+  context: RuleContext,
+): Observation {
+  if (observation.assessability === 'unassessable') {
+    return { ...observation, dedupeKey: rule.dedupeKey, confidence: 'low' };
+  }
+  const measurementConfidence = rule.requiredMeasurements
+    .map((name) => context.measurements[name].confidence);
+  const evidenceConfidence = observation.evidence
+    .map((name) => context.reliability.get(name as import('../domain/landmarks').LandmarkName)?.confidence ?? 'low');
   return {
     ...observation,
-    confidence: confidenceFor(observation.evidence, landmarks),
-    severity: Number.isFinite(observation.severity) ? Math.min(1, Math.max(0, observation.severity)) : 0,
+    dedupeKey: rule.dedupeKey,
+    confidence: lowestConfidence([...measurementConfidence, ...evidenceConfidence]),
+    severity: Number.isFinite(observation.severity)
+      ? Math.min(1, Math.max(0, observation.severity))
+      : 0,
   };
 }
 
 export function evaluateRules(rules: readonly Rule[], context: RuleContext): readonly Observation[] {
   return rules.flatMap((rule) => {
     if (!rule.positions.includes(context.position)) return [];
-    if (rule.requiredMeasurements.some((measurement) => {
-      const value = context.measurements[measurement];
-      return value === null || !Number.isFinite(value);
-    })) {
+    if (rule.supportedViews && (!context.view || !rule.supportedViews.includes(context.view))) {
+      return [unassessable(rule)];
+    }
+    if (rule.requiredMeasurements.some((name) => !isUsable(context.measurements[name]))) {
       return [unassessable(rule)];
     }
     const observation = rule.evaluate(context);
-    return observation ? [normaliseObservation(observation, context.landmarks)] : [];
+    return observation ? [normaliseObservation(observation, rule, context)] : [];
   });
 }

@@ -18,7 +18,7 @@ const validLandmarks: LandmarkSet = {
 };
 
 function observation(id: string, region: Observation['region'], priority: Observation['priority'], severity: number): Observation {
-  return { id, ruleId: id === 'head-missing' ? 'head-extreme-lateral-tilt' : 'supporting-knee-bent', region, priority, confidence: 'high', evidence: [], annotation: [], assessability: 'assessable', issue: 'Visible issue.', action: 'Correct it.', direction: 'correct it', severity };
+  return { id, ruleId: id === 'head-missing' ? 'head-extreme-lateral-tilt' : 'supporting-knee-bent', dedupeKey: id, region, priority, confidence: 'high', evidence: [], annotation: [], assessability: 'assessable', issue: 'Visible issue.', action: 'Correct it.', direction: 'correct it', severity };
 }
 
 describe('analyzePose', () => {
@@ -78,8 +78,8 @@ describe('analyzePose', () => {
     if (outcome.status === 'success') expect(outcome.result.topCorrections.map((item) => item.observationId)).toEqual(['stability-third', 'structure-second', 'line-first']);
   });
 
-  it('marks a rule-level unassessable region as unable to assess without treating a low-confidence finding as unassessable', async () => {
-    const unassessable: Observation = { id: 'head-missing', ruleId: 'head-extreme-lateral-tilt', region: 'head', priority: 'line', confidence: 'low', evidence: [], annotation: [], assessability: 'unassessable', issue: null, action: null, direction: null, severity: null };
+  it('marks rule-level uncertainty and low-confidence findings as unassessable', async () => {
+    const unassessable: Observation = { id: 'head-missing', ruleId: 'head-extreme-lateral-tilt', dedupeKey: 'head-extreme-lateral-tilt', region: 'head', priority: 'line', confidence: 'low', evidence: [], annotation: [], assessability: 'unassessable', issue: null, action: null, direction: null, severity: null };
     const lowConfidence = { ...observation('low-pelvis', 'pelvis', 'structure', 0.7), confidence: 'low' as const };
     const outcome = await analyzePose(request, {
       detector: { detect: vi.fn().mockResolvedValue(validLandmarks), close: vi.fn() },
@@ -92,8 +92,40 @@ describe('analyzePose', () => {
     expect(outcome.status).toBe('success');
     if (outcome.status === 'success') {
       expect(outcome.result.fullBodyReview.find((section) => section.region === 'head')?.status).toBe('unassessable');
-      expect(outcome.result.fullBodyReview.find((section) => section.region === 'pelvis')?.status).toBe('clear');
+      expect(outcome.result.fullBodyReview.find((section) => section.region === 'pelvis')?.status).toBe('unassessable');
       expect(outcome.result.topCorrections).toEqual([]);
+    }
+  });
+
+  it('keeps a region actionable when a high-confidence finding accompanies an unassessable rule', async () => {
+    const highConfidence = observation('high-support', 'supporting-leg', 'stability', 0.7);
+    const unassessable: Observation = {
+      id: 'support-view-limited',
+      ruleId: 'supporting-lateral-offset',
+      dedupeKey: 'supporting-lateral-alignment',
+      region: 'supporting-leg',
+      priority: 'stability',
+      confidence: 'low',
+      evidence: [],
+      annotation: [],
+      assessability: 'unassessable',
+      issue: null,
+      action: null,
+      direction: null,
+      severity: null,
+    };
+    const outcome = await analyzePose(request, {
+      detector: { detect: vi.fn().mockResolvedValue(validLandmarks), close: vi.fn() },
+      decode: vi.fn().mockResolvedValue({ source: document.createElement('canvas'), width: 1000, height: 1500, dispose: vi.fn() }),
+      metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
+      quality: vi.fn((): QualityReport => ({ status: 'pass', reasons: [], unassessableRegions: [] })),
+      evaluate: vi.fn(() => [unassessable, highConfidence]),
+    });
+
+    expect(outcome.status).toBe('success');
+    if (outcome.status === 'success') {
+      expect(outcome.result.fullBodyReview.find((section) => section.region === 'supporting-leg'))
+        .toMatchObject({ status: 'finding', items: [{ observationId: 'high-support' }] });
     }
   });
 

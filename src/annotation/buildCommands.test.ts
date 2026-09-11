@@ -12,6 +12,7 @@ function finding(id: string, annotation: Observation['annotation']): Observation
   return {
     id,
     ruleId: id,
+    dedupeKey: id,
     region: 'supporting-leg',
     priority: 'stability',
     confidence: 'high',

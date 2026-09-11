@@ -28,6 +28,7 @@ function observation(overrides: Partial<Extract<Observation, { assessability: 'a
   return {
     id: 'observation-id',
     ruleId: 'pelvis-unlevel',
+    dedupeKey: overrides.dedupeKey ?? overrides.ruleId ?? 'pelvis-level',
     region: 'pelvis',
     priority: 'structure',
     confidence: 'high',
@@ -56,9 +57,9 @@ describe('composeFeedback', () => {
   });
 
   it('uses severity then rule ID as stable tie breakers', () => {
-    const lowerSeverity = observation({ id: 'a', ruleId: 'supporting-knee-bent', priority: 'stability', severity: 0.1 });
-    const higherSeverity = observation({ id: 'b', ruleId: 'torso-off-support', region: 'torso', priority: 'stability', severity: 0.9 });
-    const sameSeverityLaterRule = observation({ id: 'c', ruleId: 'torso-off-support', region: 'torso', priority: 'stability', severity: 0.9 });
+    const lowerSeverity = observation({ id: 'a', ruleId: 'supporting-knee-bent', dedupeKey: 'a', priority: 'stability', severity: 0.1 });
+    const higherSeverity = observation({ id: 'b', ruleId: 'torso-off-support', dedupeKey: 'b', region: 'torso', priority: 'stability', severity: 0.9 });
+    const sameSeverityLaterRule = observation({ id: 'c', ruleId: 'torso-off-support', dedupeKey: 'c', region: 'torso', priority: 'stability', severity: 0.9 });
 
     const summary = composeFeedback([sameSeverityLaterRule, lowerSeverity, higherSeverity], allRegionsAssessable);
 
@@ -74,14 +75,18 @@ describe('composeFeedback', () => {
     expect(summary.topCorrections.map((item) => item.observationId)).toEqual(['earlier', 'later']);
   });
 
-  it('qualifies medium confidence and withholds low confidence', () => {
+  it('withholds medium and low confidence and marks their regions as insufficient evidence', () => {
     const mediumPelvisIssue = observation({ id: 'medium', confidence: 'medium' });
     const lowShoulderIssue = observation({ id: 'low', ruleId: 'shoulders-unlevel', region: 'shoulders-arms', priority: 'line', confidence: 'low' });
 
     const summary = composeFeedback([mediumPelvisIssue, lowShoulderIssue], allRegionsAssessable);
 
-    expect(summary.topCorrections[0]?.text).toMatch(/may|appears to/i);
+    expect(summary.topCorrections).toEqual([]);
     expect(summary.topCorrections.some((item) => item.observationId === lowShoulderIssue.id)).toBe(false);
+    expect(summary.fullBodyReview.find((section) => section.region === 'pelvis')).toMatchObject({
+      status: 'unassessable',
+      items: [{ text: 'Not enough evidence in this photo to recommend a change.' }],
+    });
   });
 
   it('reports actionable findings, clear regions, and unassessable regions separately', () => {
@@ -91,7 +96,7 @@ describe('composeFeedback', () => {
     );
 
     expect(summary.fullBodyReview.find((section) => section.region === 'pelvis')).toMatchObject({ status: 'finding', items: [{ observationId: 'pelvis-finding' }] });
-    expect(summary.fullBodyReview.find((section) => section.region === 'head')).toMatchObject({ status: 'clear', items: [{ text: 'No visible issue found in this view.' }] });
+    expect(summary.fullBodyReview.find((section) => section.region === 'head')).toMatchObject({ status: 'unassessable', items: [{ text: 'Not enough evidence in this photo to recommend a change.' }] });
     expect(summary.fullBodyReview.find((section) => section.region === 'feet')).toMatchObject({ status: 'unassessable', items: [{ text: 'Unable to assess this area from the current image.' }] });
   });
 
@@ -108,6 +113,7 @@ describe('composeFeedback', () => {
       ...Object.values(FEEDBACK_COPY).flatMap((variants) => [variants.high, variants.medium]),
       'No visible issue found in this view.',
       'Unable to assess this area from the current image.',
+      'Not enough evidence in this photo to recommend a change.',
       'This feedback supports practice and does not replace guidance from a qualified ballet teacher.',
     ];
 

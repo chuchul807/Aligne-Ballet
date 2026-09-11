@@ -3,7 +3,7 @@ export const DIRECTION_CODE_BY_RULE_ID = {
   'pelvis-unlevel': 'level-pelvis',
   'shoulders-unlevel': 'lower-raised-shoulder',
   'torso-off-support': 'align-torso-over-support',
-  'supporting-ankle-not-stacked': 'stack-hip-over-ankle',
+  'supporting-lateral-offset': 'align-supporting-hip-and-ankle-laterally',
   'left-arm-line-collapsed': 'lengthen-left-arm',
   'right-arm-line-collapsed': 'lengthen-right-arm',
   'head-extreme-lateral-tilt': 'align-head-with-torso',
@@ -17,8 +17,6 @@ export const DIRECTION_CODE_BY_RULE_ID = {
   'attitude-lift-thigh': 'lift-attitude-working-thigh',
   'retire-place-foot-at-knee': 'place-retire-foot-at-supporting-knee',
   'retire-open-working-knee': 'move-retire-working-knee-outward',
-  'retire-keep-pelvis-level': 'level-retire-pelvis-over-support',
-  'retire-stack-over-support': 'stack-retire-hip-over-ankle',
 } as const;
 
 export type DirectionCode = typeof DIRECTION_CODE_BY_RULE_ID[keyof typeof DIRECTION_CODE_BY_RULE_ID];

@@ -10,7 +10,7 @@ describe('actualTop3FromAnalysisResult', () => {
       'shoulders-arms': 'assessable', head: 'assessable', feet: 'assessable',
     };
     const summary = composeFeedback([{
-      id: 'one', ruleId: 'supporting-knee-bent', region: 'supporting-leg', priority: 'stability', confidence: 'high',
+      id: 'one', ruleId: 'supporting-knee-bent', dedupeKey: 'supporting-knee-bent', region: 'supporting-leg', priority: 'stability', confidence: 'high',
       evidence: [], annotation: [], assessability: 'assessable', issue: 'Visible bend.', action: 'Straighten it.',
       direction: 'lengthen the supporting leg', severity: 0.4,
     }], coverage);

@@ -1,44 +1,93 @@
 import { describe, expect, it } from 'vitest';
 import { measurePose } from '../analysis/measurePose';
-import { evaluateRules } from './evaluateRules';
+import type { Confidence, MeasurementSet, PoseMeasurement } from '../domain/types';
+import { composeFeedback, type AssessmentCoverage } from '../feedback/composeFeedback';
+import { evaluateLandmarkReliability } from '../reliability/evaluateLandmarkReliability';
+import { landmarkPerson, mirroredPerson } from '../../tests/builders/landmarks';
 import { COMMON_RULES } from './commonRules';
+import { evaluateRules } from './evaluateRules';
 import type { RuleContext } from './types';
-import { landmarkPerson } from '../../tests/builders/landmarks';
+
+const allRegionsAssessable: AssessmentCoverage = {
+  'supporting-leg': 'assessable', 'working-leg': 'assessable', pelvis: 'assessable',
+  torso: 'assessable', 'shoulders-arms': 'assessable', head: 'assessable', feet: 'assessable',
+};
 
 function context(overrides: Partial<RuleContext> = {}): RuleContext {
   const landmarks = landmarkPerson();
+  const view = overrides.view ?? 'front';
+  const reliability = evaluateLandmarkReliability(landmarks, view);
+  const measured = measurePose(landmarks, 'left', reliability, view);
   return {
-    position: 'arabesque',
-    supportingSide: 'left',
-    landmarks,
-    measurements: measurePose(landmarks, 'left'),
+    position: 'arabesque', supportingSide: 'left', view, landmarks, reliability,
+    measurements: {
+      ...measured,
+      torsoLateralOffset: measurementWithValue(measured.torsoLateralOffset, 0),
+    },
     ...overrides,
   };
 }
 
-describe('evaluateRules', () => {
-  it('uses only evidence visibility for confidence, not severity', () => {
-    const landmarks = landmarkPerson().map((point) => point.name === 'left_knee' ? { ...point, visibility: 0.7 } : point);
-    const measurements = { ...measurePose(landmarks, 'left'), supportingKneeAngle: 0 };
+function measurementWithValue(
+  measurement: PoseMeasurement,
+  value: number,
+  confidence: Confidence = 'high',
+): PoseMeasurement {
+  return { ...measurement, value, confidence, assessability: 'assessable' };
+}
 
-    const observation = evaluateRules(COMMON_RULES, context({ landmarks, measurements }))
+function contextWithMeasurement(
+  key: keyof MeasurementSet,
+  value: number,
+  confidence: Confidence = 'high',
+): RuleContext {
+  const base = context();
+  return {
+    ...base,
+    measurements: {
+      ...base.measurements,
+      [key]: measurementWithValue(base.measurements[key], value, confidence),
+    },
+  };
+}
+
+describe('evaluateRules', () => {
+  it('uses reliability and measurement confidence rather than severity', () => {
+    const landmarks = landmarkPerson().map((point) => point.name === 'left_knee'
+      ? { ...point, visibility: 0.7 }
+      : point);
+    const reliability = evaluateLandmarkReliability(landmarks, 'front');
+    const base = measurePose(landmarks, 'left', reliability, 'front');
+    const measurements = {
+      ...base,
+      supportingKneeAngle: measurementWithValue(base.supportingKneeAngle, 0, 'medium'),
+    };
+    const observation = evaluateRules(COMMON_RULES, context({ landmarks, reliability, measurements }))
       .find((item) => item.ruleId === 'supporting-knee-bent');
 
     expect(observation).toMatchObject({ confidence: 'medium', severity: 1, assessability: 'assessable' });
   });
 
-  it('emits one low-confidence unassessable observation for a missing required measurement', () => {
-    const measurements = { ...measurePose(landmarkPerson(), 'left'), pelvisSlope: null };
-    const observations = evaluateRules(COMMON_RULES, context({ measurements }));
+  it('emits one low-confidence unassessable observation for an unassessable required measurement', () => {
+    const base = context();
+    const measurements = {
+      ...base.measurements,
+      pelvisSlope: { ...base.measurements.pelvisSlope, value: null, assessability: 'unassessable' as const },
+    };
+    const observations = evaluateRules(COMMON_RULES, { ...base, measurements });
 
     expect(observations.filter((item) => item.ruleId === 'pelvis-unlevel')).toEqual([
       expect.objectContaining({ assessability: 'unassessable', confidence: 'low', severity: null }),
     ]);
   });
 
-  it('treats a non-finite required measurement as missing and emits it once', () => {
-    const measurements = { ...measurePose(landmarkPerson(), 'left'), pelvisSlope: Number.NaN };
-    const observations = evaluateRules(COMMON_RULES, context({ measurements }));
+  it('treats a non-finite required measurement value as unusable and emits it once', () => {
+    const base = context();
+    const measurements = {
+      ...base.measurements,
+      pelvisSlope: { ...base.measurements.pelvisSlope, value: Number.NaN },
+    };
+    const observations = evaluateRules(COMMON_RULES, { ...base, measurements });
 
     expect(observations.filter((item) => item.ruleId === 'pelvis-unlevel')).toEqual([
       expect.objectContaining({ assessability: 'unassessable', severity: null }),
@@ -46,28 +95,42 @@ describe('evaluateRules', () => {
   });
 
   it('keeps common supporting-leg IDs and directions identical for either supporting side', () => {
-    const left = context({ measurements: { ...measurePose(landmarkPerson(), 'left'), supportingKneeAngle: 160 } });
-    const rightLandmarks = landmarkPerson().map((point) => ({ ...point, x: 1 - point.x, name: point.name.replace(/^left|^right/, (side) => side === 'left' ? 'right' : 'left') as typeof point.name }));
-    const right = context({ supportingSide: 'right', landmarks: rightLandmarks, measurements: { ...measurePose(rightLandmarks, 'right'), supportingKneeAngle: 160 } });
+    const left = contextWithMeasurement('supportingKneeAngle', 160);
+    const rightLandmarks = mirroredPerson(landmarkPerson());
+    const rightReliability = evaluateLandmarkReliability(rightLandmarks, 'front');
+    const rightBase = measurePose(rightLandmarks, 'right', rightReliability, 'front');
+    const right = context({
+      supportingSide: 'right', landmarks: rightLandmarks, reliability: rightReliability,
+      measurements: {
+        ...rightBase,
+        supportingKneeAngle: measurementWithValue(rightBase.supportingKneeAngle, 160),
+      },
+    });
 
-    const finding = (value: RuleContext) => evaluateRules(COMMON_RULES, value).find((item) => item.ruleId === 'supporting-knee-bent');
+    const finding = (value: RuleContext) => evaluateRules(COMMON_RULES, value)
+      .find((item) => item.ruleId === 'supporting-knee-bent');
     expect(finding(left)).toMatchObject({ id: 'supporting-knee-bent', direction: 'lengthen the supporting leg' });
     expect(finding(right)).toMatchObject({ id: 'supporting-knee-bent', direction: 'lengthen the supporting leg' });
   });
 
   it.each([
-    ['supporting-knee-bent', 'supportingKneeAngle', 172, 171, 'lengthen the supporting leg'],
+    [164.99, true], [165, false], [170, false], [174.99, false], [175, false],
+  ])('treats supporting-knee angle %s conservatively', (angle, expected) => {
+    const observations = evaluateRules(COMMON_RULES, contextWithMeasurement('supportingKneeAngle', angle));
+    expect(observations.some((item) => item.ruleId === 'supporting-knee-bent')).toBe(expected);
+  });
+
+  it.each([
     ['pelvis-unlevel', 'pelvisSlope', 8, 9, 'level the pelvis'],
     ['shoulders-unlevel', 'shoulderSlope', 10, 11, 'lower the raised shoulder'],
     ['torso-off-support', 'torsoLateralOffset', 0.12, 0.13, 'bring the torso toward the supporting side'],
-    ['supporting-ankle-not-stacked', 'supportingAnkleUnderHipOffset', 0.18, 0.19, 'bring the supporting hip over the ankle'],
+    ['supporting-lateral-offset', 'frontalSupportingHipAnkleOffset', 0.18, 0.19, 'bring the supporting hip and ankle into closer side-to-side alignment'],
     ['left-arm-line-collapsed', 'leftElbowAngle', 110, 109, 'lengthen the left arm'],
     ['right-arm-line-collapsed', 'rightElbowAngle', 110, 109, 'lengthen the right arm'],
     ['head-extreme-lateral-tilt', 'headTiltFromTorso', 25, 26, 'bring the head toward the torso axis'],
   ] as const)('applies %s only beyond its threshold with a bounded severity', (ruleId, key, boundary, triggered, direction) => {
-    const base = measurePose(landmarkPerson(), 'left');
-    const atBoundary = evaluateRules(COMMON_RULES, context({ measurements: { ...base, [key]: boundary } }));
-    const beyond = evaluateRules(COMMON_RULES, context({ measurements: { ...base, [key]: triggered } }));
+    const atBoundary = evaluateRules(COMMON_RULES, contextWithMeasurement(key, boundary));
+    const beyond = evaluateRules(COMMON_RULES, contextWithMeasurement(key, triggered));
     const finding = beyond.find((item) => item.ruleId === ruleId);
 
     expect(atBoundary.find((item) => item.ruleId === ruleId)).toBeUndefined();
@@ -79,10 +142,9 @@ describe('evaluateRules', () => {
   });
 
   it('detects torso displacement on either side of support while preserving the same correction direction', () => {
-    const base = measurePose(landmarkPerson(), 'left');
-    const directions = [-0.13, 0.13].map((torsoLateralOffset) => evaluateRules(
+    const directions = [-0.13, 0.13].map((value) => evaluateRules(
       COMMON_RULES,
-      context({ measurements: { ...base, torsoLateralOffset } }),
+      contextWithMeasurement('torsoLateralOffset', value),
     ).find((item) => item.ruleId === 'torso-off-support'));
 
     expect(directions).toEqual([
@@ -92,11 +154,31 @@ describe('evaluateRules', () => {
   });
 
   it('does not let an infinite common-rule measurement become a correction', () => {
-    const measurements = { ...measurePose(landmarkPerson(), 'left'), supportingAnkleUnderHipOffset: Number.POSITIVE_INFINITY };
-    const observations = evaluateRules(COMMON_RULES, context({ measurements }));
+    const observations = evaluateRules(
+      COMMON_RULES,
+      contextWithMeasurement('frontalSupportingHipAnkleOffset', Number.POSITIVE_INFINITY),
+    );
 
-    expect(observations.filter((item) => item.ruleId === 'supporting-ankle-not-stacked')).toEqual([
+    expect(observations.filter((item) => item.ruleId === 'supporting-lateral-offset')).toEqual([
       expect.objectContaining({ assessability: 'unassessable', severity: null }),
     ]);
+  });
+
+  it('does not evaluate frontal support alignment from a three-quarter-side view', () => {
+    const base = context();
+    const view = 'three-quarter-side';
+    const reliability = evaluateLandmarkReliability(base.landmarks, view);
+    const observations = evaluateRules(COMMON_RULES, {
+      ...base, view, reliability,
+      measurements: measurePose(base.landmarks, 'left', reliability, view),
+    });
+
+    expect(observations.find((item) => item.ruleId === 'supporting-lateral-offset'))
+      .toMatchObject({ assessability: 'unassessable' });
+  });
+
+  it('withholds a rule when its measurement is only medium confidence', () => {
+    const observations = evaluateRules(COMMON_RULES, contextWithMeasurement('pelvisSlope', 12, 'medium'));
+    expect(composeFeedback(observations, allRegionsAssessable).topCorrections).toEqual([]);
   });
 });

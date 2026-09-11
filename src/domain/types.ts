@@ -48,6 +48,31 @@ export interface LandmarkReliability {
 
 export type LandmarkReliabilityMap = ReadonlyMap<LandmarkName, LandmarkReliability>;
 
+export interface PoseMeasurement {
+  value: number | null;
+  confidence: Confidence;
+  assessability: Assessability;
+  evidence: readonly LandmarkName[];
+  reason?: ReliabilityReason | 'missing-geometry' | 'unsupported-view';
+}
+
+export interface MeasurementSet {
+  torsoLength: PoseMeasurement;
+  supportingKneeAngle: PoseMeasurement;
+  workingKneeAngle: PoseMeasurement;
+  pelvisSlope: PoseMeasurement;
+  shoulderSlope: PoseMeasurement;
+  torsoLateralOffset: PoseMeasurement;
+  workingAnkleToSupportingKnee: PoseMeasurement;
+  workingKneeLateralOffset: PoseMeasurement;
+  workingKneeHeightFromHip: PoseMeasurement;
+  workingAnkleHeightFromHip: PoseMeasurement;
+  frontalSupportingHipAnkleOffset: PoseMeasurement;
+  leftElbowAngle: PoseMeasurement;
+  rightElbowAngle: PoseMeasurement;
+  headTiltFromTorso: PoseMeasurement;
+}
+
 export interface LandmarkSet {
   people: ReadonlyArray<ReadonlyArray<Landmark>>;
   sourceWidth: number;
@@ -66,6 +91,7 @@ export interface PoseFrame {
 export interface ObservationBase {
   id: string;
   ruleId: string;
+  dedupeKey: string;
   region: BodyRegion;
   priority: Priority;
   confidence: Confidence;

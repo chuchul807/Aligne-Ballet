@@ -16,6 +16,7 @@ function finding(
   return {
     id,
     ruleId: id,
+    dedupeKey: id,
     region,
     priority,
     confidence: 'low',
@@ -53,13 +54,14 @@ function workingLeg(context: RuleContext): readonly [LandmarkName, LandmarkName,
 export const ARABESQUE_RULES: readonly Rule[] = [
   {
     id: 'arabesque-working-knee-bent',
+    dedupeKey: 'arabesque-working-knee-bent',
     positions: ['arabesque'],
     requiredMeasurements: ['workingKneeAngle'],
     region: 'working-leg',
     priority: 'line',
     evidence: ['left_hip', 'left_knee', 'left_ankle', 'right_hip', 'right_knee', 'right_ankle'],
     evaluate: (context) => {
-      const amount = below(context.measurements.workingKneeAngle!, 165);
+      const amount = below(context.measurements.workingKneeAngle.value!, 165);
       if (amount === null) return null;
       const evidence = workingLeg(context);
       const [, knee] = evidence;
@@ -73,14 +75,15 @@ export const ARABESQUE_RULES: readonly Rule[] = [
   },
   {
     id: 'arabesque-lower-leg-for-pelvis',
+    dedupeKey: 'arabesque-lower-leg-for-pelvis',
     positions: ['arabesque'],
     requiredMeasurements: ['workingAnkleHeightFromHip', 'pelvisSlope'],
     region: 'pelvis',
     priority: 'structure',
     evidence: ['left_hip', 'right_hip', 'left_ankle', 'right_ankle'],
     evaluate: (context) => {
-      const heightAmount = above(context.measurements.workingAnkleHeightFromHip!, 0);
-      const pelvisAmount = above(absolute(context.measurements.pelvisSlope!), 10);
+      const heightAmount = above(context.measurements.workingAnkleHeightFromHip.value!, 0);
+      const pelvisAmount = above(absolute(context.measurements.pelvisSlope.value!), 10);
       if (heightAmount === null || pelvisAmount === null) return null;
       const [, , ankle] = workingLeg(context);
       const evidence = ['left_hip', 'right_hip', ankle] as const;
@@ -95,14 +98,15 @@ export const ARABESQUE_RULES: readonly Rule[] = [
   },
   {
     id: 'arabesque-working-leg-too-low',
+    dedupeKey: 'arabesque-working-leg-too-low',
     positions: ['arabesque'],
     requiredMeasurements: ['workingAnkleHeightFromHip', 'pelvisSlope'],
     region: 'working-leg',
     priority: 'line',
     evidence: ['left_hip', 'left_knee', 'left_ankle', 'right_hip', 'right_knee', 'right_ankle'],
     evaluate: (context) => {
-      const amount = below(context.measurements.workingAnkleHeightFromHip!, -0.30);
-      if (amount === null || absolute(context.measurements.pelvisSlope!) > 8) return null;
+      const amount = below(context.measurements.workingAnkleHeightFromHip.value!, -0.30);
+      if (amount === null || absolute(context.measurements.pelvisSlope.value!) > 8) return null;
       const evidence = workingLeg(context);
       return finding(
         'arabesque-working-leg-too-low', 'working-leg', 'line', evidence,
@@ -115,13 +119,14 @@ export const ARABESQUE_RULES: readonly Rule[] = [
   },
   {
     id: 'arabesque-torso-collapse',
+    dedupeKey: 'arabesque-torso-collapse',
     positions: ['arabesque'],
     requiredMeasurements: ['torsoLateralOffset'],
     region: 'torso',
     priority: 'structure',
     evidence: ['left_shoulder', 'right_shoulder', 'left_hip', 'right_hip'],
     evaluate: (context) => {
-      const amount = below(context.measurements.torsoLateralOffset!, -0.18);
+      const amount = below(context.measurements.torsoLateralOffset.value!, -0.18);
       if (amount === null) return null;
       const evidence = ['left_shoulder', 'right_shoulder', 'left_hip', 'right_hip'] as const;
       return finding(
