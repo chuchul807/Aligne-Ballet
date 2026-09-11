@@ -1,9 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { decodeImage } from './decodeImage';
 
+function resizeCanvasWithContext(): HTMLCanvasElement {
+  return {
+    width: 0,
+    height: 0,
+    getContext: () => ({ drawImage: vi.fn() }),
+  } as unknown as HTMLCanvasElement;
+}
+
 describe('decodeImage', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('returns a bitmap and releases it through dispose', async () => {
@@ -27,13 +36,15 @@ describe('decodeImage', () => {
     });
   });
 
-  it('rejects a bitmap with a side above 8192 pixels', async () => {
-    const bitmap = { width: 8193, height: 960, close: vi.fn() } as unknown as ImageBitmap;
+  it('automatically resizes a bitmap above the analysis limit', async () => {
+    const bitmap = { width: 8193, height: 4096, close: vi.fn() } as unknown as ImageBitmap;
     vi.stubGlobal('createImageBitmap', vi.fn().mockResolvedValue(bitmap));
+    vi.spyOn(document, 'createElement').mockReturnValue(resizeCanvasWithContext());
 
-    await expect(decodeImage(new File(['x'], 'pose.jpg', { type: 'image/jpeg' }))).rejects.toEqual({
-      code: 'image-too-large',
-    });
+    const decoded = await decodeImage(new File(['x'], 'pose.jpg', { type: 'image/jpeg' }));
+
+    expect(decoded.width).toBe(4096);
+    expect(decoded.normalisation.wasResized).toBe(true);
   });
 
   it('falls back to an image element when bitmap decoding rejects with a DOMException code', async () => {

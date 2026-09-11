@@ -99,7 +99,7 @@ describe('analyzePose', () => {
 
   it.each([
     ['image-too-small', 'Image is too small. Choose a photo with a shortest side of at least 480 pixels.'],
-    ['image-too-large', 'Image is too large. Choose a photo with a longest side of 8192 pixels or smaller.'],
+    ['normalisation-failed', 'This photo could not be resized on this device. Try a smaller export or retake the photo.'],
   ] as const)('returns an actionable retake report for %s decode failures', async (code, message) => {
     const outcome = await analyzePose(request, {
       detector: { detect: vi.fn(), close: vi.fn() },

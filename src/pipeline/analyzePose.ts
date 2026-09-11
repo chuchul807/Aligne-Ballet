@@ -58,7 +58,7 @@ function selectedObservations(observations: readonly Observation[], feedback: Fe
 
 function dimensionRetake(error: unknown): QualityReport | null {
   const code = typeof error === 'object' && error !== null && 'code' in error ? error.code : null;
-  if (code !== 'image-too-small' && code !== 'image-too-large') return null;
+  if (code !== 'image-too-small' && code !== 'normalisation-failed') return null;
   return { status: 'fail', reasons: [{ code, message: QUALITY_MESSAGES[code] }], unassessableRegions: [] };
 }
 

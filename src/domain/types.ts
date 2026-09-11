@@ -17,6 +17,12 @@ export type BodyRegion =
   | 'head'
   | 'feet';
 
+export interface ImageNormalisation {
+  wasResized: boolean;
+  originalWidth: number;
+  originalHeight: number;
+}
+
 export interface Landmark {
   name: LandmarkName;
   x: number;

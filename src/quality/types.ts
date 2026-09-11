@@ -11,7 +11,7 @@ export type QualityReasonCode =
   | 'low-contrast'
   | 'blurred'
   | 'image-too-small'
-  | 'image-too-large';
+  | 'normalisation-failed';
 
 export interface QualityReason {
   code: QualityReasonCode;
