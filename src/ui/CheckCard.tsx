@@ -17,6 +17,8 @@ const regionLabels: Record<BodyRegion, string> = {
   feet: 'Feet',
 };
 
+const resizeNotice = 'Large photo resized for analysis. Its proportions were preserved.';
+
 function PassedCheck({ children }: { children: string }) {
   return <li><span aria-hidden="true">✓</span> {children}</li>;
 }
@@ -29,6 +31,7 @@ export function CheckCard({ report, onRetake, onAnalyse }: CheckCardProps) {
           <h2>Photo needs another try</h2>
           <ul>{report.reasons.map((item) => <li key={item.code}>{item.message}</li>)}</ul>
         </div>
+        {report.imageWasResized && <p className="status-note">{resizeNotice}</p>}
         <button className="secondary-action" type="button" onClick={onRetake}>Retake photo</button>
       </section>
     );
@@ -43,7 +46,7 @@ export function CheckCard({ report, onRetake, onAnalyse }: CheckCardProps) {
         <PassedCheck>Required joints visible</PassedCheck>
       </ul>
       {report.imageWasResized && (
-        <p className="status-note">Large photo resized for analysis. Its proportions were preserved.</p>
+        <p className="status-note">{resizeNotice}</p>
       )}
       {report.status === 'partial' && (
         <ul>

@@ -14,4 +14,5 @@ export const QUALITY_MESSAGES: Record<QualityReasonCode, string> = {
   'image-too-small': 'Image is too small. Choose a photo with a shortest side of at least 480 pixels.',
   'normalisation-failed': 'This photo could not be resized on this device. Try a smaller export or retake the photo.',
   'image-memory-failed': 'This photo could not be decoded with the memory available on this device. Try a smaller export or retake the photo.',
+  'decode-failed': 'This photo could not be decoded on this device. Try a smaller export or retake the photo.',
 };

@@ -108,4 +108,40 @@ describe('decodeImage', () => {
       code: 'image-memory-failed',
     });
   });
+
+  it('preserves an opaque native image-element error as a distinct decode failure', async () => {
+    class OpaqueFailureImage {
+      onload: (() => void) | null = null;
+      onerror: ((event: Event) => void) | null = null;
+
+      set src(value: string) {
+        if (value) queueMicrotask(() => this.onerror?.(new Event('error')));
+      }
+    }
+
+    vi.stubGlobal('createImageBitmap', undefined);
+    vi.stubGlobal('Image', OpaqueFailureImage);
+
+    await expect(decodeImage(new File(['x'], 'pose.jpg', { type: 'image/jpeg' }))).rejects.toEqual({
+      code: 'decode-failed',
+    });
+  });
+
+  it('preserves an opaque image-element failure after the bitmap decoder falls back', async () => {
+    class OpaqueFallbackImage {
+      onload: (() => void) | null = null;
+      onerror: ((event: Event) => void) | null = null;
+
+      set src(value: string) {
+        if (value) queueMicrotask(() => this.onerror?.(new Event('error')));
+      }
+    }
+
+    vi.stubGlobal('createImageBitmap', vi.fn().mockRejectedValue(new DOMException('Invalid image', 'EncodingError')));
+    vi.stubGlobal('Image', OpaqueFallbackImage);
+
+    await expect(decodeImage(new File(['x'], 'pose.jpg', { type: 'image/jpeg' }))).rejects.toEqual({
+      code: 'decode-failed',
+    });
+  });
 });

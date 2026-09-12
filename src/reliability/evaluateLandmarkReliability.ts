@@ -120,6 +120,11 @@ export function evaluateLandmarkReliability(
     const ratio = firstSegment / secondSegment;
     if (!(ratio >= MIN_ADJACENT_SEGMENT_RATIO && ratio <= MAX_ADJACENT_SEGMENT_RATIO)) {
       addReason(reasons, middleName, 'implausible-chain');
+      // Attribute ratio-only ambiguity to the far end of the disproportionately
+      // long segment. Keeping the other endpoint usable avoids discarding a
+      // stable hip/shoulder solely because a bent limb is foreshortened.
+      if (ratio < MIN_ADJACENT_SEGMENT_RATIO) addReason(reasons, lastName, 'implausible-chain');
+      if (ratio > MAX_ADJACENT_SEGMENT_RATIO) addReason(reasons, firstName, 'implausible-chain');
     }
     if (torso !== null && torso > 0 && firstSegment > MAX_CONNECTED_SEGMENT_IN_TORSOS * torso) {
       addReason(reasons, firstName, 'implausible-chain');

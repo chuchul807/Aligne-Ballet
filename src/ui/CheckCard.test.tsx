@@ -36,6 +36,18 @@ describe('CheckCard', () => {
     expect(onRetake).toHaveBeenCalledOnce();
   });
 
+  it('shows the preserved resize notice on a failed post-analysis check', () => {
+    render(<CheckCard
+      report={{ ...failedReport, imageWasResized: true }}
+      onRetake={vi.fn()}
+      onAnalyse={vi.fn()}
+    />);
+
+    expect(screen.getByText('Large photo resized for analysis. Its proportions were preserved.')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Retake photo' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'Analyse position' })).not.toBeInTheDocument();
+  });
+
   it('describes all passed checks with text and icons before offering analysis', () => {
     const report: QualityReport = { status: 'pass', reasons: [], unassessableRegions: [] };
     render(<CheckCard report={report} onRetake={vi.fn()} onAnalyse={vi.fn()} />);

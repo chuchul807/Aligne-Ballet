@@ -24,7 +24,8 @@ function isTerminalFailure(error: unknown): error is DecodeFailure {
     && 'code' in error
     && (error.code === 'image-too-small'
       || error.code === 'normalisation-failed'
-      || error.code === 'image-memory-failed');
+      || error.code === 'image-memory-failed'
+      || error.code === 'decode-failed');
 }
 
 function decodedBitmap(source: ImageBitmap): DecodedImage {

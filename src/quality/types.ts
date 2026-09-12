@@ -13,7 +13,8 @@ export type QualityReasonCode =
   | 'blurred'
   | 'image-too-small'
   | 'normalisation-failed'
-  | 'image-memory-failed';
+  | 'image-memory-failed'
+  | 'decode-failed';
 
 export interface QualityReason {
   code: QualityReasonCode;

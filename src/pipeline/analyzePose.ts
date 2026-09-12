@@ -58,6 +58,18 @@ export interface ViabilityRequirement {
   minimumAssessable: number;
 }
 
+export interface ViabilityQuorum {
+  requirements: readonly ViabilityRequirement[];
+  minimumSatisfiedRequirements: number;
+}
+
+export interface PositionViabilityConfiguration {
+  /** General alignment evidence; one isolated missing core region remains usable. */
+  core: ViabilityQuorum;
+  /** Evidence that is specific enough to say something about the selected position. */
+  positionSpecific: ViabilityQuorum;
+}
+
 const CORE_VIABILITY_REQUIREMENTS = [
   { region: 'torso', measurements: ['torsoLength'], minimumAssessable: 1 },
   { region: 'supporting-leg', measurements: ['supportingKneeAngle'], minimumAssessable: 1 },
@@ -65,31 +77,66 @@ const CORE_VIABILITY_REQUIREMENTS = [
 ] as const satisfies readonly ViabilityRequirement[];
 
 export const POSITION_VIABILITY_CONFIG = {
-  arabesque: [
-    ...CORE_VIABILITY_REQUIREMENTS,
-    { region: 'working-leg', measurements: ['workingKneeAngle', 'workingAnkleHeightFromHip'], minimumAssessable: 2 },
-  ],
-  'attitude-derriere': [
-    ...CORE_VIABILITY_REQUIREMENTS,
-    { region: 'working-leg', measurements: ['workingKneeAngle', 'workingKneeHeightFromHip'], minimumAssessable: 2 },
-  ],
-  'retire-passe': [
-    ...CORE_VIABILITY_REQUIREMENTS,
-    { region: 'working-leg', measurements: ['workingKneeLateralOffset'], minimumAssessable: 1 },
-    { region: 'feet', measurements: ['workingAnkleToSupportingKnee'], minimumAssessable: 1 },
-  ],
-} as const satisfies Readonly<Record<PoseName, readonly ViabilityRequirement[]>>;
+  arabesque: {
+    core: { requirements: CORE_VIABILITY_REQUIREMENTS, minimumSatisfiedRequirements: 2 },
+    positionSpecific: {
+      requirements: [
+        { region: 'working-leg', measurements: ['workingKneeAngle', 'workingAnkleHeightFromHip'], minimumAssessable: 1 },
+      ],
+      minimumSatisfiedRequirements: 1,
+    },
+  },
+  'attitude-derriere': {
+    core: { requirements: CORE_VIABILITY_REQUIREMENTS, minimumSatisfiedRequirements: 2 },
+    positionSpecific: {
+      requirements: [
+        { region: 'working-leg', measurements: ['workingKneeAngle', 'workingKneeHeightFromHip'], minimumAssessable: 1 },
+      ],
+      minimumSatisfiedRequirements: 1,
+    },
+  },
+  'retire-passe': {
+    core: { requirements: CORE_VIABILITY_REQUIREMENTS, minimumSatisfiedRequirements: 2 },
+    positionSpecific: {
+      requirements: [
+        { region: 'working-leg', measurements: ['workingKneeLateralOffset'], minimumAssessable: 1 },
+        { region: 'feet', measurements: ['workingAnkleToSupportingKnee'], minimumAssessable: 1 },
+      ],
+      minimumSatisfiedRequirements: 1,
+    },
+  },
+} as const satisfies Readonly<Record<PoseName, PositionViabilityConfiguration>>;
 
-function unavailableCriticalRegions(position: PoseName, measurements: MeasurementSet): readonly BodyRegion[] {
-  return POSITION_VIABILITY_CONFIG[position].flatMap((requirement) => {
-    const assessable = requirement.measurements.filter((name) => {
-      const measurement = measurements[name];
-      return measurement.assessability === 'assessable'
-        && measurement.value !== null
-        && Number.isFinite(measurement.value);
-    }).length;
-    return assessable >= requirement.minimumAssessable ? [] : [requirement.region];
-  });
+function requirementIsSatisfied(requirement: ViabilityRequirement, measurements: MeasurementSet): boolean {
+  const assessable = requirement.measurements.filter((name) => {
+    const measurement = measurements[name];
+    return measurement.assessability === 'assessable'
+      && measurement.value !== null
+      && Number.isFinite(measurement.value);
+  }).length;
+  return assessable >= requirement.minimumAssessable;
+}
+
+function evaluateViability(position: PoseName, measurements: MeasurementSet): {
+  viable: boolean;
+  unavailableRegions: readonly BodyRegion[];
+} {
+  const config = POSITION_VIABILITY_CONFIG[position];
+  const coreSatisfied = config.core.requirements.filter((requirement) => (
+    requirementIsSatisfied(requirement, measurements)
+  )).length;
+  const positionSatisfied = config.positionSpecific.requirements.filter((requirement) => (
+    requirementIsSatisfied(requirement, measurements)
+  )).length;
+  const unavailableRegions = [...config.core.requirements, ...config.positionSpecific.requirements]
+    .filter((requirement) => !requirementIsSatisfied(requirement, measurements))
+    .map((requirement) => requirement.region);
+
+  return {
+    viable: coreSatisfied >= config.core.minimumSatisfiedRequirements
+      && positionSatisfied >= config.positionSpecific.minimumSatisfiedRequirements,
+    unavailableRegions: [...new Set(unavailableRegions)],
+  };
 }
 
 function selectedObservations(observations: readonly Observation[], feedback: FeedbackSummary): readonly Observation[] {
@@ -102,7 +149,10 @@ function selectedObservations(observations: readonly Observation[], feedback: Fe
 
 function imageRetake(error: unknown): QualityReport | null {
   const code = typeof error === 'object' && error !== null && 'code' in error ? error.code : null;
-  if (code !== 'image-too-small' && code !== 'normalisation-failed' && code !== 'image-memory-failed') return null;
+  if (code !== 'image-too-small'
+    && code !== 'normalisation-failed'
+    && code !== 'image-memory-failed'
+    && code !== 'decode-failed') return null;
   return { status: 'fail', reasons: [{ code, message: QUALITY_MESSAGES[code] }], unassessableRegions: [] };
 }
 
@@ -149,8 +199,8 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
     }
     const reliability = reliabilityFor(landmarks, request.expectedView);
     const measurements = measure(landmarks, request.supportingSide, reliability, request.expectedView);
-    const unavailableRegions = unavailableCriticalRegions(request.position, measurements);
-    if (unavailableRegions.length > 0) {
+    const viability = evaluateViability(request.position, measurements);
+    if (!viability.viable) {
       decoded.dispose();
       return {
         status: 'retake',
@@ -160,10 +210,21 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
             code: 'insufficient-pose-evidence',
             message: QUALITY_MESSAGES['insufficient-pose-evidence'],
           }],
-          unassessableRegions: [...new Set(unavailableRegions)],
+          unassessableRegions: viability.unavailableRegions,
+          imageWasResized: decoded.normalisation.wasResized,
         },
       };
     }
+    const analysisQualityReport: QualityReport = viability.unavailableRegions.length === 0
+      ? qualityReport
+      : {
+          ...qualityReport,
+          status: 'partial',
+          unassessableRegions: [...new Set([
+            ...qualityReport.unassessableRegions,
+            ...viability.unavailableRegions,
+          ])],
+        };
     const observations = deduplicate(evaluate(rulesFor(request.position), {
       position: request.position,
       supportingSide: request.supportingSide,
@@ -175,7 +236,7 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
     const summary = feedback(observations, Object.fromEntries(
       ['supporting-leg', 'working-leg', 'pelvis', 'torso', 'shoulders-arms', 'head', 'feet'].map((region) => [
         region,
-        qualityReport.unassessableRegions.includes(region as import('../domain/types').BodyRegion)
+        analysisQualityReport.unassessableRegions.includes(region as import('../domain/types').BodyRegion)
           ? 'unassessable'
           : 'assessable',
       ]),
@@ -190,7 +251,7 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
       annotations: annotations(markedObservations, landmarks, reliability, request.supportingSide),
       createdAt: now(),
     };
-    return { status: 'success', quality: qualityReport, result, decoded };
+    return { status: 'success', quality: analysisQualityReport, result, decoded };
   } catch (error) {
     decoded?.dispose();
     const quality = imageRetake(error);

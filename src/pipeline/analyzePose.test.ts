@@ -7,6 +7,7 @@ import { evaluateLandmarkReliability } from '../reliability/evaluateLandmarkReli
 import { measurePose } from '../analysis/measurePose';
 import type { DecodedImage } from '../image/decodeImage';
 import { analyzePose, type AnalysisRequest, type AnalysisServices } from './analyzePose';
+import type { MeasurementSet } from '../domain/types';
 
 const file = new File(['pose'], 'pose.jpg', { type: 'image/jpeg' });
 const request: AnalysisRequest = {
@@ -68,12 +69,28 @@ function servicesThatRecord(calls: string[], decoded: DecodedImage) {
     quality: () => { calls.push('quality'); return { status: 'pass', reasons: [], unassessableRegions: [] }; },
     reliability: vi.fn<NonNullable<AnalysisServices['reliability']>>(() => { calls.push('reliability'); return reliability; }),
     measure: vi.fn<NonNullable<AnalysisServices['measure']>>(() => { calls.push('measure'); return measurePose(landmarks, 'left', reliability, request.expectedView); }),
-    evaluate: () => { calls.push('evaluate'); return []; },
+    evaluate: vi.fn(() => { calls.push('evaluate'); return []; }),
     deduplicate: (items) => { calls.push('deduplicate'); return items; },
     feedback: () => { calls.push('feedback'); return { topCorrections: [], fullBodyReview: [] }; },
     annotations: vi.fn<NonNullable<AnalysisServices['annotations']>>(() => { calls.push('annotations'); return []; }),
   } satisfies AnalysisServices;
   return { services, landmarks, reliability };
+}
+
+function withoutMeasurements(
+  measurements: MeasurementSet,
+  names: readonly (keyof MeasurementSet)[],
+): MeasurementSet {
+  const unavailable = { ...measurements };
+  for (const name of names) {
+    unavailable[name] = {
+      ...unavailable[name],
+      value: null,
+      assessability: 'unassessable',
+      reason: 'missing-geometry',
+    };
+  }
+  return unavailable;
 }
 
 describe('analyzePose', () => {
@@ -224,6 +241,93 @@ describe('analyzePose', () => {
     expect(outcome.status).toBe('success');
   });
 
+  it.each([
+    ['supporting leg', request, ['supportingKneeAngle'], 'supporting-leg'],
+    ['pelvis', request, ['pelvisSlope'], 'pelvis'],
+    ['Retiré working leg', { ...request, position: 'retire-passe', expectedView: 'front' }, ['workingKneeLateralOffset'], 'working-leg'],
+    ['Retiré feet', { ...request, position: 'retire-passe', expectedView: 'front' }, ['workingAnkleToSupportingKnee'], 'feet'],
+  ] as const)('continues with a partial result when only the %s evidence requirement is missing', async (_label, localRequest, missing, region) => {
+    const calls: string[] = [];
+    const decoded = decodedImage();
+    const { services, landmarks, reliability } = servicesThatRecord(calls, decoded);
+    const measurements = measurePose(landmarks, localRequest.supportingSide, reliability, localRequest.expectedView);
+    services.measure.mockReturnValue(withoutMeasurements(measurements, missing));
+
+    const outcome = await analyzePose(localRequest, services);
+
+    expect(outcome.status).toBe('success');
+    if (outcome.status === 'success') {
+      expect(outcome.quality).toMatchObject({
+        status: 'partial',
+        unassessableRegions: expect.arrayContaining([region]),
+      });
+    }
+    expect(services.evaluate).toHaveBeenCalledOnce();
+    expect(decoded.dispose).not.toHaveBeenCalled();
+  });
+
+  it('requests a retake before rules when the core evidence quorum is not met', async () => {
+    const calls: string[] = [];
+    const decoded = decodedImage();
+    const { services, landmarks, reliability } = servicesThatRecord(calls, decoded);
+    const measurements = measurePose(landmarks, request.supportingSide, reliability, request.expectedView);
+    services.measure.mockReturnValue(withoutMeasurements(measurements, ['supportingKneeAngle', 'pelvisSlope']));
+
+    const outcome = await analyzePose(request, services);
+
+    expect(outcome).toMatchObject({
+      status: 'retake',
+      quality: {
+        status: 'fail',
+        reasons: [{ code: 'insufficient-pose-evidence' }],
+        unassessableRegions: expect.arrayContaining(['supporting-leg', 'pelvis']),
+      },
+    });
+    expect(services.evaluate).not.toHaveBeenCalled();
+    expect(decoded.dispose).toHaveBeenCalledOnce();
+  });
+
+  it('preserves resize metadata when post-reliability evidence requires a retake', async () => {
+    const calls: string[] = [];
+    const decoded = resizedDecodedImage(4096, 2048, 8000, 4000);
+    const { services, landmarks, reliability } = servicesThatRecord(calls, decoded);
+    const measurements = measurePose(landmarks, request.supportingSide, reliability, request.expectedView);
+    services.measure.mockReturnValue(withoutMeasurements(measurements, ['supportingKneeAngle', 'pelvisSlope']));
+
+    const outcome = await analyzePose(request, services);
+
+    expect(outcome).toMatchObject({
+      status: 'retake',
+      quality: { status: 'fail', imageWasResized: true },
+    });
+    expect(decoded.dispose).toHaveBeenCalledOnce();
+  });
+
+  it('requests a retake before rules when Retiré has no usable position-specific evidence', async () => {
+    const calls: string[] = [];
+    const decoded = decodedImage();
+    const localRequest: AnalysisRequest = { ...request, position: 'retire-passe', expectedView: 'front' };
+    const { services, landmarks, reliability } = servicesThatRecord(calls, decoded);
+    const measurements = measurePose(landmarks, localRequest.supportingSide, reliability, localRequest.expectedView);
+    services.measure.mockReturnValue(withoutMeasurements(
+      measurements,
+      ['workingKneeLateralOffset', 'workingAnkleToSupportingKnee'],
+    ));
+
+    const outcome = await analyzePose(localRequest, services);
+
+    expect(outcome).toMatchObject({
+      status: 'retake',
+      quality: {
+        status: 'fail',
+        reasons: [{ code: 'insufficient-pose-evidence' }],
+        unassessableRegions: expect.arrayContaining(['working-leg', 'feet']),
+      },
+    });
+    expect(services.evaluate).not.toHaveBeenCalled();
+    expect(decoded.dispose).toHaveBeenCalledOnce();
+  });
+
   it('does not contradict combined arm coverage when one arm is occluded and the other is actionable', async () => {
     const landmarks = landmarkPerson().map((point) => point.name === 'left_wrist'
       ? { ...point, visibility: 0.2 }
@@ -283,6 +387,7 @@ describe('analyzePose', () => {
           message: 'Retake the photo with your whole body clearly visible, including shoulders, hips, knees, ankles, and feet.',
         }],
         unassessableRegions: ['working-leg'],
+        imageWasResized: false,
       },
     });
     expect(evaluate).not.toHaveBeenCalled();
@@ -293,6 +398,7 @@ describe('analyzePose', () => {
     ['image-too-small', 'Image is too small. Choose a photo with a shortest side of at least 480 pixels.'],
     ['normalisation-failed', 'This photo could not be resized on this device. Try a smaller export or retake the photo.'],
     ['image-memory-failed', 'This photo could not be decoded with the memory available on this device. Try a smaller export or retake the photo.'],
+    ['decode-failed', 'This photo could not be decoded on this device. Try a smaller export or retake the photo.'],
   ] as const)('returns an actionable retake report for %s decode failures', async (code, message) => {
     const outcome = await analyzePose(request, {
       detector: { detect: vi.fn(), close: vi.fn() },

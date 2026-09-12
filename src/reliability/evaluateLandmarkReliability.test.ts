@@ -7,6 +7,7 @@ import { buildAnnotationCommands } from '../annotation/buildCommands';
 import { composeFeedback } from '../feedback/composeFeedback';
 import { COMMON_RULES } from '../rules/commonRules';
 import { evaluateRules } from '../rules/evaluateRules';
+import { RETIRE_RULES } from '../rules/retireRules';
 import { evaluateLandmarkReliability } from './evaluateLandmarkReliability';
 
 const allRegionsAssessable = {
@@ -14,14 +15,18 @@ const allRegionsAssessable = {
   torso: 'assessable', 'shoulders-arms': 'assessable', head: 'assessable', feet: 'assessable',
 } as const;
 
-function conservativeOutputs(landmarks: readonly Landmark[]) {
+function conservativeOutputs(
+  landmarks: readonly Landmark[],
+  rules = COMMON_RULES,
+) {
   const reliability = evaluateLandmarkReliability(landmarks, 'front');
   const measurements = measurePose(landmarks, 'left', reliability, 'front');
-  const observations = evaluateRules(COMMON_RULES, {
+  const observations = evaluateRules(rules, {
     position: 'retire-passe', supportingSide: 'left', view: 'front', landmarks, reliability, measurements,
   });
   return {
     reliability,
+    observations,
     feedback: composeFeedback(observations, allRegionsAssessable),
     commands: buildAnnotationCommands(
       observations.filter((item) => item.assessability === 'assessable'),
@@ -80,6 +85,82 @@ describe('evaluateLandmarkReliability', () => {
       expect(commands).not.toContainEqual(expect.objectContaining({ type: 'structural-joint', joint: name }));
     }
     expect(feedback.topCorrections.some((item) => item.region === (_label === 'wrist' ? 'shoulders-arms' : 'supporting-leg'))).toBe(false);
+  });
+
+  it('suppresses a ratio-only supporting-ankle ambiguity from real Retiré feedback and overlays', () => {
+    const displaced = landmarkPerson().map((point) => {
+      if (point.name === 'left_ankle') return { ...point, x: 0.55, y: 0.43, visibility: 0.99 };
+      if (point.name === 'left_heel') return { ...point, x: 0.57, y: 0.45, visibility: 0.99 };
+      if (point.name === 'left_foot_index') return { ...point, x: 0.59, y: 0.47, visibility: 0.99 };
+      return point;
+    });
+    const torso = 0.4;
+    const hip = displaced.find((point) => point.name === 'left_hip')!;
+    const knee = displaced.find((point) => point.name === 'left_knee')!;
+    const ankle = displaced.find((point) => point.name === 'left_ankle')!;
+    const upper = Math.hypot(hip.x - knee.x, hip.y - knee.y);
+    const lower = Math.hypot(knee.x - ankle.x, knee.y - ankle.y);
+
+    expect(upper / lower).toBeLessThan(0.35);
+    expect(Math.max(upper, lower)).toBeLessThanOrEqual(1.25 * torso);
+
+    const { reliability, observations, feedback, commands } = conservativeOutputs(displaced, [...COMMON_RULES, ...RETIRE_RULES]);
+    expect(reliability.get('left_ankle')).toMatchObject({
+      assessability: 'unassessable',
+      reasons: expect.arrayContaining(['implausible-chain']),
+    });
+    expect(observations.find((item) => item.ruleId === 'supporting-lateral-offset'))
+      .toMatchObject({ assessability: 'unassessable' });
+    expect(feedback.topCorrections.some((item) => item.ruleId === 'supporting-lateral-offset')).toBe(false);
+    expect(commands).not.toContainEqual(expect.objectContaining({ type: 'structural-joint', joint: 'left_ankle' }));
+    expect(commands.some((item) => item.type === 'skeleton-segment'
+      && (item.from === 'left_ankle' || item.to === 'left_ankle'))).toBe(false);
+  });
+
+  it('suppresses a ratio-only working-ankle ambiguity from the Retiré foot rule and overlay', () => {
+    const displaced = landmarkPerson().map((point) => {
+      if (point.name === 'right_ankle') return { ...point, x: 0.85, y: 0.43, visibility: 0.99 };
+      if (point.name === 'right_heel') return { ...point, x: 0.87, y: 0.45, visibility: 0.99 };
+      if (point.name === 'right_foot_index') return { ...point, x: 0.89, y: 0.47, visibility: 0.99 };
+      return point;
+    });
+    const { reliability, observations, feedback, commands } = conservativeOutputs(displaced, [...COMMON_RULES, ...RETIRE_RULES]);
+
+    expect(reliability.get('right_ankle')).toMatchObject({
+      assessability: 'unassessable',
+      reasons: expect.arrayContaining(['implausible-chain']),
+    });
+    expect(observations.find((item) => item.ruleId === 'retire-place-foot-at-knee'))
+      .toMatchObject({ assessability: 'unassessable' });
+    expect(feedback.topCorrections.some((item) => item.ruleId === 'retire-place-foot-at-knee')).toBe(false);
+    expect(commands).not.toContainEqual(expect.objectContaining({ type: 'structural-joint', joint: 'right_ankle' }));
+  });
+
+  it.each([
+    ['wrist', 'left_wrist', { x: 0.68, y: 0.60 }, ['left_shoulder', 'left_elbow', 'left_wrist']],
+    ['toe', 'left_foot_index', { x: 0.10, y: 0.75 }, ['left_ankle', 'left_heel', 'left_foot_index']],
+  ] as const)('invalidates a ratio-only displaced %s endpoint without an absolute-cap failure', (_label, displacedName, location, chain) => {
+    const displaced = landmarkPerson().map((point) => point.name === displacedName
+      ? { ...point, ...location, visibility: 0.99 }
+      : point);
+    const first = displaced.find((point) => point.name === chain[0])!;
+    const middle = displaced.find((point) => point.name === chain[1])!;
+    const last = displaced.find((point) => point.name === chain[2])!;
+    const firstSegment = Math.hypot(first.x - middle.x, first.y - middle.y);
+    const secondSegment = Math.hypot(middle.x - last.x, middle.y - last.y);
+
+    expect(firstSegment / secondSegment).toBeLessThan(0.35);
+    expect(Math.max(firstSegment, secondSegment)).toBeLessThanOrEqual(1.25 * 0.4);
+
+    const { reliability, commands } = conservativeOutputs(displaced);
+
+    expect(reliability.get(displacedName)).toMatchObject({
+      assessability: 'unassessable',
+      reasons: expect.arrayContaining(['implausible-chain']),
+    });
+    expect(commands).not.toContainEqual(expect.objectContaining({ type: 'structural-joint', joint: displacedName }));
+    expect(commands.some((item) => item.type === 'skeleton-segment'
+      && (item.from === displacedName || item.to === displacedName))).toBe(false);
   });
 
   it.each(['left_heel', 'left_foot_index'] as const)(
