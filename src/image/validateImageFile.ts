@@ -3,6 +3,7 @@ export type ImageErrorCode =
   | 'file-too-large'
   | 'image-too-small'
   | 'normalisation-failed'
+  | 'image-memory-failed'
   | 'decode-failed';
 
 export type ImageFileValidation =

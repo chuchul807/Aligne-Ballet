@@ -70,4 +70,42 @@ describe('decodeImage', () => {
     expect(createUrl).toHaveBeenCalledOnce();
     expect(decoded.source).toBeInstanceOf(FallbackImage);
   });
+
+  it('preserves a bitmap allocation failure as an actionable memory failure', async () => {
+    let fallbackCreated = 0;
+    class FallbackImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      constructor() { fallbackCreated += 1; }
+      set src(value: string) { if (value) queueMicrotask(() => this.onerror?.()); }
+    }
+    vi.stubGlobal('createImageBitmap', vi.fn().mockRejectedValue(new RangeError('Out of memory')));
+    vi.stubGlobal('Image', FallbackImage);
+
+    await expect(decodeImage(new File(['x'], 'pose.jpg', { type: 'image/jpeg' }))).rejects.toEqual({
+      code: 'image-memory-failed',
+    });
+    expect(fallbackCreated).toBe(0);
+  });
+
+  it('preserves an image-element allocation failure as an actionable memory failure', async () => {
+    class MemoryFailureImage {
+      onload: (() => void) | null = null;
+      onerror: ((event: ErrorEvent) => void) | null = null;
+
+      set src(value: string) {
+        if (value) queueMicrotask(() => this.onerror?.(new ErrorEvent('error', {
+          error: new RangeError('Out of memory'),
+          message: 'Out of memory',
+        })));
+      }
+    }
+
+    vi.stubGlobal('createImageBitmap', undefined);
+    vi.stubGlobal('Image', MemoryFailureImage);
+
+    await expect(decodeImage(new File(['x'], 'pose.jpg', { type: 'image/jpeg' }))).rejects.toEqual({
+      code: 'image-memory-failed',
+    });
+  });
 });

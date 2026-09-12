@@ -83,12 +83,17 @@ export function App({ services = browserServices }: { services?: AppServices }) 
     dispatch({ type: 'image-selected', image: { file, previewUrl: previewUrl.current } });
     void beginAnalysis(file);
   };
+  const invalidateSelection = () => {
+    cancelAnalysis();
+    releaseImage();
+    setPendingResult(null);
+  };
   const reset = () => { cancelAnalysis(); releaseImage(); setPendingResult(null); dispatch({ type: 'reset' }); setPosition('arabesque'); setSupportingSide('left'); };
 
   return <div className="app-shell"><main className="app-card" aria-label="ALIGNÉ ballet feedback">
     <header className="app-header"><p className="eyebrow">ALIGNÉ</p><h1>Practice with a clearer eye</h1><p>One focused check at a time.</p></header>
     <StepTabs stage={session.stage} unlockedStages={session.unlockedStages} onSelect={(stage) => { if (stage !== session.stage) { cancelAnalysis(); dispatch({ type: 'stage-requested', stage }); } }} />
-    {session.stage === 'select' && <SelectCard position={position} supportingSide={supportingSide} onPositionChange={(next) => { cancelAnalysis(); setPosition(next); dispatch({ type: 'position-changed', position: next }); }} onSupportingSideChange={(next) => { cancelAnalysis(); setSupportingSide(next); }} onConfirm={() => { cancelAnalysis(); dispatch({ type: 'selection-confirmed', position, supportingSide }); }} />}
+    {session.stage === 'select' && <SelectCard position={position} supportingSide={supportingSide} onPositionChange={(next) => { invalidateSelection(); setPosition(next); dispatch({ type: 'position-changed', position: next }); }} onSupportingSideChange={(next) => { invalidateSelection(); setSupportingSide(next); dispatch({ type: 'supporting-side-changed', supportingSide: next }); }} onConfirm={() => { cancelAnalysis(); dispatch({ type: 'selection-confirmed', position, supportingSide }); }} />}
     {session.stage === 'frame' && session.position && <FrameCard view={viewFor(session.position)} onFileSelected={selectFile} />}
     {session.stage === 'check' && (isAnalysing
       ? <section className="stage-card" aria-label="Photo check"><p role="status" className="status-note">Checking your photo…</p></section>

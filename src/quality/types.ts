@@ -5,13 +5,15 @@ export type QualityReasonCode =
   | 'multiple-people'
   | 'body-out-of-frame'
   | 'required-joints-not-visible'
+  | 'insufficient-pose-evidence'
   | 'wrong-camera-view'
   | 'too-dark'
   | 'too-bright'
   | 'low-contrast'
   | 'blurred'
   | 'image-too-small'
-  | 'normalisation-failed';
+  | 'normalisation-failed'
+  | 'image-memory-failed';
 
 export interface QualityReason {
   code: QualityReasonCode;

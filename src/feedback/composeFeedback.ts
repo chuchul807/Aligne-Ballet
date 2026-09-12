@@ -52,7 +52,10 @@ export function composeFeedback(
   coverage: AssessmentCoverage,
 ): FeedbackSummary {
   const deduplicated = deduplicateObservations(observations);
-  const actionable = deduplicated.filter(isActionable).sort(compareObservations);
+  const actionable = deduplicated
+    .filter(isActionable)
+    .filter((observation) => coverage[observation.region] === 'assessable')
+    .sort(compareObservations);
   const itemsByRegion = new Map<BodyRegion, readonly FeedbackItem[]>();
 
   for (const region of BODY_REGIONS) {

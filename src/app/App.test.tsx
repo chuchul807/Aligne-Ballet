@@ -98,6 +98,32 @@ describe('App', () => {
     expect(dispose).toHaveBeenCalledOnce();
   });
 
+  it('invalidates and releases a stale Result when the supporting side changes', async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    const source = document.createElement('canvas'); source.width = 1000; source.height = 1500;
+    const dispose = vi.fn();
+    vi.spyOn(annotation, 'drawAnnotatedPose').mockImplementation((canvas) => canvas);
+    render(<App services={{
+      createDetector: vi.fn().mockResolvedValue({ detect: vi.fn().mockResolvedValue({ people: [landmarkPerson()], sourceWidth: 1000, sourceHeight: 1500 }), close: vi.fn() }),
+      now: () => '2026-09-03T12:00:00.000Z',
+      analysis: {
+        decode: vi.fn().mockResolvedValue(decodedImage(source, dispose)),
+        metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
+        quality: vi.fn(() => ({ status: 'pass' as const, reasons: [], unassessableRegions: [] })),
+      },
+    }} />);
+
+    await user.click(screen.getByRole('button', { name: 'Continue to framing' }));
+    await user.upload(screen.getByLabelText('Choose a photo'), new File(['photo'], 'pose.jpg', { type: 'image/jpeg' }));
+    await user.click(await screen.findByRole('button', { name: 'Analyse position' }));
+    await user.click(screen.getByRole('tab', { name: 'Select' }));
+    await user.click(screen.getByRole('radio', { name: 'Right' }));
+
+    expect(screen.getByRole('tab', { name: 'Result' })).toBeDisabled();
+    expect(dispose).toHaveBeenCalledOnce();
+    expect(screen.queryByLabelText('Your feedback')).not.toBeInTheDocument();
+  });
+
   it('shows an actionable Retake photo control for decoded dimension failures instead of the generic error', async () => {
     const user = userEvent.setup({ applyAccept: false });
     render(<App services={{

@@ -1,6 +1,6 @@
 import { measurePose, type MeasurementSet } from '../analysis/measurePose';
 import { buildAnnotationCommands } from '../annotation/buildCommands';
-import type { DrawingCommand, Landmark, LandmarkReliabilityMap, Observation, AnalysisResult, PoseName, SupportingSide, ViewType } from '../domain/types';
+import type { BodyRegion, DrawingCommand, Landmark, LandmarkReliabilityMap, Observation, AnalysisResult, PoseName, SupportingSide, ViewType } from '../domain/types';
 import { composeFeedback, type FeedbackSummary } from '../feedback/composeFeedback';
 import { decodeImage, type DecodedImage } from '../image/decodeImage';
 import { measureImageMetrics, type ImageMetrics } from '../image/imageMetrics';
@@ -52,6 +52,46 @@ function rulesFor(position: PoseName): readonly Rule[] {
   return [...COMMON_RULES, ...positionRules];
 }
 
+export interface ViabilityRequirement {
+  region: BodyRegion;
+  measurements: readonly (keyof MeasurementSet)[];
+  minimumAssessable: number;
+}
+
+const CORE_VIABILITY_REQUIREMENTS = [
+  { region: 'torso', measurements: ['torsoLength'], minimumAssessable: 1 },
+  { region: 'supporting-leg', measurements: ['supportingKneeAngle'], minimumAssessable: 1 },
+  { region: 'pelvis', measurements: ['pelvisSlope'], minimumAssessable: 1 },
+] as const satisfies readonly ViabilityRequirement[];
+
+export const POSITION_VIABILITY_CONFIG = {
+  arabesque: [
+    ...CORE_VIABILITY_REQUIREMENTS,
+    { region: 'working-leg', measurements: ['workingKneeAngle', 'workingAnkleHeightFromHip'], minimumAssessable: 2 },
+  ],
+  'attitude-derriere': [
+    ...CORE_VIABILITY_REQUIREMENTS,
+    { region: 'working-leg', measurements: ['workingKneeAngle', 'workingKneeHeightFromHip'], minimumAssessable: 2 },
+  ],
+  'retire-passe': [
+    ...CORE_VIABILITY_REQUIREMENTS,
+    { region: 'working-leg', measurements: ['workingKneeLateralOffset'], minimumAssessable: 1 },
+    { region: 'feet', measurements: ['workingAnkleToSupportingKnee'], minimumAssessable: 1 },
+  ],
+} as const satisfies Readonly<Record<PoseName, readonly ViabilityRequirement[]>>;
+
+function unavailableCriticalRegions(position: PoseName, measurements: MeasurementSet): readonly BodyRegion[] {
+  return POSITION_VIABILITY_CONFIG[position].flatMap((requirement) => {
+    const assessable = requirement.measurements.filter((name) => {
+      const measurement = measurements[name];
+      return measurement.assessability === 'assessable'
+        && measurement.value !== null
+        && Number.isFinite(measurement.value);
+    }).length;
+    return assessable >= requirement.minimumAssessable ? [] : [requirement.region];
+  });
+}
+
 function selectedObservations(observations: readonly Observation[], feedback: FeedbackSummary): readonly Observation[] {
   const byId = new Map(observations.map((observation) => [observation.id, observation]));
   return feedback.topCorrections.flatMap((item) => {
@@ -62,7 +102,7 @@ function selectedObservations(observations: readonly Observation[], feedback: Fe
 
 function imageRetake(error: unknown): QualityReport | null {
   const code = typeof error === 'object' && error !== null && 'code' in error ? error.code : null;
-  if (code !== 'image-too-small' && code !== 'normalisation-failed') return null;
+  if (code !== 'image-too-small' && code !== 'normalisation-failed' && code !== 'image-memory-failed') return null;
   return { status: 'fail', reasons: [{ code, message: QUALITY_MESSAGES[code] }], unassessableRegions: [] };
 }
 
@@ -109,6 +149,21 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
     }
     const reliability = reliabilityFor(landmarks, request.expectedView);
     const measurements = measure(landmarks, request.supportingSide, reliability, request.expectedView);
+    const unavailableRegions = unavailableCriticalRegions(request.position, measurements);
+    if (unavailableRegions.length > 0) {
+      decoded.dispose();
+      return {
+        status: 'retake',
+        quality: {
+          status: 'fail',
+          reasons: [{
+            code: 'insufficient-pose-evidence',
+            message: QUALITY_MESSAGES['insufficient-pose-evidence'],
+          }],
+          unassessableRegions: [...new Set(unavailableRegions)],
+        },
+      };
+    }
     const observations = deduplicate(evaluate(rulesFor(request.position), {
       position: request.position,
       supportingSide: request.supportingSide,

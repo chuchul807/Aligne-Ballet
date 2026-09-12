@@ -57,4 +57,27 @@ describe('drawAnnotatedPose', () => {
     expect(context.lineWidth).toBeGreaterThan(0);
     expect(JSON.stringify(landmarks)).toBe(before);
   });
+
+  it('draws exactly one numbered marker at the region centroid for one feedback item', () => {
+    const context = new RecordingContext();
+    const canvas = { width: 0, height: 0, getContext: () => context } as unknown as HTMLCanvasElement;
+    const landmarks: readonly Landmark[] = [
+      { name: 'left_hip', x: 0.2, y: 0.4, visibility: 1 },
+      { name: 'left_knee', x: 0.4, y: 0.6, visibility: 1 },
+      { name: 'left_ankle', x: 0.6, y: 0.8, visibility: 1 },
+    ];
+    const commands: readonly DrawingCommand[] = [
+      { type: 'highlight-region', observationId: 'leg', joints: ['left_hip', 'left_knee', 'left_ankle'], label: 1 },
+      { type: 'direction-arrow', observationId: 'leg', anchor: 'left_knee', dx: 0, dy: -0.1, label: 1 },
+    ];
+
+    drawAnnotatedPose(canvas, { width: 1000, height: 1000 } as unknown as CanvasImageSource, landmarks, commands);
+
+    expect(context.calls.filter((call) => call.name === 'fillText')).toEqual([
+      { name: 'fillText', values: '1' },
+    ]);
+    expect(context.calls.filter((call) => call.name === 'arc')).toEqual([
+      { name: 'arc', values: [400, 600, 1000 / 64, 0, Math.PI * 2] },
+    ]);
+  });
 });

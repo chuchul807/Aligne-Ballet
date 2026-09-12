@@ -120,7 +120,7 @@ describe('analyzePose', () => {
   });
 
   it('returns retake reasons and never evaluates rules when quality fails', async () => {
-    const evaluate = vi.fn();
+    const evaluate = vi.fn(() => []);
     const outcome = await analyzePose(request, {
       detector: { detect: vi.fn().mockResolvedValue({ ...validLandmarks, people: [] }), close: vi.fn() },
       decode: vi.fn().mockResolvedValue(decodedImage()),
@@ -207,9 +207,92 @@ describe('analyzePose', () => {
     }
   });
 
+  it('continues when only an isolated arm chain is unreliable', async () => {
+    const landmarks = landmarkPerson().map((point) => point.name === 'left_wrist'
+      ? { ...point, x: 0.95, y: 0.5, visibility: 0.99 }
+      : point);
+    const outcome = await analyzePose(request, {
+      detector: {
+        detect: vi.fn().mockResolvedValue({ people: [landmarks], sourceWidth: 1000, sourceHeight: 1500 }),
+        close: vi.fn(),
+      },
+      decode: vi.fn().mockResolvedValue(decodedImage()),
+      metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
+      quality: vi.fn((): QualityReport => ({ status: 'partial', reasons: [], unassessableRegions: ['shoulders-arms'] })),
+    });
+
+    expect(outcome.status).toBe('success');
+  });
+
+  it('does not contradict combined arm coverage when one arm is occluded and the other is actionable', async () => {
+    const landmarks = landmarkPerson().map((point) => point.name === 'left_wrist'
+      ? { ...point, visibility: 0.2 }
+      : point);
+    const outcome = await analyzePose(request, {
+      detector: {
+        detect: vi.fn().mockResolvedValue({ people: [landmarks], sourceWidth: 1000, sourceHeight: 1500 }),
+        close: vi.fn(),
+      },
+      decode: vi.fn().mockResolvedValue(decodedImage()),
+      metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
+      measure: (points, side, reliability, view) => {
+        const measurements = measurePose(points, side, reliability, view);
+        return {
+          ...measurements,
+          rightElbowAngle: {
+            ...measurements.rightElbowAngle,
+            value: 100,
+            assessability: 'assessable',
+            confidence: 'high',
+          },
+        };
+      },
+    });
+
+    expect(outcome.status).toBe('success');
+    if (outcome.status === 'success') {
+      expect(outcome.result.topCorrections.some((item) => item.region === 'shoulders-arms')).toBe(false);
+      expect(outcome.result.fullBodyReview.find((section) => section.region === 'shoulders-arms'))
+        .toMatchObject({ status: 'unassessable', items: [{ text: 'Unable to assess this area from the current image.' }] });
+    }
+  });
+
+  it('requests a retake when Arabesque position-critical working-leg evidence is unavailable', async () => {
+    const landmarks = landmarkPerson().map((point) => point.name === 'right_ankle'
+      ? { ...point, x: 0.95, y: 0.5, visibility: 0.99 }
+      : point);
+    const evaluate = vi.fn(() => []);
+    const decoded = decodedImage();
+    const outcome = await analyzePose(request, {
+      detector: {
+        detect: vi.fn().mockResolvedValue({ people: [landmarks], sourceWidth: 1000, sourceHeight: 1500 }),
+        close: vi.fn(),
+      },
+      decode: vi.fn().mockResolvedValue(decoded),
+      metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
+      quality: vi.fn((): QualityReport => ({ status: 'pass', reasons: [], unassessableRegions: [] })),
+      evaluate,
+    });
+
+    expect(outcome).toEqual({
+      status: 'retake',
+      quality: {
+        status: 'fail',
+        reasons: [{
+          code: 'insufficient-pose-evidence',
+          message: 'Retake the photo with your whole body clearly visible, including shoulders, hips, knees, ankles, and feet.',
+        }],
+        unassessableRegions: ['working-leg'],
+      },
+    });
+    expect(evaluate).not.toHaveBeenCalled();
+    expect(decoded.dispose).toHaveBeenCalledOnce();
+  });
+
   it.each([
     ['image-too-small', 'Image is too small. Choose a photo with a shortest side of at least 480 pixels.'],
     ['normalisation-failed', 'This photo could not be resized on this device. Try a smaller export or retake the photo.'],
+    ['image-memory-failed', 'This photo could not be decoded with the memory available on this device. Try a smaller export or retake the photo.'],
   ] as const)('returns an actionable retake report for %s decode failures', async (code, message) => {
     const outcome = await analyzePose(request, {
       detector: { detect: vi.fn(), close: vi.fn() },

@@ -4,7 +4,7 @@ import type { Confidence, MeasurementSet, PoseMeasurement } from '../domain/type
 import { composeFeedback, type AssessmentCoverage } from '../feedback/composeFeedback';
 import { evaluateLandmarkReliability } from '../reliability/evaluateLandmarkReliability';
 import { landmarkPerson, mirroredPerson } from '../../tests/builders/landmarks';
-import { COMMON_RULES } from './commonRules';
+import { COMMON_RULES, CONSERVATIVE_RULE_CONFIGURATION, createCommonRules } from './commonRules';
 import { evaluateRules } from './evaluateRules';
 import type { RuleContext } from './types';
 
@@ -118,6 +118,18 @@ describe('evaluateRules', () => {
   ])('treats supporting-knee angle %s conservatively', (angle, expected) => {
     const observations = evaluateRules(COMMON_RULES, contextWithMeasurement('supportingKneeAngle', angle));
     expect(observations.some((item) => item.ruleId === 'supporting-knee-bent')).toBe(expected);
+  });
+
+  it('accepts a typed named calibration without changing the rule contract', () => {
+    const calibrated = createCommonRules({
+      ...CONSERVATIVE_RULE_CONFIGURATION.common,
+      supportingKneeClearBelowDegrees: 170,
+    });
+
+    expect(evaluateRules(calibrated, contextWithMeasurement('supportingKneeAngle', 169))
+      .some((item) => item.ruleId === 'supporting-knee-bent')).toBe(true);
+    expect(evaluateRules(calibrated, contextWithMeasurement('supportingKneeAngle', 170))
+      .some((item) => item.ruleId === 'supporting-knee-bent')).toBe(false);
   });
 
   it.each([

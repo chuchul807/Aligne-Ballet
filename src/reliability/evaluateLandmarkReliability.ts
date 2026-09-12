@@ -15,11 +15,13 @@ const MAX_ADJACENT_SEGMENT_RATIO = 2.85;
 const MAX_CONNECTED_SEGMENT_IN_TORSOS = 1.25;
 const OCCLUSION_DISTANCE_IN_TORSOS = 0.08;
 
-const middleJoints = [
+const geometryChains = [
   ['left_shoulder', 'left_elbow', 'left_wrist'],
   ['right_shoulder', 'right_elbow', 'right_wrist'],
   ['left_hip', 'left_knee', 'left_ankle'],
   ['right_hip', 'right_knee', 'right_ankle'],
+  ['left_ankle', 'left_heel', 'left_foot_index'],
+  ['right_ankle', 'right_heel', 'right_foot_index'],
 ] as const satisfies readonly (readonly [LandmarkName, LandmarkName, LandmarkName])[];
 
 const occlusionPairs = [
@@ -107,7 +109,7 @@ export function evaluateLandmarkReliability(
   }
 
   const torso = torsoLength(points);
-  for (const [firstName, middleName, lastName] of middleJoints) {
+  for (const [firstName, middleName, lastName] of geometryChains) {
     const first = points.get(firstName);
     const middle = points.get(middleName);
     const last = points.get(lastName);
@@ -116,14 +118,16 @@ export function evaluateLandmarkReliability(
     const firstSegment = distance(first, middle);
     const secondSegment = distance(middle, last);
     const ratio = firstSegment / secondSegment;
-    if (
-      !(ratio >= MIN_ADJACENT_SEGMENT_RATIO && ratio <= MAX_ADJACENT_SEGMENT_RATIO)
-      || (torso !== null && torso > 0 && (
-        firstSegment > MAX_CONNECTED_SEGMENT_IN_TORSOS * torso
-        || secondSegment > MAX_CONNECTED_SEGMENT_IN_TORSOS * torso
-      ))
-    ) {
+    if (!(ratio >= MIN_ADJACENT_SEGMENT_RATIO && ratio <= MAX_ADJACENT_SEGMENT_RATIO)) {
       addReason(reasons, middleName, 'implausible-chain');
+    }
+    if (torso !== null && torso > 0 && firstSegment > MAX_CONNECTED_SEGMENT_IN_TORSOS * torso) {
+      addReason(reasons, firstName, 'implausible-chain');
+      addReason(reasons, middleName, 'implausible-chain');
+    }
+    if (torso !== null && torso > 0 && secondSegment > MAX_CONNECTED_SEGMENT_IN_TORSOS * torso) {
+      addReason(reasons, middleName, 'implausible-chain');
+      addReason(reasons, lastName, 'implausible-chain');
     }
   }
 

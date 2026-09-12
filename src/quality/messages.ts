@@ -5,6 +5,7 @@ export const QUALITY_MESSAGES: Record<QualityReasonCode, string> = {
   'multiple-people': 'Only one dancer can be analysed at a time.',
   'body-out-of-frame': 'Keep your hands and feet inside the frame.',
   'required-joints-not-visible': 'Make sure your hips, knees, ankles, and feet are visible.',
+  'insufficient-pose-evidence': 'Retake the photo with your whole body clearly visible, including shoulders, hips, knees, ankles, and feet.',
   'wrong-camera-view': 'Match the camera angle shown in the framing guide.',
   'too-dark': 'Use brighter, even lighting and try again.',
   'too-bright': 'Reduce glare or backlighting and try again.',
@@ -12,4 +13,5 @@ export const QUALITY_MESSAGES: Record<QualityReasonCode, string> = {
   blurred: 'Hold the camera steady and retake the photo.',
   'image-too-small': 'Image is too small. Choose a photo with a shortest side of at least 480 pixels.',
   'normalisation-failed': 'This photo could not be resized on this device. Try a smaller export or retake the photo.',
+  'image-memory-failed': 'This photo could not be decoded with the memory available on this device. Try a smaller export or retake the photo.',
 };

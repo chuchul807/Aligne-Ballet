@@ -22,6 +22,7 @@ export interface SessionState {
 export type SessionAction =
   | { type: 'selection-confirmed'; position: PoseName; supportingSide: SupportingSide }
   | { type: 'position-changed'; position: PoseName }
+  | { type: 'supporting-side-changed'; supportingSide: SupportingSide }
   | { type: 'image-selected'; image: ImageSelection }
   | { type: 'quality-completed'; report: QualityReport }
   | { type: 'analysis-succeeded'; result: AnalysisResult }
@@ -43,6 +44,7 @@ export const initialSessionState: SessionState = {
 const TRANSITIONS: Record<Exclude<SessionAction['type'], 'stage-requested' | 'reset'>, Stage> = {
   'selection-confirmed': 'frame',
   'position-changed': 'select',
+  'supporting-side-changed': 'select',
   'image-selected': 'check',
   'quality-completed': 'check',
   'analysis-succeeded': 'result',
@@ -70,6 +72,13 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
         stage: TRANSITIONS[action.type],
         position: action.position,
         supportingSide: state.supportingSide,
+      };
+    case 'supporting-side-changed':
+      return {
+        ...initialSessionState,
+        stage: TRANSITIONS[action.type],
+        position: state.position,
+        supportingSide: action.supportingSide,
       };
     case 'image-selected':
       return {

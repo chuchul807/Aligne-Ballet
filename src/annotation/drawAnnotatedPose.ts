@@ -60,22 +60,38 @@ export function drawAnnotatedPose(
   }
   context.globalAlpha = 1;
 
+  const markedObservations = new Set<string>();
   for (const command of commands) {
     if (command.type === 'highlight-joint') {
       const point = pointByName.get(command.joint);
       if (point === undefined) continue;
-      drawMarker(context, point.x, point.y, highlightRadius, command.label);
+      if (!markedObservations.has(command.observationId)) {
+        drawMarker(context, point.x, point.y, highlightRadius, command.label);
+        markedObservations.add(command.observationId);
+      }
     }
     if (command.type === 'highlight-region') {
-      for (const joint of command.joints) {
+      const points = command.joints.flatMap((joint) => {
         const point = pointByName.get(joint);
-        if (point !== undefined) drawMarker(context, point.x, point.y, highlightRadius, command.label);
+        return point ? [point] : [];
+      });
+      if (points.length > 0 && !markedObservations.has(command.observationId)) {
+        const centroid = points.reduce((total, point) => ({
+          x: total.x + point.x / points.length,
+          y: total.y + point.y / points.length,
+        }), { x: 0, y: 0 });
+        drawMarker(context, centroid.x, centroid.y, highlightRadius, command.label);
+        markedObservations.add(command.observationId);
       }
     }
     if (command.type === 'direction-arrow') {
       const anchor = pointByName.get(command.anchor);
       if (anchor === undefined) continue;
-      drawArrow(context, anchor.x, anchor.y, anchor.x + command.dx * dimensions.width, anchor.y + command.dy * dimensions.height, lineWidth, command.label);
+      drawArrow(context, anchor.x, anchor.y, anchor.x + command.dx * dimensions.width, anchor.y + command.dy * dimensions.height, lineWidth);
+      if (!markedObservations.has(command.observationId)) {
+        drawMarker(context, anchor.x, anchor.y, highlightRadius, command.label);
+        markedObservations.add(command.observationId);
+      }
     }
   }
 
@@ -107,7 +123,7 @@ function drawMarker(context: CanvasRenderingContext2D, x: number, y: number, rad
   context.fillText(String(label), x, y);
 }
 
-function drawArrow(context: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, lineWidth: number, label: 1 | 2 | 3): void {
+function drawArrow(context: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, lineWidth: number): void {
   const angle = Math.atan2(endY - startY, endX - startX);
   const headLength = Math.max(lineWidth * 5, 12);
   context.beginPath();
@@ -119,5 +135,4 @@ function drawArrow(context: CanvasRenderingContext2D, startX: number, startY: nu
   context.moveTo(endX, endY);
   context.lineTo(endX - headLength * Math.cos(angle + Math.PI / 6), endY - headLength * Math.sin(angle + Math.PI / 6));
   context.stroke();
-  drawMarker(context, startX, startY, Math.max(lineWidth * 3, 12), label);
 }
