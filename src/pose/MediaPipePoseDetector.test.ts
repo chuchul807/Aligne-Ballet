@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { landmarkNames } from '../domain/landmarks';
-import { mapMediaPipeResult, POSE_MODEL_ASSET_PATH } from './MediaPipePoseDetector';
+import { mapMediaPipeResult, POSE_MODEL_ASSET_URL } from './MediaPipePoseDetector';
 
 function fakePerson(visibility: number) {
   return landmarkNames.map((_, index) => ({
@@ -14,7 +14,9 @@ function fakePerson(visibility: number) {
 
 describe('MediaPipe model configuration', () => {
   it('uses the Heavy pose model asset', () => {
-    expect(POSE_MODEL_ASSET_PATH).toBe('/models/pose_landmarker_heavy.task');
+    expect(POSE_MODEL_ASSET_URL).toBe(
+      'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task',
+    );
   });
 });
 

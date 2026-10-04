@@ -39,12 +39,13 @@ export function mapMediaPipeResult(
   };
 }
 
-export const POSE_MODEL_ASSET_PATH = '/models/pose_landmarker_heavy.task';
+export const POSE_MODEL_ASSET_URL =
+  'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task';
 
 export async function createMediaPipePoseDetector(): Promise<PoseDetector> {
   const files = await FilesetResolver.forVisionTasks('/vendor/mediapipe/wasm');
   const landmarker = await PoseLandmarker.createFromOptions(files, {
-    baseOptions: { modelAssetPath: POSE_MODEL_ASSET_PATH },
+    baseOptions: { modelAssetPath: POSE_MODEL_ASSET_URL },
     runningMode: 'IMAGE',
     numPoses: 2,
     minPoseDetectionConfidence: 0.5,
