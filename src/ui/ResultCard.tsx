@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { drawAnnotatedPose } from '../annotation/drawAnnotatedPose';
 import { renderDownload } from '../annotation/renderDownload';
 import type { AnalysisResult, BodyRegion } from '../domain/types';
+import { poseLabel } from '../domain/poseLabel';
 import { Disclaimer } from './Disclaimer';
 
 interface ResultCardProps {
@@ -15,17 +16,13 @@ const regionLabels: Record<BodyRegion, string> = {
   'shoulders-arms': 'Shoulders and arms', head: 'Head', feet: 'Feet',
 };
 
-function positionLabel(position: AnalysisResult['position']): string {
-  return position === 'attitude-derriere' ? 'Attitude derrière' : position === 'retire-passe' ? 'Retiré / Passé' : 'Arabesque';
-}
-
 export function ResultCard({ result, image, onAnotherPhoto }: ResultCardProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [annotationError, setAnnotationError] = useState<string | null>(null);
   const [annotationReady, setAnnotationReady] = useState(false);
   const [annotationAttempt, setAnnotationAttempt] = useState(0);
-  const label = positionLabel(result.position);
+  const label = poseLabel(result.position);
 
   useEffect(() => {
     if (!canvas.current || !image) return;

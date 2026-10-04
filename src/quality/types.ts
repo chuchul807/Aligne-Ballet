@@ -6,6 +6,8 @@ export type QualityReasonCode =
   | 'body-out-of-frame'
   | 'required-joints-not-visible'
   | 'insufficient-pose-evidence'
+  | 'subject-too-small'
+  | 'unstable-pose-landmarks'
   | 'wrong-camera-view'
   | 'too-dark'
   | 'too-bright'

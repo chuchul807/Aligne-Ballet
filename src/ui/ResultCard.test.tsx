@@ -18,6 +18,18 @@ const result: AnalysisResult = {
 };
 
 describe('ResultCard', () => {
+  it.each([
+    ['a-la-seconde', 'À la seconde (en face)'],
+    ['tendu-croise-devant', 'Tendu croisé devant (en face)'],
+  ] as const)('uses the %s label for annotated results', async (position, label) => {
+    vi.mocked(drawAnnotatedPose).mockImplementation((canvas) => canvas);
+    const image = document.createElement('canvas'); image.width = 1000; image.height = 1500;
+
+    render(<ResultCard result={{ ...result, position }} image={image} onAnotherPhoto={vi.fn()} />);
+
+    expect(await screen.findByRole('img', { name: `Annotated ${label} pose with highlighted corrections` })).toBeVisible();
+  });
+
   it('shows fewer than three corrections and evidence-insufficient body copy', () => {
     const resultWithOneCorrectionAndUnassessableHead: AnalysisResult = {
       ...result,

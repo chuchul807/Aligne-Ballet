@@ -1,6 +1,12 @@
+import { createSessionId } from './createSessionId';
 import type { LandmarkName } from './landmarks';
 
-export type PoseName = 'arabesque' | 'attitude-derriere' | 'retire-passe';
+export type PoseName =
+  | 'arabesque'
+  | 'attitude-derriere'
+  | 'retire-passe'
+  | 'a-la-seconde'
+  | 'tendu-croise-devant';
 export type SupportingSide = 'left' | 'right';
 export type ViewType = 'front' | 'three-quarter-side';
 export type FrameKind = 'image' | 'video-keyframe';
@@ -29,15 +35,18 @@ export interface Landmark {
   y: number;
   z?: number;
   visibility: number;
+  presence?: number;
 }
 
 export type ReliabilityReason =
   | 'missing'
   | 'non-finite'
   | 'low-visibility'
+  | 'low-presence'
   | 'outside-frame'
   | 'implausible-chain'
-  | 'possible-occlusion';
+  | 'possible-occlusion'
+  | 'cross-pass-disagreement';
 
 export interface LandmarkReliability {
   name: LandmarkName;
@@ -67,6 +76,13 @@ export interface MeasurementSet {
   workingKneeLateralOffset: PoseMeasurement;
   workingKneeHeightFromHip: PoseMeasurement;
   workingAnkleHeightFromHip: PoseMeasurement;
+  workingFootPointAngle: PoseMeasurement;
+  /** Positive when the working heel is estimated closer to the camera than the toes. */
+  workingHeelDepthCue: PoseMeasurement;
+  /** Positive when the working ankle travels outward from its hip in the frontal plane. */
+  workingAnkleOutwardOffset: PoseMeasurement;
+  workingFootHeightFromSupportingFoot: PoseMeasurement;
+  croiseCrossingSeparation: PoseMeasurement;
   frontalSupportingHipAnkleOffset: PoseMeasurement;
   leftElbowAngle: PoseMeasurement;
   rightElbowAngle: PoseMeasurement;
@@ -178,7 +194,7 @@ export function createAnalysisSession(
   createdAt = new Date().toISOString(),
 ): AnalysisSession {
   return {
-    id: crypto.randomUUID(),
+    id: createSessionId(),
     position,
     supportingSide,
     expectedViews: [view],

@@ -28,6 +28,15 @@ export const FEEDBACK_COPY = {
   'attitude-lift-thigh': { high: 'Lift your working thigh slightly while keeping your pelvis level.', medium: 'Your working thigh appears low; lift it slightly without changing the pelvis.' },
   'retire-place-foot-at-knee': { high: 'Bring your working foot closer to the supporting knee.', medium: 'Your working foot appears away from the supporting knee; bring it closer.' },
   'retire-open-working-knee': { high: 'From this front view, move your visible working knee slightly farther to the side.', medium: 'From this front view, your working knee may appear close to the standing side.' },
+  'a-la-seconde-working-knee-bent': { high: 'Lengthen and straighten your working leg.', medium: 'Your working knee appears slightly bent; lengthen through the leg.' },
+  'a-la-seconde-working-leg-not-side': { high: 'Move your working leg outward into the side plane without forcing it lower.', medium: 'Your working leg may be drifting away from the side plane; guide it slightly outward.' },
+  'a-la-seconde-foot-not-pointed': { high: 'Lengthen through your ankle and point your working toes.', medium: 'Your working foot may be shortening the leg line; lengthen through the toes.' },
+  'a-la-seconde-turnout-not-visible': { high: 'Rotate your working leg outward until the heel is slightly visible.', medium: 'The working heel line is unclear; show a little more heel if comfortable.' },
+  'a-la-seconde-pelvis-out-of-line': { high: 'Bring your pelvis closer to level while keeping the working leg long.', medium: 'Your pelvic line may be lifting more than the leg height requires.' },
+  'tendu-working-knee-bent': { high: 'Lengthen and straighten your working leg.', medium: 'Your working knee appears slightly bent; lengthen through the leg.' },
+  'tendu-foot-not-pointed': { high: 'Lengthen through your ankle and point your working toes.', medium: 'Your working foot may be shortening the tendu line; lengthen through the toes.' },
+  'tendu-working-foot-lifted': { high: 'Reach your working toes back to the floor.', medium: 'Your working toes may be lifting; reach them gently toward the floor.' },
+  'tendu-crossing-too-small': { high: 'Reach your working foot slightly farther across while keeping both knees straight.', medium: 'The croise crossing may look narrow; reach the working foot a little farther across.' },
 } satisfies Record<string, FeedbackCopyVariants>;
 
 export function feedbackCopyFor(ruleId: string, confidence: 'high' | 'medium'): string {

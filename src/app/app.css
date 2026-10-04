@@ -51,6 +51,8 @@ fieldset { margin: 20px 0; padding: 0; border: 0; }
 .status-note { display: flex; gap: 8px; align-items: center; border-radius: 12px; padding: 12px; color: var(--deep); background: var(--soft); }
 .status-note span { color: var(--accent); font-weight: 900; }
 .frame-card, .check-card { padding: 28px 24px; }
+.diagnostics-card { border-top: 1px solid var(--line); padding: 20px 24px 28px; }
+.diagnostics-card textarea { width: 100%; resize: vertical; border: 1px solid var(--line); border-radius: 10px; padding: 10px; color: var(--ink); background: white; font: .72rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .frame-card img, .annotated-pose { display: block; width: 100%; height: auto; margin-top: 18px; border-radius: 14px; background: var(--soft); }
 .result-card h3 { margin: 24px 0 8px; color: var(--deep); font-family: Georgia, serif; }
 .corrections { margin: 0; padding-left: 1.4rem; }

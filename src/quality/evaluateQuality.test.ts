@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Landmark, LandmarkSet } from '../domain/types';
 import { evaluateQuality, type QualityInput } from './evaluateQuality';
+import { QUALITY_MESSAGES } from './messages';
 
 const requiredNames = [
   'left_shoulder', 'right_shoulder', 'left_hip', 'right_hip',
@@ -102,6 +103,62 @@ describe('evaluateQuality', () => {
     const report = evaluateQuality(baseInput());
 
     expect(report).toEqual({ status: 'pass', reasons: [], unassessableRegions: [] });
+  });
+
+  it.each([
+    ['left', 'left_heel'],
+    ['right', 'right_heel'],
+  ] as const)('rejects tendu croise when the %s supporting heel is not visible', (supportingSide, heel) => {
+    const report = evaluateQuality(baseInput({
+      position: 'tendu-croise-devant',
+      supportingSide,
+      expectedView: 'front',
+      landmarks: landmarkSet([fullPerson([landmark(heel, supportingSide === 'left' ? 0.33 : 0.67, 0.88, 0.59)])]),
+    }));
+
+    expect(report.reasons.map((reason) => reason.code)).toContain('required-joints-not-visible');
+  });
+
+  it('defers only required-joint visibility during the whole-image pass', () => {
+    const report = evaluateQuality(baseInput({
+      landmarks: landmarkSet([fullPerson([landmark('left_knee', 0.35, 0.68, 0.59)])]),
+      requiredJointVisibility: 'defer',
+    }));
+
+    expect(report.reasons.map((reason) => reason.code)).not.toContain('required-joints-not-visible');
+  });
+
+  it('keeps required-joint rejection when camera-view validation is deferred', () => {
+    const narrowPerson = fullPerson([
+      landmark('left_shoulder', 0.49, 0.2), landmark('right_shoulder', 0.51, 0.2),
+      landmark('left_hip', 0.49, 0.5), landmark('right_hip', 0.51, 0.5),
+      landmark('left_knee', 0.35, 0.68, 0.59),
+    ]);
+
+    const report = evaluateQuality(baseInput({
+      landmarks: landmarkSet([narrowPerson]),
+      cameraViewCheck: 'defer',
+    }));
+
+    expect(report.reasons.map((reason) => reason.code)).toEqual(['required-joints-not-visible']);
+  });
+
+  it('still rejects out-of-frame evidence while visibility is deferred', () => {
+    const report = evaluateQuality(baseInput({
+      landmarks: landmarkSet([fullPerson([landmark('left_foot_index', 0.01, 0.93)])]),
+      requiredJointVisibility: 'defer',
+    }));
+
+    expect(report.reasons.map((reason) => reason.code)).toContain('body-out-of-frame');
+  });
+
+  it('defines refined pose retake messages', () => {
+    expect(QUALITY_MESSAGES['subject-too-small']).toBe(
+      'Move closer while keeping your full body, hands, and feet in the frame.',
+    );
+    expect(QUALITY_MESSAGES['unstable-pose-landmarks']).toBe(
+      'Retake the photo closer, with less clothing, barre, or limb overlap around the joints.',
+    );
   });
 
   it('defines all required full-body landmark names in its test fixture', () => {

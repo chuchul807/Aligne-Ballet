@@ -28,6 +28,8 @@ export interface QualityInput {
   supportingSide: SupportingSide;
   expectedView: ViewType;
   metrics: ImageMetrics;
+  requiredJointVisibility?: 'enforce' | 'defer';
+  cameraViewCheck?: 'enforce' | 'defer';
 }
 
 function indexPerson(person: readonly Landmark[]): Map<LandmarkName, Landmark> {
@@ -45,7 +47,7 @@ function distance(a: Landmark, b: Landmark): number {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-function apparentViewRatio(points: Map<LandmarkName, Landmark>): number | null {
+export function apparentViewRatio(points: Map<LandmarkName, Landmark>): number | null {
   const leftShoulder = points.get('left_shoulder');
   const rightShoulder = points.get('right_shoulder');
   const leftHip = points.get('left_hip');
@@ -86,10 +88,14 @@ export function evaluateQuality(input: QualityInput): QualityReport {
       })) {
       reasons.push(reason('body-out-of-frame'));
     }
-    if (required.some((landmark) => !landmark || landmark.visibility < QUALITY_THRESHOLDS.minRequiredVisibility)) {
+    if (input.requiredJointVisibility !== 'defer'
+      && required.some((landmark) => !landmark || landmark.visibility < QUALITY_THRESHOLDS.minRequiredVisibility)) {
       reasons.push(reason('required-joints-not-visible'));
     }
-    if (!hasExpectedView(apparentViewRatio(points), input.expectedView)) reasons.push(reason('wrong-camera-view'));
+    if (input.cameraViewCheck !== 'defer'
+      && !hasExpectedView(apparentViewRatio(points), input.expectedView)) {
+      reasons.push(reason('wrong-camera-view'));
+    }
   }
 
   if (input.metrics.meanLuminance < QUALITY_THRESHOLDS.minMeanLuminance) reasons.push(reason('too-dark'));

@@ -34,6 +34,24 @@ export interface ConservativeRuleConfiguration {
     workingFootDistanceAboveTorsoRatio: number;
     workingKneeLateralOffsetBelowTorsoRatio: number;
   };
+  aLaSeconde: {
+    workingKneeClearBelowDegrees: number;
+    workingFootPointBelowDegrees: number;
+    workingHeelDepthCueBelowTorsoRatio: number;
+    workingAnkleOutwardOffsetBelowTorsoRatio: number;
+    verticalAllowanceStartsAboveHipRatio: number;
+    outwardAllowancePerTorsoHeight: number;
+    minimumHighLegOutwardOffsetRatio: number;
+    basePelvisSlopeDegrees: number;
+    extraPelvisSlopePerTorsoHeight: number;
+    maximumPelvisSlopeDegrees: number;
+  };
+  tenduCroiseDevant: {
+    workingKneeClearBelowDegrees: number;
+    workingFootPointBelowDegrees: number;
+    workingFootHeightAboveTorsoRatio: number;
+    crossingSeparationBelowTorsoRatio: number;
+  };
 }
 
 export const CONSERVATIVE_RULE_CONFIGURATION = {
@@ -66,9 +84,39 @@ export const CONSERVATIVE_RULE_CONFIGURATION = {
     workingFootDistanceAboveTorsoRatio: 0.32,
     workingKneeLateralOffsetBelowTorsoRatio: 0.28,
   },
+  aLaSeconde: {
+    workingKneeClearBelowDegrees: 165,
+    workingFootPointBelowDegrees: 150,
+    workingHeelDepthCueBelowTorsoRatio: 0.02,
+    workingAnkleOutwardOffsetBelowTorsoRatio: 0.08,
+    verticalAllowanceStartsAboveHipRatio: 0.50,
+    outwardAllowancePerTorsoHeight: 0.16,
+    minimumHighLegOutwardOffsetRatio: -0.05,
+    basePelvisSlopeDegrees: 8,
+    extraPelvisSlopePerTorsoHeight: 8,
+    maximumPelvisSlopeDegrees: 18,
+  },
+  tenduCroiseDevant: {
+    workingKneeClearBelowDegrees: 165,
+    workingFootPointBelowDegrees: 150,
+    workingFootHeightAboveTorsoRatio: 0.18,
+    crossingSeparationBelowTorsoRatio: 0.12,
+  },
 } as const satisfies ConservativeRuleConfiguration;
 
-const allPositions = ['arabesque', 'attitude-derriere', 'retire-passe'] as const;
+const allPositions = [
+  'arabesque',
+  'attitude-derriere',
+  'retire-passe',
+  'a-la-seconde',
+  'tendu-croise-devant',
+] as const;
+const standardPelvisPositions = [
+  'arabesque',
+  'attitude-derriere',
+  'retire-passe',
+  'tendu-croise-devant',
+] as const;
 
 function finding(
   id: string,
@@ -116,12 +164,12 @@ function rule(
   requiredMeasurements: Rule['requiredMeasurements'],
   evidence: readonly LandmarkName[],
   evaluate: (context: RuleContext) => Observation | null,
-  options: { dedupeKey?: string; supportedViews?: readonly ViewType[] } = {},
+  options: { dedupeKey?: string; supportedViews?: readonly ViewType[]; positions?: Rule['positions'] } = {},
 ): Rule {
   return {
     id,
     dedupeKey: options.dedupeKey ?? id,
-    positions: allPositions,
+    positions: options.positions ?? allPositions,
     requiredMeasurements,
     region,
     priority,
@@ -140,7 +188,7 @@ export function createCommonRules(config: CommonRuleTolerances): readonly Rule[]
   rule('pelvis-unlevel', 'pelvis', 'structure', ['pelvisSlope'], ['left_hip', 'right_hip'], (context) => {
     const amount = above(signedSlope(context.measurements.pelvisSlope.value!)!, config.pelvisSlopeAboveDegrees);
     return amount === null ? null : finding('pelvis-unlevel', 'pelvis', 'structure', ['left_hip', 'right_hip'], 'The pelvis is visibly unlevel.', 'Level the pelvis.', 'level the pelvis', amount);
-  }, { dedupeKey: 'pelvis-level' }),
+  }, { dedupeKey: 'pelvis-level', positions: standardPelvisPositions }),
   rule('shoulders-unlevel', 'shoulders-arms', 'line', ['shoulderSlope'], ['left_shoulder', 'right_shoulder'], (context) => {
     const amount = above(signedSlope(context.measurements.shoulderSlope.value!)!, config.shoulderSlopeAboveDegrees);
     return amount === null ? null : finding('shoulders-unlevel', 'shoulders-arms', 'line', ['left_shoulder', 'right_shoulder'], 'The shoulders are visibly unlevel.', 'Soften the raised shoulder downward.', 'lower the raised shoulder', amount);

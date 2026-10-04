@@ -20,7 +20,7 @@ The browser model assets are MediaPipe Pose Landmarker Lite files obtained throu
 The MVP supports one still image at a time:
 
 - Arabesque and Attitude derrière: three-quarter side view.
-- Retiré / Passé: front view.
+- Retiré / Passé, À la seconde, and Tendu croisé devant: front view.
 - Select the supporting side manually before uploading.
 
 Use a full-body image, including feet, with one person and adequate lighting. The app can only discuss visible, screen-detectable features in the prescribed view. It cannot diagnose pain, injuries, force, internal rotation, muscular engagement, or hidden depth relationships. Work with a qualified teacher for coaching, health, or safety decisions.

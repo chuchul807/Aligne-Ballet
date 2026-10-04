@@ -48,6 +48,14 @@ function overlapPair(
     : point);
 }
 
+function update(
+  landmarks: readonly Landmark[],
+  name: LandmarkName,
+  changes: Partial<Landmark>,
+): readonly Landmark[] {
+  return landmarks.map((point) => point.name === name ? { ...point, ...changes } : point);
+}
+
 describe('evaluateLandmarkReliability', () => {
   it('marks a visible plausible supporting chain assessable', () => {
     const result = evaluateLandmarkReliability(landmarkPerson(), 'front');
@@ -56,6 +64,36 @@ describe('evaluateLandmarkReliability', () => {
       assessability: 'assessable', confidence: 'high', reasons: [],
     });
   });
+
+  it('rejects defined presence below 0.60 without rejecting absent presence', () => {
+    const low = update(landmarkPerson(), 'left_knee', { presence: 0.59 });
+
+    expect(evaluateLandmarkReliability(low, 'front').get('left_knee')?.reasons).toContain('low-presence');
+    expect(evaluateLandmarkReliability(landmarkPerson(), 'front').get('left_knee')?.assessability).toBe('assessable');
+  });
+
+  it('marks a cross-pass disagreement unassessable', () => {
+    const result = evaluateLandmarkReliability(
+      landmarkPerson(), 'front', new Set<LandmarkName>(['left_knee']),
+    );
+
+    expect(result.get('left_knee')).toMatchObject({
+      assessability: 'unassessable',
+      confidence: 'low',
+      reasons: expect.arrayContaining(['cross-pass-disagreement']),
+    });
+  });
+
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+    'rejects non-finite presence %s instead of treating it as absent',
+    (presence) => {
+      const landmarks = update(landmarkPerson(), 'left_knee', { presence });
+
+      expect(evaluateLandmarkReliability(landmarks, 'front').get('left_knee')).toMatchObject({
+        assessability: 'unassessable', confidence: 'low', reasons: ['low-presence'],
+      });
+    },
+  );
 
   it('rejects a high-visibility knee whose leg-chain proportions are implausible', () => {
     const displaced = landmarkPerson().map((point) => point.name === 'left_knee'

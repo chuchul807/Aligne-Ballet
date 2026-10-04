@@ -18,6 +18,7 @@ const regionLabels: Record<BodyRegion, string> = {
 };
 
 const resizeNotice = 'Large photo resized for analysis. Its proportions were preserved.';
+const partialAssessmentNotice = 'Some areas were not assessed because their joint positions were obscured or inconsistent.';
 
 function PassedCheck({ children }: { children: string }) {
   return <li><span aria-hidden="true">✓</span> {children}</li>;
@@ -49,11 +50,14 @@ export function CheckCard({ report, onRetake, onAnalyse }: CheckCardProps) {
         <p className="status-note">{resizeNotice}</p>
       )}
       {report.status === 'partial' && (
-        <ul>
-          {report.unassessableRegions.map((region) => (
-            <li key={region}>{regionLabels[region]} cannot be assessed from this photo.</li>
-          ))}
-        </ul>
+        <>
+          <p className="status-note">{partialAssessmentNotice}</p>
+          <ul>
+            {report.unassessableRegions.map((region) => (
+              <li key={region}>{regionLabels[region]} cannot be assessed from this photo.</li>
+            ))}
+          </ul>
+        </>
       )}
       <button className="primary-action" type="button" onClick={onAnalyse}>Analyse position</button>
     </section>

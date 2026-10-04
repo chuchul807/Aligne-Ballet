@@ -31,6 +31,24 @@ function canvasFor(context: RecordingContext): HTMLCanvasElement {
 }
 
 describe('renderDownload', () => {
+  it.each([
+    ['a-la-seconde', 'À la seconde (en face)'],
+    ['tendu-croise-devant', 'Tendu croisé devant (en face)'],
+  ] as const)('writes the %s position label into the PNG', async (position, label) => {
+    const context = new RecordingContext();
+    const canvas = canvasFor(context);
+    const createElement = vi.spyOn(document, 'createElement').mockReturnValue(canvas);
+
+    await renderDownload({
+      image: { width: 400, height: 200 } as unknown as CanvasImageSource,
+      result: { ...result(), position },
+      generatedAt: new Date('2026-09-04T12:00:00.000Z'),
+    });
+
+    expect(context.text).toContain(label);
+    createElement.mockRestore();
+  });
+
   it('writes the position, numbered correction, exact disclaimer, and a wrapped date into one PNG', async () => {
     const context = new RecordingContext();
     const blob = new Blob(['png'], { type: 'image/png' });

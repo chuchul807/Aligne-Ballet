@@ -83,6 +83,7 @@ function addReason(
 export function evaluateLandmarkReliability(
   landmarks: readonly Landmark[],
   view: ViewType,
+  disagreements: ReadonlySet<LandmarkName> = new Set(),
 ): LandmarkReliabilityMap {
   void view;
 
@@ -103,6 +104,10 @@ export function evaluateLandmarkReliability(
     if (!Number.isFinite(point.visibility) || point.visibility < MIN_VISIBILITY) {
       addReason(reasons, name, 'low-visibility');
     }
+    if (point.presence !== undefined && (!Number.isFinite(point.presence) || point.presence < MIN_VISIBILITY)) {
+      addReason(reasons, name, 'low-presence');
+    }
+    if (disagreements.has(name)) addReason(reasons, name, 'cross-pass-disagreement');
     if (Number.isFinite(point.x) && Number.isFinite(point.y) && !isInsideFrame(point)) {
       addReason(reasons, name, 'outside-frame');
     }

@@ -19,7 +19,13 @@ export type CorrectionLabel = z.infer<typeof correctionLabelSchema>;
 
 export const labelledCaseSchema = z.object({
   id: z.string().min(1),
-  position: z.enum(['arabesque', 'attitude-derriere', 'retire-passe']),
+  position: z.enum([
+    'arabesque',
+    'attitude-derriere',
+    'retire-passe',
+    'a-la-seconde',
+    'tendu-croise-devant',
+  ]),
   supportingSide: z.enum(['left', 'right']),
   assessable: z.boolean(),
   expectedTop3: z.array(correctionLabelSchema).max(3),

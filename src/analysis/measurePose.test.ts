@@ -47,6 +47,18 @@ describe('measurePose', () => {
     });
   });
 
+  it('withholds the supporting knee angle after cross-pass disagreement', () => {
+    const landmarks = landmarkPerson();
+    const measurements = measurePose(
+      landmarks,
+      'left',
+      evaluateLandmarkReliability(landmarks, 'front', new Set(['left_knee'])),
+      'front',
+    );
+
+    expect(measurements.supportingKneeAngle.value).toBeNull();
+  });
+
   it('marks frontal-only support offset unassessable in a three-quarter view', () => {
     const landmarks = landmarkPerson();
     const measurements = measurePose(
@@ -104,6 +116,60 @@ describe('measurePose', () => {
     const expected = -0.2 / 0.35;
     expect(measurementsFor(landmarks, 'left').workingKneeHeightFromHip.value).toBeCloseTo(expected, 5);
     expect(measurementsFor(mirroredPerson(landmarks), 'right').workingKneeHeightFromHip.value).toBeCloseTo(expected, 5);
+  });
+
+  it('measures front-view foot extension, signed heel depth, side placement, floor height, and croise crossing bilaterally', () => {
+    const landmarks = landmarkPerson().map((point) => {
+      if (point.name === 'right_hip') return { ...point, x: 0.60, y: 0.70 };
+      if (point.name === 'right_knee') return { ...point, x: 0.45, y: 0.78 };
+      if (point.name === 'right_ankle') return { ...point, x: 0.30, y: 0.86 };
+      if (point.name === 'right_heel') return { ...point, x: 0.24, y: 0.90, z: -0.04 };
+      if (point.name === 'right_foot_index') return { ...point, x: 0.15, y: 0.94, z: 0.08 };
+      return point;
+    });
+    const left = measurementsFor(landmarks, 'left', 'front');
+    const right = measurementsFor(mirroredPerson(landmarks), 'right', 'front');
+
+    expect(left.workingFootPointAngle.value).toBeCloseTo(180, 5);
+    expect(left.workingHeelDepthCue.value).toBeCloseTo(0.60, 5);
+    expect(left.workingAnkleOutwardOffset.value).toBeCloseTo(-0.75, 5);
+    expect(left.workingFootHeightFromSupportingFoot.value).toBeCloseTo(0, 5);
+    expect(left.croiseCrossingSeparation.value).toBeCloseTo(0.25, 5);
+    for (const name of [
+      'workingFootPointAngle',
+      'workingHeelDepthCue',
+      'workingAnkleOutwardOffset',
+      'workingFootHeightFromSupportingFoot',
+      'croiseCrossingSeparation',
+    ] as const) {
+      expect(right[name].value).toBeCloseTo(left[name].value!, 5);
+    }
+  });
+
+  it('keeps the heel-depth cue stable when only the vertical torso length changes', () => {
+    const landmarks = landmarkPerson().map((point) => {
+      if (point.name === 'right_heel') return { ...point, z: -0.04 };
+      if (point.name === 'right_foot_index') return { ...point, z: 0.08 };
+      return point;
+    });
+    const tallerTorso = landmarks.map((point) => point.name === 'left_shoulder' || point.name === 'right_shoulder'
+      ? { ...point, y: 0.20 }
+      : point);
+
+    expect(measurementsFor(landmarks).workingHeelDepthCue.value).toBeCloseTo(0.60, 5);
+    expect(measurementsFor(tallerTorso).workingHeelDepthCue.value).toBeCloseTo(0.60, 5);
+  });
+
+  it('withholds the heel-depth cue when either foot landmark has no finite depth', () => {
+    const missingDepth = measurementsFor(landmarkPerson()).workingHeelDepthCue;
+    const nonFiniteDepth = measurementsFor(landmarkPerson().map((point) => (
+      point.name === 'right_heel' ? { ...point, z: Number.NaN }
+        : point.name === 'right_foot_index' ? { ...point, z: 0.05 }
+          : point
+    ))).workingHeelDepthCue;
+
+    expect(missingDepth).toMatchObject({ value: null, assessability: 'unassessable', reason: 'missing-geometry' });
+    expect(nonFiniteDepth).toMatchObject({ value: null, assessability: 'unassessable' });
   });
 
   it('returns null measurements rather than non-finite values for non-finite landmarks', () => {

@@ -1,4 +1,5 @@
 import type { AnalysisResult } from '../domain/types';
+import { poseLabel } from '../domain/poseLabel';
 
 export const PRACTICE_DISCLAIMER = 'This feedback supports practice and does not replace guidance from a qualified ballet teacher.';
 
@@ -14,10 +15,6 @@ function imageSize(image: CanvasImageSource): { width: number; height: number } 
   const height = sized.naturalHeight || sized.height;
   if (!width || !height) throw new Error('Image dimensions are required to create a download.');
   return { width, height };
-}
-
-function titleCasePosition(position: AnalysisResult['position']): string {
-  return position === 'attitude-derriere' ? 'Attitude derrière' : position === 'retire-passe' ? 'Retiré / Passé' : 'Arabesque';
 }
 
 function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: number): readonly string[] {
@@ -51,7 +48,7 @@ export function renderDownload(input: DownloadRenderInput): Promise<Blob> {
   const date = generatedAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
   const topCorrections = input.result.topCorrections.slice(0, 3);
   const lines = [
-    ...wrapText(context, titleCasePosition(input.result.position), width - padding * 2),
+    ...wrapText(context, poseLabel(input.result.position), width - padding * 2),
     ...topCorrections.flatMap((item, index) => wrapText(context, `${index + 1}. ${item.text}`, width - padding * 2)),
     ...wrapText(context, PRACTICE_DISCLAIMER, width - padding * 2),
     ...wrapText(context, `Generated ${date}`, width - padding * 2),

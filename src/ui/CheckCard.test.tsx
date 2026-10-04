@@ -65,6 +65,10 @@ describe('CheckCard', () => {
     };
     render(<CheckCard report={report} onRetake={vi.fn()} onAnalyse={vi.fn()} />);
 
+    const note = screen.getByText('Some areas were not assessed because their joint positions were obscured or inconsistent.');
+    const regionalItem = screen.getByText('Shoulders and arms cannot be assessed from this photo.');
+    expect(screen.getAllByText('Some areas were not assessed because their joint positions were obscured or inconsistent.')).toHaveLength(1);
+    expect(note.compareDocumentPosition(regionalItem) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByText('Shoulders and arms cannot be assessed from this photo.')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Analyse position' })).toBeEnabled();
   });
