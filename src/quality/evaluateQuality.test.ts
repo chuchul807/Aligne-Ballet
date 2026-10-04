@@ -105,6 +105,23 @@ describe('evaluateQuality', () => {
     expect(report).toEqual({ status: 'pass', reasons: [], unassessableRegions: [] });
   });
 
+  it('accepts a front-facing a-la-seconde sample near the MediaPipe front-view boundary', () => {
+    const frontFacingPerson = fullPerson([
+      landmark('left_shoulder', 0.5858736038, 0.2140418887),
+      landmark('right_shoulder', 0.3966046572, 0.2041564882),
+      landmark('left_hip', 0.5684951544, 0.4744009376),
+      landmark('right_hip', 0.4622940421, 0.4939188957),
+    ]);
+
+    const report = evaluateQuality(baseInput({
+      position: 'a-la-seconde',
+      expectedView: 'front',
+      landmarks: landmarkSet([frontFacingPerson]),
+    }));
+
+    expect(report.reasons.map((item) => item.code)).not.toContain('wrong-camera-view');
+  });
+
   it.each([
     ['left', 'left_heel'],
     ['right', 'right_heel'],

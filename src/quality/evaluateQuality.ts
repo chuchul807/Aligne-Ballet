@@ -64,7 +64,7 @@ export function apparentViewRatio(points: Map<LandmarkName, Landmark>): number |
 
 function hasExpectedView(ratio: number | null, expectedView: ViewType): boolean {
   if (ratio === null) return false;
-  return expectedView === 'front' ? ratio >= 0.55 : ratio >= 0.25 && ratio <= 0.85;
+  return expectedView === 'front' ? ratio >= 0.50 : ratio >= 0.25 && ratio <= 0.85;
 }
 
 function reason(code: QualityReasonCode): QualityReason {
