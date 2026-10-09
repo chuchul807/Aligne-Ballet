@@ -1,0 +1,41 @@
+{
+  "name": "aligne-ballet-feedback",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "presync:assets": "node --version",
+    "dev": "vite",
+    "predev": "pnpm sync:assets",
+    "build": "tsc --noEmit && vite build",
+    "prebuild": "pnpm sync:assets",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:agreement": "vitest run evaluation/scoreAgreement.test.ts",
+    "test:e2e": "playwright test",
+    "sync:assets": "node scripts/sync-mediapipe-assets.mjs"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^1.0.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@cloudflare/vite-plugin": "1.37.1",
+    "@cloudflare/workers-types": "4.20260515.1",
+    "@openai/sites-vite-plugin": "0.2.0",
+    "@playwright/test": "^1.62.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@vitejs/plugin-react": "^6.1.1",
+    "jsdom": "^30.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11",
+    "wrangler": "4.92.0"
+  }
+}

@@ -1,0 +1,66 @@
+:root {
+  --page: #f7dce1;
+  --surface: #fff8fa;
+  --soft: #f2c2c7;
+  --accent: #a74766;
+  --deep: #653246;
+  --ink: #3f2831;
+  --muted: #75515f;
+  --line: #dda8b5;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--page);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: var(--page); }
+button, select, input { font: inherit; }
+button { cursor: pointer; }
+
+.app-shell { width: min(100% - 24px, 390px); margin-inline: auto; padding-block: 24px; }
+.app-card { min-height: 520px; position: relative; overflow: hidden; border: 1px solid rgb(167 71 102 / 10%); border-radius: 24px; background: var(--surface); box-shadow: 0 18px 42px rgb(101 50 70 / 16%); }
+.app-header { padding: 28px 24px 18px; background: #fbecef; }
+.eyebrow, .stage-kicker { margin: 0 0 6px; color: var(--accent); font-size: .75rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+h1, h2 { color: var(--deep); font-family: Georgia, serif; }
+h1 { margin: 0; font-size: 2rem; line-height: 1.1; }
+h2 { margin: 0 0 16px; font-size: 1.5rem; }
+.app-header p:not(.eyebrow), .stage-card p { color: var(--muted); line-height: 1.5; }
+
+.step-tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-block: 1px solid var(--line); }
+.step-tab { min-height: 44px; border: 0; border-right: 1px solid var(--line); background: transparent; color: var(--muted); font-size: .75rem; font-weight: 700; }
+.step-tab:last-child { border-right: 0; }
+.step-tab[aria-selected='true'] { background: var(--soft); color: var(--deep); }
+.step-tab:disabled { color: var(--muted); cursor: not-allowed; opacity: .7; }
+.step-lock { display: inline-block; margin-left: 4px; }
+
+.stage-card { padding: 28px 24px; }
+label, legend { display: block; color: var(--deep); font-weight: 700; margin-bottom: 8px; }
+select { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; color: var(--ink); background: var(--surface); }
+fieldset { margin: 20px 0; padding: 0; border: 0; }
+.choice-row, .radio-stack { display: grid; gap: 10px; }
+.choice-row { grid-template-columns: 1fr 1fr; }
+.radio-choice { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; color: var(--deep); background: var(--surface); }
+.radio-choice:has(input:checked) { border-color: var(--accent); background: var(--soft); }
+.radio-choice input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
+.choice, .primary-action, .secondary-action { min-height: 44px; border-radius: 12px; padding: 10px 14px; font-weight: 750; }
+.choice { border: 1px solid var(--line); color: var(--deep); background: var(--surface); }
+.choice.selected { border-color: var(--accent); background: var(--soft); }
+.selected-copy { margin-left: 6px; font-size: .75rem; }
+.primary-action { width: 100%; border: 1px solid var(--accent); color: white; background: var(--accent); }
+.secondary-action { width: 100%; margin-top: 20px; border: 1px solid var(--line); color: var(--deep); background: transparent; }
+.status-note { display: flex; gap: 8px; align-items: center; border-radius: 12px; padding: 12px; color: var(--deep); background: var(--soft); }
+.status-note span { color: var(--accent); font-weight: 900; }
+.frame-card, .check-card { padding: 28px 24px; }
+.diagnostics-card { border-top: 1px solid var(--line); padding: 20px 24px 28px; }
+.diagnostics-card textarea { width: 100%; resize: vertical; border: 1px solid var(--line); border-radius: 10px; padding: 10px; color: var(--ink); background: white; font: .72rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.frame-card img, .annotated-pose { display: block; width: 100%; height: auto; margin-top: 18px; border-radius: 14px; background: var(--soft); }
+.result-card h3 { margin: 24px 0 8px; color: var(--deep); font-family: Georgia, serif; }
+.corrections { margin: 0; padding-left: 1.4rem; }
+.corrections li { margin-block: 10px; line-height: 1.45; }
+.result-card details { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 14px; }
+.result-card summary { color: var(--deep); cursor: pointer; font-weight: 750; }
+.result-card details section { border-bottom: 1px solid var(--line); padding-block: 8px; }
+.result-card details h3 { margin: 8px 0 2px; font-size: 1rem; }
+.result-card details p, .result-card > p { color: var(--muted); line-height: 1.45; }
+
+@media (prefers-reduced-motion: no-preference) { button { transition: background-color 140ms ease, border-color 140ms ease; } }
