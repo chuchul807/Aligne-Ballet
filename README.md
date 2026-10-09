@@ -1,6 +1,47 @@
 # ALIGNÉ ballet feedback MVP
 
-ALIGNÉ gives a dancer a constrained, single-photo practice check. It is an implemented MVP candidate, not a validated coaching tool until it passes the real-photo agreement gate below.
+## What ALIGNÉ does
+
+ALIGNÉ is a browser-based ballet practice assistant that turns a single full-body photo into focused correction suggestions and an annotated image of the dancer's pose. The dancer selects a ballet position and supporting side, follows the recommended camera-angle and framing guidance, and uploads a photo. ALIGNÉ first checks whether the required body areas are visible, then applies position-specific standards to the detected body landmarks. The result highlights relevant areas on the photo and prioritizes practical adjustments for that particular position.
+
+## Supported positions
+
+The current MVP supports five ballet positions, each with its own evaluation criteria, feedback, and recommended camera view:
+
+- Arabesque — three-quarter side view.
+- Attitude derrière — three-quarter side view.
+- Retiré / Passé — front view.
+- À la seconde — front view.
+- Tendu croisé devant — front view.
+
+## What it can identify
+
+Depending on the selected position and which landmarks are reliably visible, ALIGNÉ can identify issues such as whether a knee needs to straighten, an arm could extend farther, the overall line could be smoother, the torso and centre need to return over the supporting leg, or the visible line of the pelvis needs to become more level. It deliberately leaves obscured or uncertain areas unassessed instead of guessing.
+
+## The problem it addresses
+
+A professional ballet teacher cannot always be present during practice at home. ALIGNÉ provides an accessible between-lessons aid that helps dancers examine a photo, identify a small number of visible priorities, and practise with clearer intent. It is designed to support independent practice, not replace personalised instruction from a qualified teacher.
+
+## Current result
+
+The MVP implements an end-to-end four-step flow: select a position, follow its framing guide, check whether the photo is assessable, and receive prioritised feedback with an annotated result image.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/images/select-position.jpg" width="280" alt="Select a ballet position and supporting side"><br><sub>1. Select a position and supporting side</sub></td>
+    <td align="center"><img src="docs/images/framing-guide.jpg" width="280" alt="Follow the recommended camera-angle and framing guide"><br><sub>2. Follow the position-specific framing guide</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/photo-check.jpg" width="280" alt="Check whether the uploaded photo is assessable"><br><sub>3. Check photo quality and landmark visibility</sub></td>
+    <td align="center"><img src="docs/images/annotated-feedback.jpg" width="280" alt="Receive prioritised corrections and an annotated ballet pose"><br><sub>4. Review focused corrections and the annotated pose</sub></td>
+  </tr>
+</table>
+
+This is a working MVP, but its coaching accuracy has not yet been validated on a sufficiently diverse real-photo dataset. The screenshots demonstrate the implemented workflow and output rather than a claim of teacher-level assessment.
+
+## Future improvements
+
+Future work can expand ALIGNÉ to more ballet positions, improve joint-location accuracy across different dancers, lighting conditions, camera setups, and partial occlusions, and provide more detailed, personalised feedback that adapts to the dancer's pose, priorities, and progress over time.
 
 ## Run locally
 
