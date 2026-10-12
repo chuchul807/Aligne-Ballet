@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { COMMON_RULES } from '../src/rules/commonRules';
-import { ARABESQUE_RULES } from '../src/rules/arabesqueRules';
-import { ATTITUDE_RULES } from '../src/rules/attitudeRules';
-import { RETIRE_RULES } from '../src/rules/retireRules';
-import { A_LA_SECONDE_RULES } from '../src/rules/aLaSecondeRules';
-import { TENDU_CROISE_RULES } from '../src/rules/tenduCroiseRules';
+import { COMMON_RULES } from '../../src/rules/commonRules';
+import { ARABESQUE_RULES } from '../../src/rules/arabesqueRules';
+import { ATTITUDE_RULES } from '../../src/rules/attitudeRules';
+import { RETIRE_RULES } from '../../src/rules/retireRules';
+import { A_LA_SECONDE_RULES } from '../../src/rules/aLaSecondeRules';
+import { TENDU_CROISE_RULES } from '../../src/rules/tenduCroiseRules';
 import { directionCodeForRule, DIRECTION_CODE_BY_RULE_ID } from './directionCodes';
 
 describe('evaluation direction codebook', () => {

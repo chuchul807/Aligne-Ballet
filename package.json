@@ -10,7 +10,7 @@
     "prebuild": "pnpm sync:assets",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:agreement": "vitest run evaluation/scoreAgreement.test.ts",
+    "test:agreement": "vitest run tools/evaluation/scoreAgreement.test.ts",
     "test:e2e": "playwright test",
     "sync:assets": "node scripts/sync-mediapipe-assets.mjs"
   },

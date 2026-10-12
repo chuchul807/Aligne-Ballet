@@ -72,6 +72,6 @@ There are no user accounts, saved training histories, or intentional upload pers
 
 ## Product acceptance
 
-See [the real-photo review protocol](evaluation/README.md). The owner must collect owned or explicitly licensed photos across all supported positions, label assessability and expected corrections before seeing the output, and score region-plus-direction agreement. At least 80% of assessable photos must have two or more Top 3 matches; unassessable cases are reported separately as quality-gate accuracy. Synthetic fixtures cannot satisfy this acceptance gate.
+See [the real-photo review protocol](tools/evaluation/README.md). The owner must collect owned or explicitly licensed photos across all supported positions, label assessability and expected corrections before seeing the output, and score region-plus-direction agreement. At least 80% of assessable photos must have two or more Top 3 matches; unassessable cases are reported separately as quality-gate accuracy. Synthetic fixtures cannot satisfy this acceptance gate.
 
 The current numerical image, visibility, and rule thresholds are initial engineering values. Product-owner review and qualified ballet-teacher calibration are required before treating them as coaching standards.
