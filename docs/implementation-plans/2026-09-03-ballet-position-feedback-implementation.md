@@ -1,6 +1,6 @@
 # Ballet Position Feedback MVP Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Historical implementation record
 
 **Goal:** Build a mobile-first English web application that evaluates one selected ballet position from one guided photo, returns three prioritised corrections plus a full-body review, and produces a downloadable annotated result.
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** Node.js 24, pnpm, React, TypeScript, Vite, MediaPipe Tasks Vision, Vitest, React Testing Library, Playwright, axe-core, Canvas 2D API.
 
-**Spec:** `docs/superpowers/specs/2026-09-03-ballet-position-feedback-design.md`
+**Architecture:** `docs/architecture.md`
 
 ## Global Constraints
 
@@ -85,7 +85,7 @@
 │   ├── builders/landmarks.ts          # readable pose landmark fixture builder
 │   ├── fixtures/*.json                # synthetic landmark cases with expected observations
 │   └── e2e/mobile-flow.spec.ts        # phone flow and accessibility checks
-└── evaluation/
+└── tools/evaluation/
     ├── dataset.schema.ts              # labelled-photo manifest validation
     ├── scoreAgreement.ts              # 2-of-3 and 80% scoring
     ├── scoreAgreement.test.ts         # metric unit tests
@@ -1262,10 +1262,10 @@ git commit -m "feat: connect ballet analysis experience"
 ### Task 12: Evaluation Harness, Privacy Checks, Accessibility, and Release Verification
 
 **Files:**
-- Create: `evaluation/dataset.schema.ts`
-- Create: `evaluation/scoreAgreement.ts`
-- Create: `evaluation/scoreAgreement.test.ts`
-- Create: `evaluation/README.md`
+- Create: `tools/evaluation/dataset.schema.ts`
+- Create: `tools/evaluation/scoreAgreement.ts`
+- Create: `tools/evaluation/scoreAgreement.test.ts`
+- Create: `tools/evaluation/README.md`
 - Create: `playwright.config.ts`
 - Create: `tests/e2e/mobile-flow.spec.ts`
 - Create: `README.md`
@@ -1292,7 +1292,7 @@ it('uses 80 percent as the release target', () => {
 
 - [ ] **Step 2: Run the metric tests and verify failure**
 
-Run: `pnpm test -- evaluation/scoreAgreement.test.ts`  
+Run: `pnpm test -- tools/evaluation/scoreAgreement.test.ts`
 Expected: FAIL because the scorer is missing.
 
 - [ ] **Step 3: Implement the labelled dataset schema and scorer**
@@ -1318,7 +1318,7 @@ Match only exact region and normalised direction codes, not prose. Exclude cases
 
 - [ ] **Step 4: Document the real-photo review protocol**
 
-`evaluation/README.md` instructs the product owner to:
+`tools/evaluation/README.md` instructs the product owner to:
 
 1. collect owned or explicitly licensed photos across all three positions;
 2. include acceptable, common-error, large-deviation, crop, occlusion, lighting, view, and multi-person cases;

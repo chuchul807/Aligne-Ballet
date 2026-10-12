@@ -43,6 +43,15 @@ This is a working MVP, but its coaching accuracy has not yet been validated on a
 
 Future work can expand ALIGNÉ to more ballet positions, improve joint-location accuracy across different dancers, lighting conditions, camera setups, and partial occlusions, and provide more detailed, personalised feedback that adapts to the dancer's pose, priorities, and progress over time.
 
+## Project documentation
+
+- [Architecture and repository organization](docs/architecture.md)
+- [Implementation plans](docs/implementation-plans/)
+
+## Production and deployment
+
+The production site is served from Alibaba Cloud at [aligneballet.online](https://aligneballet.online/). Run `pnpm build` to create the deployable static site in `dist/`; building locally does not publish or modify the live server.
+
 ## Run locally
 
 Prerequisites: a current Node.js LTS release and pnpm.

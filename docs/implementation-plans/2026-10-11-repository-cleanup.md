@@ -1,6 +1,6 @@
 # Repository Cleanup Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Approved cleanup plan
 
 **Goal:** Convert Aligne Ballet into a clearly organized, provider-neutral React/Vite static-site repository without changing analysis behavior, visual output, or the five-position user flow.
 
@@ -162,9 +162,9 @@ git commit -m "refactor: organize offline evaluation tools"
 - Modify: `pnpm-lock.yaml`
 - Modify: `pnpm-workspace.yaml`
 - Modify: `.gitignore`
-- Delete: `.openai/hosting.json`
+- Delete: legacy hosting metadata file
 - Delete: `worker/index.ts`
-- Delete: `wrangler.jsonc`
+- Delete: legacy worker configuration file
 
 **Interfaces:**
 
@@ -212,7 +212,7 @@ Remove the hosted-site and worker-adapter imports and calls from `vite.config.ts
 
 - [ ] **Step 5: Remove obsolete hosting files and dependencies**
 
-Delete the three tracked hosting files listed above. Remove `@cloudflare/vite-plugin`, `@cloudflare/workers-types`, `@openai/sites-vite-plugin`, and `wrangler`. Move `zod` from `dependencies` to `devDependencies` because only `tools/evaluation/` imports it. Keep all remaining version ranges unchanged.
+Delete the three tracked hosting files listed above. Remove the four development dependencies used only by the legacy hosted-site and worker adapters. Move `zod` from `dependencies` to `devDependencies` because only `tools/evaluation/` imports it. Keep all remaining version ranges unchanged.
 
 - [ ] **Step 6: Regenerate package-manager state**
 
@@ -226,7 +226,7 @@ Set `pnpm-workspace.yaml` `allowBuilds` to `esbuild: true` only. Remove the reti
 
 Run: `pnpm test -- tests/config/siteMetadata.test.ts && pnpm build`
 
-Expected: PASS; `dist/index.html` exists, while `dist/server/`, `dist/client/`, and `dist/.openai/` do not.
+Expected: PASS; `dist/index.html` exists, while legacy server, client, and hosting-metadata directories do not.
 
 Run: `test -f dist/models/pose_landmarker_heavy.task && test -d dist/vendor/mediapipe/wasm`
 
@@ -236,7 +236,7 @@ Expected: exit status `0`.
 
 ```bash
 git add .gitignore index.html vite.config.ts package.json pnpm-lock.yaml pnpm-workspace.yaml tests/config/siteMetadata.test.ts
-git add -u .openai worker wrangler.jsonc
+git add -u
 git commit -m "build: target provider-neutral static hosting"
 ```
 
@@ -276,7 +276,7 @@ Add concise sections to `docs/architecture.md` covering these retained technical
 - reliability -> measurements -> position rules -> deterministic feedback -> annotations module boundaries;
 - conservative Top 3 policy and the `80%` real-photo agreement acceptance target.
 
-Correct the stray `µµ-` list marker while incorporating the refined-pose design. Do not copy superseded prose or duplicate sequential status sections.
+Correct the malformed list marker while incorporating the refined-pose design. Do not copy superseded prose or duplicate sequential status sections.
 
 - [ ] **Step 3: Move and normalize the implementation plans**
 
@@ -298,9 +298,9 @@ Run: `find docs -maxdepth 2 -type f | sort`
 
 Expected: `architecture.md`, four files in `implementation-plans/`, and four README screenshots in `images/`; no `docs/superpowers/` files remain.
 
-Run: `rg -n 'docs/superpowers|\]\(evaluation/' README.md docs tools package.json || true`
+Run: `rg -n 'docs/superpowers|\]\(evaluation/' README.md docs tools package.json --glob '!docs/implementation-plans/**' || true`
 
-Expected: no matches.
+Expected: no matches in active documentation, source, tools, or configuration; historical implementation plans may record former paths.
 
 - [ ] **Step 7: Commit the documentation consolidation**
 

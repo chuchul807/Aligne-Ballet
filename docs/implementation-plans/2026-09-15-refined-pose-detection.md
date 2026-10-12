@@ -1,6 +1,6 @@
 # Refined Pose Detection Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Historical implementation record
 
 **Goal:** Replace single-pass Lite-model pose detection with Heavy-model, dancer-focused two-pass detection that suppresses feedback and annotations from unstable joints.
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 19, TypeScript 7, Vite 8, Vitest 4, Playwright, MediaPipe Tasks Vision 1.x, HTML canvas.
 
-**Spec:** `docs/superpowers/specs/2026-09-15-refined-pose-detection-design.md`
+**Architecture:** `docs/architecture.md`
 
 ## Global Constraints
 
