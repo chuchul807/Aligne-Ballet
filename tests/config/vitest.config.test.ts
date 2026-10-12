@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import config from './vitest.config';
+import config from '../../vitest.config';
 
 describe('Vitest discovery boundaries', () => {
   it('ignores repository-local worktrees and package-store snapshots', () => {

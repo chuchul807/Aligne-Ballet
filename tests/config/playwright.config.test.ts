@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import config from './playwright.config';
+import config from '../../playwright.config';
 
 describe('Playwright phone projects', () => {
   it('pins both Chromium and Mobile Safari to the 390 by 844 acceptance viewport', () => {
