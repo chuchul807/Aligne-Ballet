@@ -97,11 +97,44 @@ function point(points: Map<Landmark['name'], Landmark>, name: Landmark['name']):
   return landmark && Number.isFinite(landmark.x) && Number.isFinite(landmark.y) ? { x: landmark.x, y: landmark.y } : null;
 }
 
+function depth(points: Map<Landmark['name'], Landmark>, name: Landmark['name']): number | null {
+  const value = points.get(name)?.z;
+  return value !== undefined && Number.isFinite(value) ? value : null;
+}
+
 function threePointAngle(points: Map<Landmark['name'], Landmark>, first: Landmark['name'], vertex: Landmark['name'], last: Landmark['name']): number | null {
   const a = point(points, first);
   const b = point(points, vertex);
   const c = point(points, last);
   return a && b && c ? angleDeg(a, b, c) : null;
+}
+
+function kneeForwardDepthOffset(
+  points: Map<Landmark['name'], Landmark>,
+  hipName: LandmarkName,
+  kneeName: LandmarkName,
+  ankleName: LandmarkName,
+  sourceWidth: number,
+  sourceHeight: number,
+): number | null {
+  const hip = point(points, hipName);
+  const knee = point(points, kneeName);
+  const ankle = point(points, ankleName);
+  const hipDepth = depth(points, hipName);
+  const kneeDepth = depth(points, kneeName);
+  const ankleDepth = depth(points, ankleName);
+  if (!hip || !knee || !ankle || hipDepth === null || kneeDepth === null || ankleDepth === null) return null;
+
+  const legX = (ankle.x - hip.x) * sourceWidth;
+  const legY = (ankle.y - hip.y) * sourceHeight;
+  const squaredLegLength = legX * legX + legY * legY;
+  if (squaredLegLength === 0) return null;
+  const kneeProgress = Math.max(0, Math.min(1, (
+    (knee.x - hip.x) * sourceWidth * legX
+      + (knee.y - hip.y) * sourceHeight * legY
+  ) / squaredLegLength));
+  const straightLegDepth = hipDepth + (ankleDepth - hipDepth) * kneeProgress;
+  return straightLegDepth - kneeDepth;
 }
 
 function normalisedHorizontalOffset(a: Point | null, b: Point | null, torsoLength: number): number | null {
@@ -123,6 +156,8 @@ export function measurePose(
   supportingSide: SupportingSide,
   reliability: LandmarkReliabilityMap,
   view: ViewType,
+  sourceWidth: number,
+  sourceHeight: number,
 ): MeasurementSet {
   const points = indexed(landmarks);
   const workingSide = oppositeSide(supportingSide);
@@ -136,12 +171,20 @@ export function measurePose(
   const torsoLength = measurement(torsoEvidence, reliability, () => (
     shoulderMidpoint && hipMidpoint ? distance(shoulderMidpoint, hipMidpoint) : null
   ));
+  const frontalBodyWidth = measurement(torsoEvidence, reliability, () => (
+    leftShoulder && rightShoulder && leftHip && rightHip
+      ? (Math.abs(leftShoulder.x - rightShoulder.x) + Math.abs(leftHip.x - rightHip.x)) / 2
+      : null
+  ));
   const supportHip = point(points, sideLandmark(supportingSide, 'hip'));
   const supportKnee = point(points, sideLandmark(supportingSide, 'knee'));
   const supportAnkle = point(points, sideLandmark(supportingSide, 'ankle'));
   const workingKnee = point(points, sideLandmark(workingSide, 'knee'));
   const workingHip = point(points, sideLandmark(workingSide, 'hip'));
   const workingAnkle = point(points, sideLandmark(workingSide, 'ankle'));
+  const supportingFootIndex = point(points, sideLandmark(supportingSide, 'foot_index'));
+  const workingFootIndex = point(points, sideLandmark(workingSide, 'foot_index'));
+  const workingHeel = point(points, sideLandmark(workingSide, 'heel'));
   const nose = point(points, 'nose');
 
   return {
@@ -151,11 +194,41 @@ export function measurePose(
       sideLandmark(supportingSide, 'knee'),
       sideLandmark(supportingSide, 'ankle'),
     ], reliability, () => threePointAngle(points, sideLandmark(supportingSide, 'hip'), sideLandmark(supportingSide, 'knee'), sideLandmark(supportingSide, 'ankle'))),
+    supportingKneeForwardDepthCue: normalisedMeasurement([
+      sideLandmark(supportingSide, 'hip'),
+      sideLandmark(supportingSide, 'knee'),
+      sideLandmark(supportingSide, 'ankle'),
+    ], frontalBodyWidth, reliability, (bodyWidth) => {
+      const offset = kneeForwardDepthOffset(
+        points,
+        sideLandmark(supportingSide, 'hip'),
+        sideLandmark(supportingSide, 'knee'),
+        sideLandmark(supportingSide, 'ankle'),
+        sourceWidth,
+        sourceHeight,
+      );
+      return offset === null ? null : offset / bodyWidth;
+    }),
     workingKneeAngle: measurement([
       sideLandmark(workingSide, 'hip'),
       sideLandmark(workingSide, 'knee'),
       sideLandmark(workingSide, 'ankle'),
     ], reliability, () => threePointAngle(points, sideLandmark(workingSide, 'hip'), sideLandmark(workingSide, 'knee'), sideLandmark(workingSide, 'ankle'))),
+    workingKneeForwardDepthCue: normalisedMeasurement([
+      sideLandmark(workingSide, 'hip'),
+      sideLandmark(workingSide, 'knee'),
+      sideLandmark(workingSide, 'ankle'),
+    ], frontalBodyWidth, reliability, (bodyWidth) => {
+      const offset = kneeForwardDepthOffset(
+        points,
+        sideLandmark(workingSide, 'hip'),
+        sideLandmark(workingSide, 'knee'),
+        sideLandmark(workingSide, 'ankle'),
+        sourceWidth,
+        sourceHeight,
+      );
+      return offset === null ? null : offset / bodyWidth;
+    }),
     pelvisSlope: measurement(['left_hip', 'right_hip'], reliability, () => (
       leftHip && rightHip ? slopeDeg(leftHip, rightHip) : null
     )),
@@ -181,6 +254,64 @@ export function measurePose(
     workingAnkleHeightFromHip: normalisedMeasurement([
       sideLandmark(supportingSide, 'hip'), sideLandmark(workingSide, 'ankle'),
     ], torsoLength, reliability, (torso) => normalisedHeight(supportHip, workingAnkle, torso)),
+    workingFootPointAngle: measurement([
+      sideLandmark(workingSide, 'knee'),
+      sideLandmark(workingSide, 'ankle'),
+      sideLandmark(workingSide, 'foot_index'),
+    ], reliability, () => threePointAngle(
+      points,
+      sideLandmark(workingSide, 'knee'),
+      sideLandmark(workingSide, 'ankle'),
+      sideLandmark(workingSide, 'foot_index'),
+    )),
+    workingHeelDepthCue: normalisedMeasurement([
+      sideLandmark(workingSide, 'heel'), sideLandmark(workingSide, 'foot_index'),
+    ], frontalBodyWidth, reliability, (bodyWidth) => {
+      const heelDepth = depth(points, sideLandmark(workingSide, 'heel'));
+      const toeDepth = depth(points, sideLandmark(workingSide, 'foot_index'));
+      return heelDepth !== null && toeDepth !== null ? (toeDepth - heelDepth) / bodyWidth : null;
+    }),
+    workingHeelVisibilityCue: view === 'front'
+      ? normalisedMeasurement([
+        sideLandmark(supportingSide, 'hip'), sideLandmark(workingSide, 'hip'),
+        sideLandmark(workingSide, 'heel'), sideLandmark(workingSide, 'foot_index'),
+      ], frontalBodyWidth, reliability, (bodyWidth) => {
+        if (!supportHip || !workingHip || !workingHeel || !workingFootIndex) return null;
+        const outwardDirection = Math.sign(workingHip.x - supportHip.x);
+        return outwardDirection === 0
+          ? null
+          : ((workingFootIndex.x - workingHeel.x) * outwardDirection) / bodyWidth;
+      })
+      : unsupportedViewMeasurement(uniqueEvidence([
+        sideLandmark(supportingSide, 'hip'), sideLandmark(workingSide, 'hip'),
+        sideLandmark(workingSide, 'heel'), sideLandmark(workingSide, 'foot_index'),
+      ], frontalBodyWidth.evidence), reliability),
+    workingAnkleOutwardOffset: normalisedMeasurement([
+      sideLandmark(supportingSide, 'hip'),
+      sideLandmark(workingSide, 'hip'),
+      sideLandmark(workingSide, 'ankle'),
+    ], torsoLength, reliability, (torso) => {
+      if (!supportHip || !workingHip || !workingAnkle) return null;
+      const outwardDirection = Math.sign(workingHip.x - supportHip.x);
+      return outwardDirection === 0
+        ? null
+        : ((workingAnkle.x - workingHip.x) * outwardDirection) / torso;
+    }),
+    workingFootHeightFromSupportingFoot: normalisedMeasurement([
+      sideLandmark(supportingSide, 'foot_index'), sideLandmark(workingSide, 'foot_index'),
+    ], torsoLength, reliability, (torso) => supportingFootIndex && workingFootIndex
+      ? Math.abs(supportingFootIndex.y - workingFootIndex.y) / torso
+      : null),
+    croiseCrossingSeparation: normalisedMeasurement([
+      sideLandmark(supportingSide, 'hip'), sideLandmark(workingSide, 'hip'),
+      sideLandmark(supportingSide, 'ankle'), sideLandmark(workingSide, 'ankle'),
+    ], torsoLength, reliability, (torso) => {
+      if (!supportHip || !workingHip || !supportAnkle || !workingAnkle) return null;
+      const supportingDirection = Math.sign(supportHip.x - workingHip.x);
+      return supportingDirection === 0
+        ? null
+        : ((workingAnkle.x - supportAnkle.x) * supportingDirection) / torso;
+    }),
     frontalSupportingHipAnkleOffset: view === 'front'
       ? normalisedMeasurement([
         sideLandmark(supportingSide, 'hip'), sideLandmark(supportingSide, 'ankle'),

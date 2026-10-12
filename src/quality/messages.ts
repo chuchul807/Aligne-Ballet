@@ -6,6 +6,8 @@ export const QUALITY_MESSAGES: Record<QualityReasonCode, string> = {
   'body-out-of-frame': 'Keep your hands and feet inside the frame.',
   'required-joints-not-visible': 'Make sure your hips, knees, ankles, and feet are visible.',
   'insufficient-pose-evidence': 'Retake the photo with your whole body clearly visible, including shoulders, hips, knees, ankles, and feet.',
+  'subject-too-small': 'Move closer while keeping your full body, hands, and feet in the frame.',
+  'unstable-pose-landmarks': 'Retake the photo closer, with less clothing, barre, or limb overlap around the joints.',
   'wrong-camera-view': 'Match the camera angle shown in the framing guide.',
   'too-dark': 'Use brighter, even lighting and try again.',
   'too-bright': 'Reduce glare or backlighting and try again.',

@@ -12,6 +12,8 @@ const positions: readonly { value: PoseName; label: string }[] = [
   { value: 'arabesque', label: 'Arabesque' },
   { value: 'attitude-derriere', label: 'Attitude derrière' },
   { value: 'retire-passe', label: 'Retiré / Passé' },
+  { value: 'a-la-seconde', label: 'À la seconde (en face)' },
+  { value: 'tendu-croise-devant', label: 'Tendu croisé devant (en face)' },
 ];
 
 export function SelectCard({ position, supportingSide, onPositionChange, onSupportingSideChange, onConfirm }: SelectCardProps) {

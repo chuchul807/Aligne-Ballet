@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { Assessability, DrawingCommand, Landmark, LandmarkReliabilityMap, Observation } from '../domain/types';
 import type { LandmarkName } from '../domain/landmarks';
 import { buildAnnotationCommands } from './buildCommands';
+import { landmarkPerson } from '../../tests/builders/landmarks';
+import { evaluateLandmarkReliability } from '../reliability/evaluateLandmarkReliability';
 
 const landmarks: readonly Landmark[] = [
   { name: 'left_hip', x: 0.4, y: 0.3, visibility: 1 },
@@ -79,6 +81,20 @@ describe('buildAnnotationCommands', () => {
     expect(commands).not.toContainEqual(expect.objectContaining({ type: 'structural-joint', joint: 'left_knee' }));
     expect(commands.some((item) => item.type === 'skeleton-segment' && (item.from === 'left_knee' || item.to === 'left_knee'))).toBe(false);
     expect(commands).not.toContainEqual(expect.objectContaining({ observationId: 'unreliable-knee' }));
+  });
+
+  it('omits a cross-pass-disagreed point and every segment attached to it', () => {
+    const points = landmarkPerson();
+    const commands = buildAnnotationCommands(
+      [],
+      points,
+      evaluateLandmarkReliability(points, 'front', new Set(['left_knee'])),
+      'left',
+    );
+
+    expect(commands).not.toContainEqual(expect.objectContaining({ type: 'structural-joint', joint: 'left_knee' }));
+    expect(commands.some((item) => item.type === 'skeleton-segment'
+      && (item.from === 'left_knee' || item.to === 'left_knee'))).toBe(false);
   });
 
   it('numbers only observations selected for written feedback', () => {

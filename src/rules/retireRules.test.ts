@@ -36,7 +36,7 @@ describe('Retiré / Passé rules', () => {
   it('does not call the reported straight supporting leg bent or make unsupported stacking claims', () => {
     const fixture = retireFrontStraightSupport;
     const reliability = evaluateLandmarkReliability(fixture.landmarks, fixture.view);
-    const measurements = measurePose(fixture.landmarks, fixture.supportingSide, reliability, fixture.view);
+    const measurements = measurePose(fixture.landmarks, fixture.supportingSide, reliability, fixture.view, 1, 1);
     const ids = deduplicateObservations(evaluateRules(
       [...COMMON_RULES, ...RETIRE_RULES],
       { ...fixture, measurements, reliability },

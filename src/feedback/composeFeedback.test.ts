@@ -6,6 +6,8 @@ import { ARABESQUE_RULES } from '../rules/arabesqueRules';
 import { ATTITUDE_RULES } from '../rules/attitudeRules';
 import { COMMON_RULES } from '../rules/commonRules';
 import { RETIRE_RULES } from '../rules/retireRules';
+import { A_LA_SECONDE_RULES } from '../rules/aLaSecondeRules';
+import { TENDU_CROISE_RULES } from '../rules/tenduCroiseRules';
 import { FEEDBACK_COPY, isSafeFeedbackText } from './copy';
 import { composeFeedback, type AssessmentCoverage } from './composeFeedback';
 import { Disclaimer } from '../ui/Disclaimer';
@@ -97,11 +99,18 @@ describe('composeFeedback', () => {
 
     expect(summary.fullBodyReview.find((section) => section.region === 'pelvis')).toMatchObject({ status: 'finding', items: [{ observationId: 'pelvis-finding' }] });
     expect(summary.fullBodyReview.find((section) => section.region === 'head')).toMatchObject({ status: 'unassessable', items: [{ text: 'Not enough evidence in this photo to recommend a change.' }] });
-    expect(summary.fullBodyReview.find((section) => section.region === 'feet')).toMatchObject({ status: 'unassessable', items: [{ text: 'Unable to assess this area from the current image.' }] });
+    expect(summary.fullBodyReview.find((section) => section.region === 'feet')).toMatchObject({ status: 'unassessable', items: [{ text: 'Unable to assess this area reliably because the joint may be obscured or inconsistent.' }] });
   });
 
   it('covers every exported rule with high and medium approved copy', () => {
-    const ruleIds = [...COMMON_RULES, ...ARABESQUE_RULES, ...ATTITUDE_RULES, ...RETIRE_RULES].map((rule) => rule.id);
+    const ruleIds = [
+      ...COMMON_RULES,
+      ...ARABESQUE_RULES,
+      ...ATTITUDE_RULES,
+      ...RETIRE_RULES,
+      ...A_LA_SECONDE_RULES,
+      ...TENDU_CROISE_RULES,
+    ].map((rule) => rule.id);
     expect(Object.keys(FEEDBACK_COPY).sort()).toEqual([...ruleIds].sort());
     for (const ruleId of ruleIds) {
       expect((FEEDBACK_COPY as Record<string, { high: string; medium: string }>)[ruleId]).toEqual({ high: expect.any(String), medium: expect.any(String) });
@@ -112,7 +121,7 @@ describe('composeFeedback', () => {
     const userFacingCopy = [
       ...Object.values(FEEDBACK_COPY).flatMap((variants) => [variants.high, variants.medium]),
       'No visible issue found in this view.',
-      'Unable to assess this area from the current image.',
+      'Unable to assess this area reliably because the joint may be obscured or inconsistent.',
       'Not enough evidence in this photo to recommend a change.',
       'This feedback supports practice and does not replace guidance from a qualified ballet teacher.',
     ];

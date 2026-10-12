@@ -7,8 +7,9 @@ import type { QualityReason, QualityReasonCode, QualityReport } from './types';
 export const QUALITY_THRESHOLDS = {
   minMeanLuminance: 0.10,
   maxMeanLuminance: 0.94,
+  maxTooBrightContrast: 0.10,
   minContrast: 0.075,
-  minEdgeEnergy: 0.018,
+  minEdgeEnergy: 0.08,
   minRequiredVisibility: 0.60,
   frameMargin: 0.02,
 } as const;
@@ -28,6 +29,8 @@ export interface QualityInput {
   supportingSide: SupportingSide;
   expectedView: ViewType;
   metrics: ImageMetrics;
+  requiredJointVisibility?: 'enforce' | 'defer';
+  cameraViewCheck?: 'enforce' | 'defer';
 }
 
 function indexPerson(person: readonly Landmark[]): Map<LandmarkName, Landmark> {
@@ -45,7 +48,7 @@ function distance(a: Landmark, b: Landmark): number {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-function apparentViewRatio(points: Map<LandmarkName, Landmark>): number | null {
+export function apparentViewRatio(points: Map<LandmarkName, Landmark>): number | null {
   const leftShoulder = points.get('left_shoulder');
   const rightShoulder = points.get('right_shoulder');
   const leftHip = points.get('left_hip');
@@ -86,14 +89,21 @@ export function evaluateQuality(input: QualityInput): QualityReport {
       })) {
       reasons.push(reason('body-out-of-frame'));
     }
-    if (required.some((landmark) => !landmark || landmark.visibility < QUALITY_THRESHOLDS.minRequiredVisibility)) {
+    if (input.requiredJointVisibility !== 'defer'
+      && required.some((landmark) => !landmark || landmark.visibility < QUALITY_THRESHOLDS.minRequiredVisibility)) {
       reasons.push(reason('required-joints-not-visible'));
     }
-    if (!hasExpectedView(apparentViewRatio(points), input.expectedView)) reasons.push(reason('wrong-camera-view'));
+    if (input.cameraViewCheck !== 'defer'
+      && !hasExpectedView(apparentViewRatio(points), input.expectedView)) {
+      reasons.push(reason('wrong-camera-view'));
+    }
   }
 
   if (input.metrics.meanLuminance < QUALITY_THRESHOLDS.minMeanLuminance) reasons.push(reason('too-dark'));
-  if (input.metrics.meanLuminance > QUALITY_THRESHOLDS.maxMeanLuminance) reasons.push(reason('too-bright'));
+  if (input.metrics.meanLuminance > QUALITY_THRESHOLDS.maxMeanLuminance
+    && input.metrics.contrast < QUALITY_THRESHOLDS.maxTooBrightContrast) {
+    reasons.push(reason('too-bright'));
+  }
   if (input.metrics.contrast < QUALITY_THRESHOLDS.minContrast) reasons.push(reason('low-contrast'));
   if (input.metrics.edgeEnergy < QUALITY_THRESHOLDS.minEdgeEnergy) reasons.push(reason('blurred'));
 

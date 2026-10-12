@@ -25,23 +25,30 @@ export function calculateImageMetrics({ width, height, data }: DecodedPixelData)
   const meanLuminance = values.reduce((sum, value) => sum + value, 0) / pixelCount;
   const contrast = Math.sqrt(values.reduce((sum, value) => sum + (value - meanLuminance) ** 2, 0) / pixelCount);
 
-  let gradientTotal = 0;
-  let gradientCount = 0;
+  const gradients: number[] = [];
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
       const index = y * width + x;
       if (x + 1 < width) {
-        gradientTotal += Math.abs((values[index] ?? 0) - (values[index + 1] ?? 0));
-        gradientCount += 1;
+        gradients.push(Math.abs((values[index] ?? 0) - (values[index + 1] ?? 0)));
       }
       if (y + 1 < height) {
-        gradientTotal += Math.abs((values[index] ?? 0) - (values[index + width] ?? 0));
-        gradientCount += 1;
+        gradients.push(Math.abs((values[index] ?? 0) - (values[index + width] ?? 0)));
       }
     }
   }
 
-  return { meanLuminance, contrast, edgeEnergy: gradientCount === 0 ? 0 : gradientTotal / gradientCount };
+  gradients.sort((a, b) => b - a);
+  const strongestGradientCount = Math.min(gradients.length, Math.max(1, Math.ceil(Math.max(width, height) * 4)));
+  const strongestGradientTotal = gradients
+    .slice(0, strongestGradientCount)
+    .reduce((sum, value) => sum + value, 0);
+
+  return {
+    meanLuminance,
+    contrast,
+    edgeEnergy: gradients.length === 0 ? 0 : strongestGradientTotal / strongestGradientCount,
+  };
 }
 
 export function measureImageMetrics(source: CanvasImageSource, width: number, height: number): ImageMetrics {

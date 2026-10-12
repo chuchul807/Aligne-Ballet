@@ -20,7 +20,7 @@ const PRIORITY_ORDER: Readonly<Record<Priority, number>> = {
 };
 
 const CLEAR_TEXT = 'No visible issue found in this view.';
-const UNASSESSABLE_TEXT = 'Unable to assess this area from the current image.';
+const UNASSESSABLE_TEXT = 'Unable to assess this area reliably because the joint may be obscured or inconsistent.';
 export const INSUFFICIENT_EVIDENCE_TEXT = 'Not enough evidence in this photo to recommend a change.';
 
 function isActionable(observation: Observation): observation is Extract<Observation, { assessability: 'assessable' }> & { confidence: 'high' } {

@@ -2,7 +2,7 @@
 
 This protocol is the product acceptance check for ALIGNÉ's feedback quality. It uses only photos the product owner owns or has explicit permission to use.
 
-1. Collect owned or explicitly licensed photos for Arabesque, Attitude derrière, and Retiré / Passé. Include acceptable work, common errors, large but assessable beginner deviations, crops, occlusion, poor lighting, unsupported views, and multi-person scenes.
+1. Collect owned or explicitly licensed photos for Arabesque, Attitude derrière, Retiré / Passé, À la seconde, and Tendu croisé devant. Include acceptable work, common errors, large but assessable beginner deviations, crops, occlusion, poor lighting, unsupported views, and multi-person scenes.
 2. Before viewing system output, label each photo as assessable or unassessable. For each assessable photo, record up to three expected body-region and canonical direction-code pairs from [`directionCodes.ts`](directionCodes.ts); do not use displayed feedback prose as a code source.
 3. Run every photo through the app with its prescribed position and supporting side. In the evaluation runner, pass the returned `AnalysisResult` to `actualTop3FromAnalysisResult(result)` and record that return value as `actualTop3`.
 4. Validate each record with `labelledCaseSchema`, then run `scoreAgreement`. The adapter obtains canonical actual direction codes from its audited `ruleId` through the centralized codebook; its retained `direction` field is natural-language context only.
