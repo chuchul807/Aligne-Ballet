@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -16,5 +16,16 @@ describe('site metadata', () => {
   it('documents the same Heavy pose model that the production build bundles', () => {
     expect(readme).toContain('MediaPipe Pose Landmarker Heavy');
     expect(readme).not.toContain('Pose Landmarker Lite');
+  });
+
+  it('publishes the project under the noncommercial license selected by the owner', () => {
+    const licensePath = resolve(process.cwd(), 'LICENSE');
+
+    expect(existsSync(licensePath)).toBe(true);
+    const license = readFileSync(licensePath, 'utf8');
+    expect(license).toContain('PolyForm Noncommercial License 1.0.0');
+    expect(license).toContain('Required Notice: Copyright 2026 chuchul807');
+    expect(license).not.toContain('Apache License');
+    expect(readme).toContain('PolyForm Noncommercial 1.0.0');
   });
 });

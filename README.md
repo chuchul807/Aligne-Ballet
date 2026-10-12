@@ -48,6 +48,10 @@ Future work can expand ALIGNÉ to more ballet positions, improve joint-location 
 - [Architecture and repository organization](docs/architecture.md)
 - [Implementation plans](docs/implementation-plans/)
 
+## License
+
+This project is available under the [PolyForm Noncommercial 1.0.0](LICENSE) license. Noncommercial use, modification, and distribution are permitted under its terms; commercial use is not permitted.
+
 ## Production and deployment
 
 The production site is served from Alibaba Cloud at [aligneballet.online](https://aligneballet.online/). Run `pnpm build` to create the deployable static site in `dist/`; building locally does not publish or modify the live server.
