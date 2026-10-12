@@ -88,7 +88,7 @@ function servicesThatRecord(calls: string[], decoded: DecodedImage) {
       };
     }),
     reliability: vi.fn<NonNullable<AnalysisServices['reliability']>>(() => { calls.push('reliability'); return reliability; }),
-    measure: vi.fn<NonNullable<AnalysisServices['measure']>>(() => { calls.push('measure'); return measurePose(landmarks, 'left', reliability, request.expectedView); }),
+    measure: vi.fn<NonNullable<AnalysisServices['measure']>>(() => { calls.push('measure'); return measurePose(landmarks, 'left', reliability, request.expectedView, decoded.width, decoded.height); }),
     evaluate: vi.fn(() => { calls.push('evaluate'); return []; }),
     deduplicate: (items) => { calls.push('deduplicate'); return items; },
     feedback: () => { calls.push('feedback'); return { topCorrections: [], fullBodyReview: [] }; },
@@ -218,6 +218,8 @@ describe('analyzePose', () => {
     expect(services.measure.mock.calls[0]?.[2]).toBe(reliability);
     expect(services.measure.mock.calls[0]?.[1]).toBe(request.supportingSide);
     expect(services.measure.mock.calls[0]?.[3]).toBe(request.expectedView);
+    expect(services.measure.mock.calls[0]?.[4]).toBe(decoded.width);
+    expect(services.measure.mock.calls[0]?.[5]).toBe(decoded.height);
     expect(services.annotations.mock.calls[0]?.[1]).toBe(landmarks);
     expect(services.annotations.mock.calls[0]?.[2]).toBe(reliability);
     expect(services.annotations.mock.calls[0]?.[3]).toBe(request.supportingSide);
@@ -242,11 +244,13 @@ describe('analyzePose', () => {
     const calls: string[] = [];
     const decoded = decodedImage();
     const { services } = servicesThatRecord(calls, decoded);
-    services.measure.mockImplementation((landmarks, side, reliability, view) => (
-      measurePose(landmarks, side, reliability, view)
+    services.measure.mockImplementation((landmarks, side, reliability, view, sourceWidth, sourceHeight) => (
+      measurePose(landmarks, side, reliability, view, sourceWidth, sourceHeight)
     ));
     const evaluate = vi.fn<NonNullable<AnalysisServices['evaluate']>>((rules) => {
-      expect(rules.map((rule) => rule.id)).toEqual(expect.arrayContaining([...expectedRuleIds]));
+      const ruleIds = rules.map((rule) => rule.id);
+      expect(ruleIds).toEqual(expect.arrayContaining([...expectedRuleIds]));
+      expect(new Set(ruleIds).size).toBe(ruleIds.length);
       return [];
     });
 
@@ -475,7 +479,7 @@ describe('analyzePose', () => {
     const calls: string[] = [];
     const decoded = decodedImage();
     const { services, landmarks, reliability } = servicesThatRecord(calls, decoded);
-    const measurements = measurePose(landmarks, localRequest.supportingSide, reliability, localRequest.expectedView);
+    const measurements = measurePose(landmarks, localRequest.supportingSide, reliability, localRequest.expectedView, decoded.width, decoded.height);
     services.measure.mockReturnValue(withoutMeasurements(measurements, missing));
 
     const outcome = await analyzePose(localRequest, services);
@@ -495,7 +499,7 @@ describe('analyzePose', () => {
     const calls: string[] = [];
     const decoded = decodedImage();
     const { services, landmarks, reliability } = servicesThatRecord(calls, decoded);
-    const measurements = measurePose(landmarks, request.supportingSide, reliability, request.expectedView);
+    const measurements = measurePose(landmarks, request.supportingSide, reliability, request.expectedView, decoded.width, decoded.height);
     services.measure.mockReturnValue(withoutMeasurements(measurements, ['supportingKneeAngle', 'pelvisSlope']));
 
     const outcome = await analyzePose(request, services);
@@ -521,7 +525,7 @@ describe('analyzePose', () => {
       landmarks: { people: [landmarks], sourceWidth: decoded.width, sourceHeight: decoded.height },
       disagreements: new Set(['left_elbow']),
     });
-    const measurements = measurePose(landmarks, request.supportingSide, reliability, request.expectedView);
+    const measurements = measurePose(landmarks, request.supportingSide, reliability, request.expectedView, decoded.width, decoded.height);
     services.measure.mockReturnValue(withoutMeasurements(measurements, ['supportingKneeAngle', 'pelvisSlope']));
 
     const outcome = await analyzePose(request, services);
@@ -674,7 +678,7 @@ describe('analyzePose', () => {
       reasons: [],
       unassessableRegions: ['pelvis'],
     });
-    const measurements = measurePose(landmarks, request.supportingSide, reliability, request.expectedView);
+    const measurements = measurePose(landmarks, request.supportingSide, reliability, request.expectedView, decoded.width, decoded.height);
     services.measure.mockReturnValue(withoutMeasurements(measurements, ['pelvisSlope']));
 
     const outcome = await analyzePose(request, services);
@@ -689,7 +693,7 @@ describe('analyzePose', () => {
     const calls: string[] = [];
     const decoded = resizedDecodedImage(4096, 2048, 8000, 4000);
     const { services, landmarks, reliability } = servicesThatRecord(calls, decoded);
-    const measurements = measurePose(landmarks, request.supportingSide, reliability, request.expectedView);
+    const measurements = measurePose(landmarks, request.supportingSide, reliability, request.expectedView, decoded.width, decoded.height);
     services.measure.mockReturnValue(withoutMeasurements(measurements, ['supportingKneeAngle', 'pelvisSlope']));
 
     const outcome = await analyzePose(request, services);
@@ -706,7 +710,7 @@ describe('analyzePose', () => {
     const decoded = decodedImage();
     const localRequest: AnalysisRequest = { ...request, position: 'retire-passe', expectedView: 'front' };
     const { services, landmarks, reliability } = servicesThatRecord(calls, decoded);
-    const measurements = measurePose(landmarks, localRequest.supportingSide, reliability, localRequest.expectedView);
+    const measurements = measurePose(landmarks, localRequest.supportingSide, reliability, localRequest.expectedView, decoded.width, decoded.height);
     services.measure.mockReturnValue(withoutMeasurements(
       measurements,
       ['workingKneeLateralOffset', 'workingAnkleToSupportingKnee'],
@@ -738,8 +742,8 @@ describe('analyzePose', () => {
       decode: vi.fn().mockResolvedValue(decodedImage()),
       metrics: vi.fn(() => ({ meanLuminance: 0.5, contrast: 0.2, edgeEnergy: 0.1 })),
       refine: stableRefine,
-      measure: (points, side, reliability, view) => {
-        const measurements = measurePose(points, side, reliability, view);
+      measure: (points, side, reliability, view, sourceWidth, sourceHeight) => {
+        const measurements = measurePose(points, side, reliability, view, sourceWidth, sourceHeight);
         return {
           ...measurements,
           rightElbowAngle: {

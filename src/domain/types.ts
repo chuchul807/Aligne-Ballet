@@ -68,7 +68,11 @@ export interface PoseMeasurement {
 export interface MeasurementSet {
   torsoLength: PoseMeasurement;
   supportingKneeAngle: PoseMeasurement;
+  /** Positive when the supporting knee is closer to the camera than the hip-to-ankle depth line. */
+  supportingKneeForwardDepthCue: PoseMeasurement;
   workingKneeAngle: PoseMeasurement;
+  /** Positive when the working knee is closer to the camera than the hip-to-ankle depth line. */
+  workingKneeForwardDepthCue: PoseMeasurement;
   pelvisSlope: PoseMeasurement;
   shoulderSlope: PoseMeasurement;
   torsoLateralOffset: PoseMeasurement;
@@ -79,6 +83,8 @@ export interface MeasurementSet {
   workingFootPointAngle: PoseMeasurement;
   /** Positive when the working heel is estimated closer to the camera than the toes. */
   workingHeelDepthCue: PoseMeasurement;
+  /** Positive when the heel remains visibly inside the working toes in a frontal view. */
+  workingHeelVisibilityCue: PoseMeasurement;
   /** Positive when the working ankle travels outward from its hip in the frontal plane. */
   workingAnkleOutwardOffset: PoseMeasurement;
   workingFootHeightFromSupportingFoot: PoseMeasurement;

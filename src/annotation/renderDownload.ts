@@ -9,6 +9,13 @@ export interface DownloadRenderInput {
   generatedAt?: Date;
 }
 
+const colours = {
+  page: '#f7dce1',
+  deep: '#653246',
+  ink: '#3f2831',
+  muted: '#75515f',
+} as const;
+
 function imageSize(image: CanvasImageSource): { width: number; height: number } {
   const sized = image as CanvasImageSource & { naturalWidth?: number; naturalHeight?: number; width?: number; height?: number };
   const width = sized.naturalWidth || sized.width;
@@ -33,36 +40,128 @@ function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: num
   return lines;
 }
 
+function ordinalSuffix(day: number): string {
+  const lastTwoDigits = day % 100;
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 13) return 'th';
+  if (day % 10 === 1) return 'st';
+  if (day % 10 === 2) return 'nd';
+  if (day % 10 === 3) return 'rd';
+  return 'th';
+}
+
+function formatDate(date: Date): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? '';
+  const day = Number(part('day'));
+  return `${part('month')} ${day}${ordinalSuffix(day)} ${part('year')}`;
+}
+
+function drawLines(
+  context: CanvasRenderingContext2D,
+  lines: readonly string[],
+  x: number,
+  y: number,
+  lineHeight: number,
+): number {
+  lines.forEach((line, index) => context.fillText(line, x, y + index * lineHeight));
+  return y + lines.length * lineHeight;
+}
+
 export function renderDownload(input: DownloadRenderInput): Promise<Blob> {
   const source = imageSize(input.image);
+  const width = source.width;
+  const padding = Math.max(24, Math.round(width * 0.055));
+  const contentWidth = width - padding * 2;
+  const imageWidth = contentWidth;
+  const imageHeight = Math.round(source.height * (imageWidth / source.width));
+  const imageRadius = Math.max(12, Math.round(width * 0.02));
+
+  const dateFontSize = Math.max(18, Math.round(width * 0.0373));
+  const positionFontSize = Math.max(20, Math.round(width * 0.0395));
+  const headingFontSize = Math.max(26, Math.round(width * 0.0526));
+  const bodyFontSize = Math.max(16, Math.round(width * 0.0351));
+  const disclaimerFontSize = Math.max(12, Math.round(width * 0.0219));
+
+  const dateLineHeight = Math.round(dateFontSize * 1.24);
+  const positionLineHeight = Math.round(positionFontSize * 1.2);
+  const headingLineHeight = Math.round(headingFontSize * 1.14);
+  const bodyLineHeight = Math.round(bodyFontSize * 1.43);
+  const disclaimerLineHeight = Math.round(disclaimerFontSize * 1.36);
+
+  const dateGap = Math.max(18, Math.round(width * 0.0373));
+  const positionGap = Math.max(22, Math.round(width * 0.0439));
+  const headingGap = Math.max(14, Math.round(width * 0.0285));
+  const correctionsGap = Math.max(18, Math.round(width * 0.033));
+  const correctionItemGap = Math.max(6, Math.round(width * 0.0088));
+  const disclaimerGap = Math.max(24, Math.round(width * 0.0384));
+
+  const generatedAt = input.generatedAt ?? new Date();
+  const date = formatDate(generatedAt);
+  const position = poseLabel(input.result.position);
+  const topCorrections = input.result.topCorrections.slice(0, 3);
+
   const canvas = document.createElement('canvas');
+  canvas.width = width;
   const context = canvas.getContext('2d');
   if (context === null) return Promise.reject(new Error('Canvas is unavailable for download rendering.'));
-  const padding = Math.max(24, Math.round(source.width * 0.05));
-  const width = source.width;
-  const lineHeight = Math.max(24, Math.round(width * 0.05));
-  const font = `${Math.max(16, Math.round(width * 0.045))}px sans-serif`;
-  canvas.width = width;
-  context.font = font;
-  const generatedAt = input.generatedAt ?? new Date();
-  const date = generatedAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-  const topCorrections = input.result.topCorrections.slice(0, 3);
-  const lines = [
-    ...wrapText(context, poseLabel(input.result.position), width - padding * 2),
-    ...topCorrections.flatMap((item, index) => wrapText(context, `${index + 1}. ${item.text}`, width - padding * 2)),
-    ...wrapText(context, PRACTICE_DISCLAIMER, width - padding * 2),
-    ...wrapText(context, `Generated ${date}`, width - padding * 2),
-  ];
-  const textHeight = padding * 2 + lineHeight * (lines.length + 1);
-  canvas.width = width;
-  canvas.height = source.height + textHeight;
-  context.drawImage(input.image, 0, 0, width, source.height);
-  context.fillStyle = '#f7e6eb';
-  context.fillRect(0, source.height, width, textHeight);
-  context.fillStyle = '#35101f';
-  context.font = font;
+
+  context.font = `400 ${bodyFontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
+  const correctionLines = topCorrections.map((item, index) => wrapText(context, `${index + 1}. ${item.text}`, contentWidth));
+  const correctionsHeight = correctionLines.reduce((height, lines, index) => (
+    height + lines.length * bodyLineHeight + (index < correctionLines.length - 1 ? correctionItemGap : 0)
+  ), 0);
+
+  context.font = `400 ${disclaimerFontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
+  const disclaimerLines = wrapText(context, PRACTICE_DISCLAIMER, contentWidth);
+  const disclaimerHeight = disclaimerLines.length * disclaimerLineHeight;
+
+  const imageY = padding + dateLineHeight + dateGap;
+  const positionY = imageY + imageHeight + positionGap;
+  const headingY = positionY + positionLineHeight + headingGap;
+  const correctionsY = headingY + headingLineHeight + correctionsGap;
+  const correctionsBottom = correctionsY + correctionsHeight;
+  const minimumHeight = Math.round(width * (1543 / 912));
+  const disclaimerY = Math.max(correctionsBottom + disclaimerGap, minimumHeight - padding - disclaimerHeight);
+  const height = Math.max(minimumHeight, disclaimerY + disclaimerHeight + padding);
+
+  canvas.height = height;
   context.textBaseline = 'top';
-  lines.forEach((line, index) => context.fillText(line, padding, source.height + padding + index * lineHeight));
+  context.fillStyle = colours.page;
+  context.fillRect(0, 0, width, height);
+
+  context.fillStyle = colours.deep;
+  context.font = `700 ${dateFontSize}px Georgia, serif`;
+  context.fillText(date, padding, padding);
+
+  context.save();
+  context.beginPath();
+  context.roundRect(padding, imageY, imageWidth, imageHeight, imageRadius);
+  context.clip();
+  context.drawImage(input.image, padding, imageY, imageWidth, imageHeight);
+  context.restore();
+
+  context.fillStyle = colours.deep;
+  context.font = `700 ${positionFontSize}px Georgia, serif`;
+  context.fillText(position, padding, positionY);
+
+  context.font = `700 ${headingFontSize}px Georgia, serif`;
+  context.fillText('Your Feedback:', padding, headingY);
+
+  context.fillStyle = colours.ink;
+  context.font = `400 ${bodyFontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
+  let correctionY = correctionsY;
+  correctionLines.forEach((lines, index) => {
+    correctionY = drawLines(context, lines, padding, correctionY, bodyLineHeight);
+    if (index < correctionLines.length - 1) correctionY += correctionItemGap;
+  });
+
+  context.fillStyle = colours.muted;
+  context.font = `400 ${disclaimerFontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
+  drawLines(context, disclaimerLines, padding, disclaimerY, disclaimerLineHeight);
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {

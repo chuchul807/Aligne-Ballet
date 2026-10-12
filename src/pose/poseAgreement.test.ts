@@ -60,6 +60,50 @@ describe('cross-pass pose agreement', () => {
     expect(unstable).toContain('right_foot_index');
   });
 
+  it('marks a knee unstable when its forward-versus-behind depth cue flips between passes', () => {
+    const withKneeDepth = (kneeDepth: number) => landmarkPerson().map((landmark) => ({
+      ...landmark,
+      z: landmark.name === 'left_knee' ? kneeDepth : 0,
+    }));
+
+    const unstable = comparePosePasses(withKneeDepth(-0.05), withKneeDepth(0.05), 1000, 1000);
+
+    expect(unstable).toContain('left_knee');
+  });
+
+  it('keeps near-zero knee-depth noise inside the straight-leg deadband', () => {
+    const withKneeDepth = (kneeDepth: number) => landmarkPerson().map((landmark) => ({
+      ...landmark,
+      z: landmark.name === 'left_knee' ? kneeDepth : 0,
+    }));
+
+    expect(comparePosePasses(withKneeDepth(0), withKneeDepth(-0.001), 1000, 1000))
+      .not.toContain('left_knee');
+    expect(comparePosePasses(withKneeDepth(-0.001), withKneeDepth(0.001), 1000, 1000))
+      .not.toContain('left_knee');
+  });
+
+  it('keeps materially forward knee-depth cues stable when both passes agree', () => {
+    const withKneeDepth = (kneeDepth: number) => landmarkPerson().map((landmark) => ({
+      ...landmark,
+      z: landmark.name === 'left_knee' ? kneeDepth : 0,
+    }));
+
+    expect(comparePosePasses(withKneeDepth(-0.05), withKneeDepth(-0.06), 1000, 1000))
+      .not.toContain('left_knee');
+  });
+
+  it('marks a knee unstable when only one pass has its depth evidence', () => {
+    const withDepth = landmarkPerson().map((landmark) => ({ ...landmark, z: 0 }));
+    const missingKneeDepth = withDepth.map((landmark) => {
+      if (landmark.name !== 'left_knee') return landmark;
+      const { z: _z, ...withoutDepth } = landmark;
+      return withoutDepth;
+    });
+
+    expect(comparePosePasses(withDepth, missingKneeDepth, 1000, 1000)).toContain('left_knee');
+  });
+
   describe.each([
     ['landscape', 2000, 1000],
     ['portrait', 1000, 2000],

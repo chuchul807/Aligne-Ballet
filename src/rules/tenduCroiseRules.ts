@@ -4,6 +4,7 @@ import { CONSERVATIVE_RULE_CONFIGURATION } from './commonRules';
 import type { Rule, RuleContext } from './types';
 
 const tolerance = CONSERVATIVE_RULE_CONFIGURATION.tenduCroiseDevant;
+const frontalKneeTolerance = CONSERVATIVE_RULE_CONFIGURATION.common;
 const bothLegs = [
   'left_hip', 'left_knee', 'left_ankle',
   'right_hip', 'right_knee', 'right_ankle',
@@ -58,13 +59,21 @@ export const TENDU_CROISE_RULES: readonly Rule[] = [
     dedupeKey: 'tendu-working-knee-bent',
     positions: ['tendu-croise-devant'],
     supportedViews: ['front'],
-    requiredMeasurements: ['workingKneeAngle'],
+    requiredMeasurements: ['workingKneeAngle', 'workingKneeForwardDepthCue'],
     region: 'working-leg',
     priority: 'line',
     evidence: bothLegs,
     evaluate: (context) => {
-      const amount = below(context.measurements.workingKneeAngle.value!, tolerance.workingKneeClearBelowDegrees);
-      if (amount === null) return null;
+      const angleAmount = below(
+        context.measurements.workingKneeAngle.value!,
+        frontalKneeTolerance.frontalKneeClearlyBentBelowDegrees,
+      );
+      const depthAmount = above(
+        context.measurements.workingKneeForwardDepthCue.value!,
+        frontalKneeTolerance.frontalKneeForwardDepthAboveBodyWidthRatio,
+      );
+      if (angleAmount === null || depthAmount === null) return null;
+      const amount = Math.min(angleAmount, depthAmount);
       const evidence = workingLeg(context);
       return finding(
         'tendu-working-knee-bent', 'working-leg', 'line', evidence,

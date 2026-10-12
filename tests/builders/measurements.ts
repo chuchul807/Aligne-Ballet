@@ -11,7 +11,7 @@ export function measuredPose(
   overrides: MeasurementValueOverrides = {},
 ) {
   const reliability = evaluateLandmarkReliability(landmarks, view);
-  const measurements = { ...measurePose(landmarks, supportingSide, reliability, view) };
+  const measurements = { ...measurePose(landmarks, supportingSide, reliability, view, 1, 1) };
   for (const [key, value] of Object.entries(overrides) as [keyof MeasurementSet, number][]) {
     measurements[key] = {
       ...measurements[key],

@@ -4,6 +4,7 @@ import { CONSERVATIVE_RULE_CONFIGURATION } from './commonRules';
 import type { Rule, RuleContext } from './types';
 
 const tolerance = CONSERVATIVE_RULE_CONFIGURATION.aLaSeconde;
+const frontalKneeTolerance = CONSERVATIVE_RULE_CONFIGURATION.common;
 const bothLegs = [
   'left_hip', 'left_knee', 'left_ankle',
   'right_hip', 'right_knee', 'right_ankle',
@@ -39,6 +40,10 @@ function above(value: number, threshold: number): number | null {
   return Number.isFinite(value) && value > threshold ? (value - threshold) / Math.max(1, threshold) : null;
 }
 
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
 function workingLeg(context: RuleContext): readonly [LandmarkName, LandmarkName, LandmarkName] {
   const side = oppositeSide(context.supportingSide);
   return [sideLandmark(side, 'hip'), sideLandmark(side, 'knee'), sideLandmark(side, 'ankle')];
@@ -60,16 +65,24 @@ export const A_LA_SECONDE_RULES: readonly Rule[] = [
     dedupeKey: 'a-la-seconde-working-knee-bent',
     positions: ['a-la-seconde'],
     supportedViews: ['front'],
-    requiredMeasurements: ['workingKneeAngle'],
+    requiredMeasurements: ['workingKneeAngle', 'workingKneeForwardDepthCue'],
     region: 'working-leg',
-    priority: 'line',
+    priority: 'stability',
     evidence: bothLegs,
     evaluate: (context) => {
-      const amount = below(context.measurements.workingKneeAngle.value!, tolerance.workingKneeClearBelowDegrees);
-      if (amount === null) return null;
+      const angleAmount = below(
+        context.measurements.workingKneeAngle.value!,
+        frontalKneeTolerance.frontalKneeClearlyBentBelowDegrees,
+      );
+      const depthAmount = above(
+        context.measurements.workingKneeForwardDepthCue.value!,
+        frontalKneeTolerance.frontalKneeForwardDepthAboveBodyWidthRatio,
+      );
+      if (angleAmount === null || depthAmount === null) return null;
+      const amount = Math.min(angleAmount, depthAmount);
       const evidence = workingLeg(context);
       return finding(
-        'a-la-seconde-working-knee-bent', 'working-leg', 'line', evidence,
+        'a-la-seconde-working-knee-bent', 'working-leg', 'stability', evidence,
         [{ observationId: 'a-la-seconde-working-knee-bent', type: 'joint', joints: [evidence[1]] }],
         'The working knee is visibly bent.',
         'Lengthen and straighten the working leg.',
@@ -115,7 +128,7 @@ export const A_LA_SECONDE_RULES: readonly Rule[] = [
     supportedViews: ['front'],
     requiredMeasurements: ['workingFootPointAngle'],
     region: 'feet',
-    priority: 'line',
+    priority: 'structure',
     evidence: bothFeet,
     evaluate: (context) => {
       const amount = below(context.measurements.workingFootPointAngle.value!, tolerance.workingFootPointBelowDegrees);
@@ -123,7 +136,7 @@ export const A_LA_SECONDE_RULES: readonly Rule[] = [
       const [knee, ankle, , toe] = workingFoot(context);
       const evidence = [knee, ankle, toe] as const;
       return finding(
-        'a-la-seconde-foot-not-pointed', 'feet', 'line', evidence,
+        'a-la-seconde-foot-not-pointed', 'feet', 'structure', evidence,
         [{ observationId: 'a-la-seconde-foot-not-pointed', type: 'region', joints: evidence }],
         'The working foot does not continue the visible line of the leg.',
         'Lengthen through the ankle and point the working toes.',
@@ -137,17 +150,17 @@ export const A_LA_SECONDE_RULES: readonly Rule[] = [
     dedupeKey: 'a-la-seconde-turnout-not-visible',
     positions: ['a-la-seconde'],
     supportedViews: ['front'],
-    requiredMeasurements: ['workingHeelDepthCue'],
+    requiredMeasurements: ['workingHeelVisibilityCue'],
     region: 'feet',
-    priority: 'line',
+    priority: 'structure',
     evidence: bothFeet,
     evaluate: (context) => {
-      const amount = below(context.measurements.workingHeelDepthCue.value!, tolerance.workingHeelDepthCueBelowTorsoRatio);
+      const amount = below(context.measurements.workingHeelVisibilityCue.value!, tolerance.workingHeelVisibilityBelowBodyWidthRatio);
       if (amount === null) return null;
       const [, , heel, toe] = workingFoot(context);
       const evidence = [heel, toe] as const;
       return finding(
-        'a-la-seconde-turnout-not-visible', 'feet', 'line', evidence,
+        'a-la-seconde-turnout-not-visible', 'feet', 'structure', evidence,
         [{ observationId: 'a-la-seconde-turnout-not-visible', type: 'region', joints: evidence }],
         'The working heel does not appear forward enough to confirm the turned-out foot line.',
         'Rotate the working leg outward until the heel is slightly visible.',
@@ -161,22 +174,25 @@ export const A_LA_SECONDE_RULES: readonly Rule[] = [
     dedupeKey: 'pelvis-level',
     positions: ['a-la-seconde'],
     supportedViews: ['front'],
-    requiredMeasurements: ['pelvisSlope', 'workingAnkleHeightFromHip'],
+    requiredMeasurements: ['pelvisSlope', 'workingAnkleHeightFromHip', 'workingAnkleOutwardOffset'],
     region: 'pelvis',
-    priority: 'structure',
+    priority: 'line',
     evidence: ['left_hip', 'right_hip', 'left_ankle', 'right_ankle'],
     evaluate: (context) => {
-      const height = Math.max(0, context.measurements.workingAnkleHeightFromHip.value!);
-      const allowedSlope = Math.min(
-        tolerance.maximumPelvisSlopeDegrees,
-        tolerance.basePelvisSlopeDegrees + height * tolerance.extraPelvisSlopePerTorsoHeight,
-      );
+      const height = context.measurements.workingAnkleHeightFromHip.value!;
+      const outward = Math.max(0.01, Math.abs(context.measurements.workingAnkleOutwardOffset.value!));
+      const heightToOutward = height / outward;
+      const approachingHorizontal = clamp01(1 + heightToOutward);
+      const aboveHorizontal = clamp01(heightToOutward);
+      const allowedSlope = tolerance.basePelvisSlopeDegrees
+        + (tolerance.nearHorizontalPelvisSlopeDegrees - tolerance.basePelvisSlopeDegrees) * approachingHorizontal
+        + (tolerance.maximumPelvisSlopeDegrees - tolerance.nearHorizontalPelvisSlopeDegrees) * aboveHorizontal;
       const amount = above(Math.abs(context.measurements.pelvisSlope.value!), allowedSlope);
       if (amount === null) return null;
       const [, , workingAnkle] = workingLeg(context);
       const evidence = ['left_hip', 'right_hip', workingAnkle] as const;
       return finding(
-        'a-la-seconde-pelvis-out-of-line', 'pelvis', 'structure', evidence,
+        'a-la-seconde-pelvis-out-of-line', 'pelvis', 'line', evidence,
         [{ observationId: 'a-la-seconde-pelvis-out-of-line', type: 'region', joints: evidence }],
         'The visible pelvic line is displaced more than the leg height requires.',
         'Bring the pelvis closer to level without lowering the working leg unnecessarily.',

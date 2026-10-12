@@ -7,8 +7,9 @@ import type { QualityReason, QualityReasonCode, QualityReport } from './types';
 export const QUALITY_THRESHOLDS = {
   minMeanLuminance: 0.10,
   maxMeanLuminance: 0.94,
+  maxTooBrightContrast: 0.10,
   minContrast: 0.075,
-  minEdgeEnergy: 0.018,
+  minEdgeEnergy: 0.08,
   minRequiredVisibility: 0.60,
   frameMargin: 0.02,
 } as const;
@@ -99,7 +100,10 @@ export function evaluateQuality(input: QualityInput): QualityReport {
   }
 
   if (input.metrics.meanLuminance < QUALITY_THRESHOLDS.minMeanLuminance) reasons.push(reason('too-dark'));
-  if (input.metrics.meanLuminance > QUALITY_THRESHOLDS.maxMeanLuminance) reasons.push(reason('too-bright'));
+  if (input.metrics.meanLuminance > QUALITY_THRESHOLDS.maxMeanLuminance
+    && input.metrics.contrast < QUALITY_THRESHOLDS.maxTooBrightContrast) {
+    reasons.push(reason('too-bright'));
+  }
   if (input.metrics.contrast < QUALITY_THRESHOLDS.minContrast) reasons.push(reason('low-contrast'));
   if (input.metrics.edgeEnergy < QUALITY_THRESHOLDS.minEdgeEnergy) reasons.push(reason('blurred'));
 

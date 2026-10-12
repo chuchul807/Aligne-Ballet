@@ -9,7 +9,9 @@ import type { RuleContext } from './types';
 
 const safeMeasurements: MeasurementValueOverrides = {
   supportingKneeAngle: 170,
+  supportingKneeForwardDepthCue: 0.10,
   workingKneeAngle: 170,
+  workingKneeForwardDepthCue: 0.10,
   workingFootPointAngle: 170,
   workingFootHeightFromSupportingFoot: 0.10,
   croiseCrossingSeparation: 0.20,
@@ -34,12 +36,23 @@ describe('Tendu croisé devant rules', () => {
   it('checks both legs for a straight line', () => {
     const observations = evaluateRules(
       [...COMMON_RULES, ...TENDU_CROISE_RULES],
-      context({ supportingKneeAngle: 164, workingKneeAngle: 164 }),
+      context({ supportingKneeAngle: 150, workingKneeAngle: 150 }),
     );
     expect(observations.map((item) => item.ruleId)).toEqual(expect.arrayContaining([
       'supporting-knee-bent',
       'tendu-working-knee-bent',
     ]));
+  });
+
+  it('does not call a hyperextended or mildly displaced working knee bent from the front', () => {
+    const hasFinding = (workingKneeAngle: number, workingKneeForwardDepthCue: number) => evaluateRules(
+      TENDU_CROISE_RULES,
+      context({ workingKneeAngle, workingKneeForwardDepthCue }),
+    ).some((item) => item.ruleId === 'tendu-working-knee-bent');
+
+    expect(hasFinding(150, -0.10)).toBe(false);
+    expect(hasFinding(160, 0.10)).toBe(false);
+    expect(hasFinding(150, 0.10)).toBe(true);
   });
 
   it('flags an unpointed or visibly lifted working foot', () => {

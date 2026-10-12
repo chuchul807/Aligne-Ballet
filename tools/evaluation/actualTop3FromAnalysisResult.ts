@@ -1,4 +1,4 @@
-import type { AnalysisResult } from '../src/domain/types';
+import type { AnalysisResult } from '../../src/domain/types';
 import type { CorrectionLabel } from './dataset.schema';
 import { directionCodeForRule } from './directionCodes';
 

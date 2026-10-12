@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { AnalysisResult } from '../src/domain/types';
-import { composeFeedback, type AssessmentCoverage } from '../src/feedback/composeFeedback';
+import type { AnalysisResult } from '../../src/domain/types';
+import { composeFeedback, type AssessmentCoverage } from '../../src/feedback/composeFeedback';
 import { actualTop3FromAnalysisResult } from './actualTop3FromAnalysisResult';
 
 describe('actualTop3FromAnalysisResult', () => {

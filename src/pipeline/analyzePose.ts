@@ -70,7 +70,7 @@ export interface AnalysisServices {
   quality?: typeof evaluateQuality;
   refine?: typeof refinePoseDetection;
   reliability?: typeof evaluateLandmarkReliability;
-  measure?: (landmarks: readonly Landmark[], supportingSide: SupportingSide, reliability: LandmarkReliabilityMap, view: ViewType) => MeasurementSet;
+  measure?: (landmarks: readonly Landmark[], supportingSide: SupportingSide, reliability: LandmarkReliabilityMap, view: ViewType, sourceWidth: number, sourceHeight: number) => MeasurementSet;
   evaluate?: (rules: readonly Rule[], context: RuleContext) => readonly Observation[];
   deduplicate?: typeof deduplicateObservations;
   feedback?: (observations: readonly Observation[], coverage: Parameters<typeof composeFeedback>[1]) => FeedbackSummary;
@@ -187,7 +187,7 @@ export const POSITION_VIABILITY_CONFIG = {
     positionSpecific: {
       requirements: [
         { region: 'working-leg', measurements: ['workingKneeAngle', 'workingAnkleOutwardOffset'], minimumAssessable: 1 },
-        { region: 'feet', measurements: ['workingFootPointAngle', 'workingHeelDepthCue'], minimumAssessable: 1 },
+        { region: 'feet', measurements: ['workingFootPointAngle', 'workingHeelVisibilityCue'], minimumAssessable: 1 },
       ],
       minimumSatisfiedRequirements: 1,
     },
@@ -396,7 +396,14 @@ export async function analyzePose(request: AnalysisRequest, services: AnalysisSe
       return withDiagnostics({ status: 'error', message: 'Analysis could not be completed. Please try again.' }, diagnostics);
     }
     const reliability = reliabilityFor(landmarks, request.expectedView, refined.disagreements);
-    const measurements = measure(landmarks, request.supportingSide, reliability, request.expectedView);
+    const measurements = measure(
+      landmarks,
+      request.supportingSide,
+      reliability,
+      request.expectedView,
+      decoded.width,
+      decoded.height,
+    );
     const viability = evaluateViability(request.position, measurements);
     const combinedCoverage = [...new Set([
       ...qualityCoverage,

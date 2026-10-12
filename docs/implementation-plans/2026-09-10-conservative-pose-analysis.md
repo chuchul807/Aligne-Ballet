@@ -1,6 +1,6 @@
 # Conservative Pose Analysis Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Historical implementation record
 
 **Goal:** Make ALIGNÉ resize high-pixel photos safely, assess pose evidence conservatively, show the full reliable structural skeleton, and suppress unsupported ballet corrections.
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 19, TypeScript 7, Vite 8, Vitest 4, Testing Library, Playwright, Canvas 2D, MediaPipe Tasks Vision.
 
-**Spec:** `docs/superpowers/specs/2026-09-10-conservative-pose-analysis-design.md`
+**Architecture:** `docs/architecture.md`
 
 ## Global Constraints
 
@@ -640,7 +640,7 @@ Do not label that region “clear.” Keep “No visible issue found in this vie
 
 - [ ] **Step 8: Run every rule, fixture, copy, and agreement test**
 
-Run: `pnpm test -- src/rules src/feedback evaluation/scoreAgreement.test.ts`
+Run: `pnpm test -- src/rules src/feedback tools/evaluation/scoreAgreement.test.ts`
 
 Expected: PASS after fixture expectations are updated deliberately. If the agreement score changes, record the before/after values in the commit message body; do not weaken conservative filters merely to preserve the old score.
 

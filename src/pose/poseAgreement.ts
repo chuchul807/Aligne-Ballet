@@ -5,11 +5,16 @@ export const MAJOR_JOINT_AGREEMENT = 0.12;
 export const FLEXIBLE_JOINT_AGREEMENT = 0.18;
 
 const MIN_EVIDENCE = 0.60;
+const KNEE_FORWARD_DEPTH_THRESHOLD = 0.03;
 const MAJOR_JOINTS = new Set(['shoulder', 'elbow', 'hip', 'knee', 'ankle']);
 const FOOT_DEPTH_PAIRS = [
   ['left_heel', 'left_foot_index'],
   ['right_heel', 'right_foot_index'],
 ] as const satisfies readonly (readonly [LandmarkName, LandmarkName])[];
+const KNEE_DEPTH_CHAINS = [
+  ['left_hip', 'left_knee', 'left_ankle'],
+  ['right_hip', 'right_knee', 'right_ankle'],
+] as const satisfies readonly (readonly [LandmarkName, LandmarkName, LandmarkName])[];
 
 function valid(point: Landmark | undefined): point is Landmark {
   return point !== undefined
@@ -42,6 +47,16 @@ function torsoLength(points: ReadonlyMap<LandmarkName, Landmark>, sourceWidth: n
   return Number.isFinite(length) && length > 0 ? length : null;
 }
 
+function frontalBodyWidth(points: ReadonlyMap<LandmarkName, Landmark>): number | null {
+  const leftShoulder = points.get('left_shoulder');
+  const rightShoulder = points.get('right_shoulder');
+  const leftHip = points.get('left_hip');
+  const rightHip = points.get('right_hip');
+  if (!valid(leftShoulder) || !valid(rightShoulder) || !valid(leftHip) || !valid(rightHip)) return null;
+  const width = (Math.abs(leftShoulder.x - rightShoulder.x) + Math.abs(leftHip.x - rightHip.x)) / 2;
+  return Number.isFinite(width) && width > 0 ? width : null;
+}
+
 function isMajor(name: LandmarkName): boolean {
   const joint = name.replace(/^left_|^right_/, '');
   return MAJOR_JOINTS.has(joint);
@@ -57,6 +72,32 @@ function footDepthCue(
   return heel !== undefined && toe !== undefined && Number.isFinite(heel) && Number.isFinite(toe)
     ? toe - heel
     : null;
+}
+
+function kneeDepthCue(
+  points: ReadonlyMap<LandmarkName, Landmark>,
+  hipName: LandmarkName,
+  kneeName: LandmarkName,
+  ankleName: LandmarkName,
+  sourceWidth: number,
+  sourceHeight: number,
+): number | null {
+  const hip = points.get(hipName);
+  const knee = points.get(kneeName);
+  const ankle = points.get(ankleName);
+  if (!hip || !knee || !ankle || !valid(hip) || !valid(knee) || !valid(ankle)) return null;
+  if (hip.z === undefined || knee.z === undefined || ankle.z === undefined) return null;
+  const legX = (ankle.x - hip.x) * sourceWidth;
+  const legY = (ankle.y - hip.y) * sourceHeight;
+  const squaredLegLength = legX * legX + legY * legY;
+  if (squaredLegLength === 0) return null;
+  const kneeProgress = Math.max(0, Math.min(1, (
+    (knee.x - hip.x) * sourceWidth * legX
+      + (knee.y - hip.y) * sourceHeight * legY
+  ) / squaredLegLength));
+  const straightLegDepth = hip.z + (ankle.z - hip.z) * kneeProgress;
+  const bodyWidth = frontalBodyWidth(points);
+  return bodyWidth === null ? null : (straightLegDepth - knee.z) / bodyWidth;
 }
 
 export function comparePosePasses(
@@ -95,6 +136,16 @@ export function comparePosePasses(
       unstable.add(heelName);
       unstable.add(toeName);
     }
+  }
+  for (const [hipName, kneeName, ankleName] of KNEE_DEPTH_CHAINS) {
+    const wholeCue = kneeDepthCue(wholePoints, hipName, kneeName, ankleName, sourceWidth, sourceHeight);
+    const refinedCue = kneeDepthCue(refinedPoints, hipName, kneeName, ankleName, sourceWidth, sourceHeight);
+    const onePassMissingDepth = (wholeCue === null) !== (refinedCue === null);
+    const depthDirectionChanged = wholeCue !== null && refinedCue !== null && (
+      (wholeCue > KNEE_FORWARD_DEPTH_THRESHOLD && refinedCue <= 0)
+      || (refinedCue > KNEE_FORWARD_DEPTH_THRESHOLD && wholeCue <= 0)
+    );
+    if (onePassMissingDepth || depthDirectionChanged) unstable.add(kneeName);
   }
   return unstable;
 }

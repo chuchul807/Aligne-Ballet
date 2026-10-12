@@ -4,6 +4,8 @@ import type { Rule, RuleContext } from './types';
 
 export interface CommonRuleTolerances {
   supportingKneeClearBelowDegrees: number;
+  frontalKneeClearlyBentBelowDegrees: number;
+  frontalKneeForwardDepthAboveBodyWidthRatio: number;
   pelvisSlopeAboveDegrees: number;
   shoulderSlopeAboveDegrees: number;
   torsoLateralOffsetAboveTorsoRatio: number;
@@ -37,13 +39,15 @@ export interface ConservativeRuleConfiguration {
   aLaSeconde: {
     workingKneeClearBelowDegrees: number;
     workingFootPointBelowDegrees: number;
-    workingHeelDepthCueBelowTorsoRatio: number;
+    workingHeelVisibilityBelowBodyWidthRatio: number;
     workingAnkleOutwardOffsetBelowTorsoRatio: number;
+    torsoLateralOffsetAboveTorsoRatio: number;
+    supportingHipAnkleOffsetAboveTorsoRatio: number;
     verticalAllowanceStartsAboveHipRatio: number;
     outwardAllowancePerTorsoHeight: number;
     minimumHighLegOutwardOffsetRatio: number;
     basePelvisSlopeDegrees: number;
-    extraPelvisSlopePerTorsoHeight: number;
+    nearHorizontalPelvisSlopeDegrees: number;
     maximumPelvisSlopeDegrees: number;
   };
   tenduCroiseDevant: {
@@ -57,6 +61,8 @@ export interface ConservativeRuleConfiguration {
 export const CONSERVATIVE_RULE_CONFIGURATION = {
   common: {
     supportingKneeClearBelowDegrees: 165,
+    frontalKneeClearlyBentBelowDegrees: 155,
+    frontalKneeForwardDepthAboveBodyWidthRatio: 0.03,
     pelvisSlopeAboveDegrees: 8,
     shoulderSlopeAboveDegrees: 10,
     torsoLateralOffsetAboveTorsoRatio: 0.12,
@@ -87,14 +93,16 @@ export const CONSERVATIVE_RULE_CONFIGURATION = {
   aLaSeconde: {
     workingKneeClearBelowDegrees: 165,
     workingFootPointBelowDegrees: 150,
-    workingHeelDepthCueBelowTorsoRatio: 0.02,
+    workingHeelVisibilityBelowBodyWidthRatio: 0.05,
     workingAnkleOutwardOffsetBelowTorsoRatio: 0.08,
+    torsoLateralOffsetAboveTorsoRatio: 0.28,
+    supportingHipAnkleOffsetAboveTorsoRatio: 0.35,
     verticalAllowanceStartsAboveHipRatio: 0.50,
     outwardAllowancePerTorsoHeight: 0.16,
     minimumHighLegOutwardOffsetRatio: -0.05,
-    basePelvisSlopeDegrees: 8,
-    extraPelvisSlopePerTorsoHeight: 8,
-    maximumPelvisSlopeDegrees: 18,
+    basePelvisSlopeDegrees: 12,
+    nearHorizontalPelvisSlopeDegrees: 25,
+    maximumPelvisSlopeDegrees: 30,
   },
   tenduCroiseDevant: {
     workingKneeClearBelowDegrees: 165,
@@ -145,6 +153,18 @@ function finding(
   };
 }
 
+function unassessableFinding(
+  id: string,
+  region: BodyRegion,
+  priority: Priority,
+  evidence: readonly LandmarkName[],
+): Observation {
+  return {
+    id, ruleId: id, dedupeKey: id, region, priority, confidence: 'low', evidence,
+    annotation: [], assessability: 'unassessable', issue: null, action: null, direction: null, severity: null,
+  };
+}
+
 function above(value: number, threshold: number): number | null {
   return Number.isFinite(value) && value > threshold ? (value - threshold) / Math.max(1 - threshold, threshold) : null;
 }
@@ -180,9 +200,28 @@ function rule(
 }
 
 export function createCommonRules(config: CommonRuleTolerances): readonly Rule[] {
+  const aLaSecondeAlignment = CONSERVATIVE_RULE_CONFIGURATION.aLaSeconde;
   return [
   rule('supporting-knee-bent', 'supporting-leg', 'stability', ['supportingKneeAngle'], ['left_hip', 'left_knee', 'left_ankle'], (context) => {
-    const amount = below(context.measurements.supportingKneeAngle.value!, config.supportingKneeClearBelowDegrees);
+    const isFrontView = context.view === 'front';
+    const angleThreshold = isFrontView
+      ? config.frontalKneeClearlyBentBelowDegrees
+      : config.supportingKneeClearBelowDegrees;
+    const angleAmount = below(context.measurements.supportingKneeAngle.value!, angleThreshold);
+    if (angleAmount === null) return null;
+    let amount = angleAmount;
+    if (isFrontView) {
+      const depthCue = context.measurements.supportingKneeForwardDepthCue;
+      if (depthCue.assessability !== 'assessable' || depthCue.value === null) {
+        const evidence = context.supportingSide === 'left'
+          ? ['left_hip', 'left_knee', 'left_ankle'] as const
+          : ['right_hip', 'right_knee', 'right_ankle'] as const;
+        return unassessableFinding('supporting-knee-bent', 'supporting-leg', 'stability', evidence);
+      }
+      const depthAmount = above(depthCue.value, config.frontalKneeForwardDepthAboveBodyWidthRatio);
+      if (depthAmount === null) return null;
+      amount = Math.min(angleAmount, depthAmount);
+    }
     return amount === null ? null : finding('supporting-knee-bent', 'supporting-leg', 'stability', context.supportingSide === 'left' ? ['left_hip', 'left_knee', 'left_ankle'] : ['right_hip', 'right_knee', 'right_ankle'], 'The supporting knee is visibly bent.', 'Straighten the supporting knee.', 'lengthen the supporting leg', amount);
   }),
   rule('pelvis-unlevel', 'pelvis', 'structure', ['pelvisSlope'], ['left_hip', 'right_hip'], (context) => {
@@ -194,13 +233,21 @@ export function createCommonRules(config: CommonRuleTolerances): readonly Rule[]
     return amount === null ? null : finding('shoulders-unlevel', 'shoulders-arms', 'line', ['left_shoulder', 'right_shoulder'], 'The shoulders are visibly unlevel.', 'Soften the raised shoulder downward.', 'lower the raised shoulder', amount);
   }),
   rule('torso-off-support', 'torso', 'stability', ['torsoLateralOffset'], ['left_shoulder', 'right_shoulder', 'left_hip', 'right_hip'], (context) => {
-    const amount = above(Math.abs(context.measurements.torsoLateralOffset.value!), config.torsoLateralOffsetAboveTorsoRatio);
-    return amount === null ? null : finding('torso-off-support', 'torso', 'stability', ['left_shoulder', 'right_shoulder', 'left_hip', 'right_hip'], 'The torso is off the supporting side.', 'Bring the torso back over the supporting side.', 'bring the torso toward the supporting side', amount);
+    const isALaSeconde = context.position === 'a-la-seconde';
+    const threshold = isALaSeconde
+      ? aLaSecondeAlignment.torsoLateralOffsetAboveTorsoRatio
+      : config.torsoLateralOffsetAboveTorsoRatio;
+    const amount = above(Math.abs(context.measurements.torsoLateralOffset.value!), threshold);
+    return amount === null ? null : finding('torso-off-support', 'torso', isALaSeconde ? 'line' : 'stability', ['left_shoulder', 'right_shoulder', 'left_hip', 'right_hip'], 'The torso is off the supporting side.', 'Bring the torso back over the supporting side.', 'bring the torso toward the supporting side', amount);
   }),
   rule('supporting-lateral-offset', 'supporting-leg', 'stability', ['frontalSupportingHipAnkleOffset'], ['left_hip', 'left_ankle', 'right_hip', 'right_ankle'], (context) => {
-    const amount = above(context.measurements.frontalSupportingHipAnkleOffset.value!, config.supportingHipAnkleOffsetAboveTorsoRatio);
+    const isALaSeconde = context.position === 'a-la-seconde';
+    const threshold = isALaSeconde
+      ? aLaSecondeAlignment.supportingHipAnkleOffsetAboveTorsoRatio
+      : config.supportingHipAnkleOffsetAboveTorsoRatio;
+    const amount = above(context.measurements.frontalSupportingHipAnkleOffset.value!, threshold);
     const evidence = context.supportingSide === 'left' ? ['left_hip', 'left_ankle'] as const : ['right_hip', 'right_ankle'] as const;
-    return amount === null ? null : finding('supporting-lateral-offset', 'supporting-leg', 'stability', evidence, 'From the front view, the supporting hip and ankle are visibly offset side to side.', 'Bring the supporting hip and ankle into closer side-to-side alignment.', 'bring the supporting hip and ankle into closer side-to-side alignment', amount);
+    return amount === null ? null : finding('supporting-lateral-offset', 'supporting-leg', isALaSeconde ? 'line' : 'stability', evidence, 'From the front view, the supporting hip and ankle are visibly offset side to side.', 'Bring the supporting hip and ankle into closer side-to-side alignment.', 'bring the supporting hip and ankle into closer side-to-side alignment', amount);
   }, { dedupeKey: 'supporting-lateral-alignment', supportedViews: ['front'] }),
   rule('left-arm-line-collapsed', 'shoulders-arms', 'line', ['leftElbowAngle'], ['left_shoulder', 'left_elbow', 'left_wrist'], (context) => {
     const amount = below(context.measurements.leftElbowAngle.value!, config.armElbowBelowDegrees);

@@ -48,7 +48,9 @@ async function useFakeServices(page: import('@playwright/test').Page) {
     const completeMeasurements: MeasurementSet = {
       torsoLength: completeMeasurement(),
       supportingKneeAngle: completeMeasurement(),
+      supportingKneeForwardDepthCue: completeMeasurement(),
       workingKneeAngle: completeMeasurement(),
+      workingKneeForwardDepthCue: completeMeasurement(),
       pelvisSlope: completeMeasurement(),
       shoulderSlope: completeMeasurement(),
       torsoLateralOffset: completeMeasurement(),
@@ -58,6 +60,7 @@ async function useFakeServices(page: import('@playwright/test').Page) {
       workingAnkleHeightFromHip: completeMeasurement(),
       workingFootPointAngle: completeMeasurement(),
       workingHeelDepthCue: completeMeasurement(),
+      workingHeelVisibilityCue: completeMeasurement(),
       workingAnkleOutwardOffset: completeMeasurement(),
       workingFootHeightFromSupportingFoot: completeMeasurement(),
       croiseCrossingSeparation: completeMeasurement(),

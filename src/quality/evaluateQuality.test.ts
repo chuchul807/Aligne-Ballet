@@ -122,6 +122,39 @@ describe('evaluateQuality', () => {
     expect(report.reasons.map((item) => item.code)).not.toContain('wrong-camera-view');
   });
 
+  it('allows a high-key white background when the dancer still has clear contrast', () => {
+    const report = evaluateQuality(baseInput({
+      metrics: { meanLuminance: 0.9626, contrast: 0.1451, edgeEnergy: 0.2598 },
+    }));
+
+    expect(report.reasons.map((item) => item.code)).not.toContain('too-bright');
+  });
+
+  it('still rejects a washed-out image with high luminance and weak contrast', () => {
+    const report = evaluateQuality(baseInput({
+      metrics: { meanLuminance: 0.9626, contrast: 0.09, edgeEnergy: 0.1 },
+    }));
+
+    expect(report.reasons.map((item) => item.code)).toContain('too-bright');
+  });
+
+  it.each([
+    ['luminance', { meanLuminance: 0.94, contrast: 0.09, edgeEnergy: 0.1 }, []],
+    ['contrast', { meanLuminance: 0.9626, contrast: 0.10, edgeEnergy: 0.1 }, []],
+  ] as const)('does not reject the exact %s boundary as too bright', (_boundary, metrics, expectedReasons) => {
+    const report = evaluateQuality(baseInput({ metrics }));
+
+    expect(report.reasons.map((item) => item.code)).toEqual(expectedReasons);
+  });
+
+  it('reports both overexposure and low contrast when both conditions are present', () => {
+    const report = evaluateQuality(baseInput({
+      metrics: { meanLuminance: 0.9626, contrast: 0.05, edgeEnergy: 0.1 },
+    }));
+
+    expect(report.reasons.map((item) => item.code)).toEqual(['too-bright', 'low-contrast']);
+  });
+
   it.each([
     ['left', 'left_heel'],
     ['right', 'right_heel'],

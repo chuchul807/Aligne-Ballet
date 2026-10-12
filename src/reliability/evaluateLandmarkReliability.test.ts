@@ -20,7 +20,7 @@ function conservativeOutputs(
   rules = COMMON_RULES,
 ) {
   const reliability = evaluateLandmarkReliability(landmarks, 'front');
-  const measurements = measurePose(landmarks, 'left', reliability, 'front');
+  const measurements = measurePose(landmarks, 'left', reliability, 'front', 1, 1);
   const observations = evaluateRules(rules, {
     position: 'retire-passe', supportingSide: 'left', view: 'front', landmarks, reliability, measurements,
   });
