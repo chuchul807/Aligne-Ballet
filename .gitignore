@@ -10,5 +10,4 @@ playwright-report/
 test-results/
 public/models/
 public/vendor/mediapipe/
-.wrangler/
 .dev.vars*
