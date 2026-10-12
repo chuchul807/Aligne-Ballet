@@ -63,7 +63,7 @@ pnpm dev
 
 Run unit and component checks with `pnpm test`, the agreement scorer checks with `pnpm test:agreement`, and phone-sized end-to-end checks with `pnpm test:e2e`. Playwright's Chromium and WebKit browsers can be installed with `pnpm exec playwright install chromium webkit`.
 
-The browser model assets are MediaPipe Pose Landmarker Lite files obtained through `pnpm sync:assets`. Their source is the [MediaPipe Pose Landmarker documentation](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker). Do not commit downloaded model assets or participant photos.
+The browser model assets are MediaPipe Pose Landmarker Heavy files obtained through `pnpm sync:assets`. Their source is the [MediaPipe Pose Landmarker documentation](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker). Do not commit downloaded model assets or participant photos.
 
 ## Supported use
 
