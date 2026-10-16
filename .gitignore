@@ -11,3 +11,6 @@ test-results/
 public/models/
 public/vendor/mediapipe/
 .dev.vars*
+ios/**/xcuserdata/
+*.xcuserstate
+DerivedData/
