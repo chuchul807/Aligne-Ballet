@@ -2,16 +2,27 @@ import { describe, expect, it } from 'vitest';
 import fixtureJSON from '../../tests/fixtures/ios-domain-parity.json';
 import { landmarkNames, type LandmarkName } from '../domain/landmarks';
 import type {
+  BodyRegion,
   Landmark,
   LandmarkReliability,
   LandmarkReliabilityMap,
   MeasurementSet,
   ReliabilityReason,
   SupportingSide,
+  PoseName,
+  Priority,
   ViewType,
 } from '../domain/types';
 import { angleDeg, distance, midpoint, normalisedDistance, slopeDeg, type Point } from './geometry';
 import { measurePose } from './measurePose';
+import { COMMON_RULES } from '../rules/commonRules';
+import { ARABESQUE_RULES } from '../rules/arabesqueRules';
+import { ATTITUDE_RULES } from '../rules/attitudeRules';
+import { RETIRE_RULES } from '../rules/retireRules';
+import { A_LA_SECONDE_RULES } from '../rules/aLaSecondeRules';
+import { TENDU_CROISE_RULES } from '../rules/tenduCroiseRules';
+import { evaluateRules } from '../rules/evaluateRules';
+import { composeFeedback } from '../feedback/composeFeedback';
 
 type Transform = 'none' | 'mirror' | 'collapse';
 type MeasurementName = keyof MeasurementSet;
@@ -43,6 +54,19 @@ interface Fixture {
   geometryCases: GeometryCase[];
   baseLandmarks: Landmark[];
   measurementCases: MeasurementCase[];
+  ruleCases: RuleCase[];
+}
+
+interface RuleCase {
+  id: string;
+  position: PoseName;
+  view: ViewType;
+  boundary: Partial<Record<MeasurementName, number>>;
+  trigger: Partial<Record<MeasurementName, number>>;
+  direction: string;
+  region: BodyRegion;
+  priority: Priority;
+  dedupeKey?: string;
 }
 
 const fixture = fixtureJSON as unknown as Fixture;
@@ -156,6 +180,72 @@ describe('iOS domain parity fixture', () => {
         expect(measurement.reason, `${testCase.id}.${name}`).toBe(expectedReason);
         expect(measurement.confidence, `${testCase.id}.${name}`)
           .toBe(testCase.expectedLowConfidence.includes(name) ? 'low' : 'high');
+      }
+    }
+  });
+
+  it('pins all five positions and common rule thresholds for both support sides', () => {
+    const rules = [
+      ...COMMON_RULES,
+      ...ARABESQUE_RULES,
+      ...ATTITUDE_RULES,
+      ...RETIRE_RULES,
+      ...A_LA_SECONDE_RULES,
+      ...TENDU_CROISE_RULES,
+    ];
+    expect(fixture.ruleCases).toHaveLength(rules.length);
+    expect(new Set(fixture.ruleCases.map((item) => item.id)).size).toBe(rules.length);
+
+    for (const scenario of fixture.ruleCases) {
+      const rule = rules.find((candidate) => candidate.id === scenario.id);
+      expect(rule, scenario.id).toBeDefined();
+      for (const supportingSide of ['left', 'right'] as const) {
+        const landmarks = fixture.baseLandmarks.map((landmark): Landmark => supportingSide === 'left'
+          ? landmark
+          : {
+            ...landmark,
+            x: 1 - landmark.x,
+            name: landmark.name.replace(/^left|^right/, (side) => side === 'left' ? 'right' : 'left') as LandmarkName,
+          });
+        const reliability = reliabilityFor(landmarks);
+        const base = measurePose(landmarks, supportingSide, reliability, scenario.view, 1000, 2000);
+        const withValues = (overrides: RuleCase['trigger'], medium = false): MeasurementSet => ({
+          ...base,
+          ...Object.fromEntries(Object.entries(overrides).map(([name, value], index) => [
+            name,
+            { ...base[name as MeasurementName], value, assessability: 'assessable', confidence: medium && index === 0 ? 'medium' : 'high' },
+          ])),
+        });
+        const evaluate = (overrides: RuleCase['trigger'], medium = false, view = scenario.view) => evaluateRules(
+          [rule!],
+          { position: scenario.position, supportingSide, view, landmarks, reliability, measurements: withValues(overrides, medium) },
+        ).find((item) => item.ruleId === scenario.id);
+
+        expect(evaluate(scenario.boundary), `${scenario.id}.${supportingSide}.boundary`).toBeUndefined();
+        const finding = evaluate(scenario.trigger);
+        expect(finding, `${scenario.id}.${supportingSide}.trigger`).toMatchObject({
+          ruleId: scenario.id,
+          dedupeKey: scenario.dedupeKey ?? scenario.id,
+          region: scenario.region,
+          priority: scenario.priority,
+          direction: scenario.direction,
+          assessability: 'assessable',
+          confidence: 'high',
+        });
+        expect(finding?.severity, `${scenario.id}.${supportingSide}.severity`).toBeGreaterThan(0);
+
+        const mediumFinding = evaluate(scenario.trigger, true);
+        expect(mediumFinding?.confidence, `${scenario.id}.${supportingSide}.medium`).toBe('medium');
+        const coverage = Object.fromEntries(
+          ['supporting-leg', 'working-leg', 'pelvis', 'torso', 'shoulders-arms', 'head', 'feet']
+            .map((region) => [region, 'assessable']),
+        ) as Record<BodyRegion, 'assessable'>;
+        expect(composeFeedback(mediumFinding ? [mediumFinding] : [], coverage).topCorrections).toHaveLength(0);
+
+        if (rule?.supportedViews) {
+          const wrongView = scenario.view === 'front' ? 'three-quarter-side' : 'front';
+          expect(evaluate(scenario.trigger, false, wrongView)?.assessability).toBe('unassessable');
+        }
       }
     }
   });

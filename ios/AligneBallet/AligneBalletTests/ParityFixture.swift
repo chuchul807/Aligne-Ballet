@@ -88,10 +88,23 @@ struct MeasurementFixtureCase: Decodable {
     let expectedLowConfidence: [String]
 }
 
+struct RuleFixtureCase: Decodable {
+    let id: String
+    let position: PoseName
+    let view: ViewType
+    let boundary: [String: Double]
+    let trigger: [String: Double]
+    let direction: String
+    let region: BodyRegion
+    let priority: Priority
+    let dedupeKey: String?
+}
+
 struct ParityFixture: Decodable {
     let geometryCases: [GeometryFixtureCase]
     let baseLandmarks: [Landmark]
     let measurementCases: [MeasurementFixtureCase]
+    let ruleCases: [RuleFixtureCase]
 }
 
 enum ParityFixtureLoader {
