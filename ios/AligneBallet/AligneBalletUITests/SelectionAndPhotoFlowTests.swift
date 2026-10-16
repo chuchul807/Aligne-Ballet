@@ -14,6 +14,7 @@ final class SelectionAndPhotoFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["stage.frame.title"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["frame.photos"].exists)
         XCTAssertTrue(app.buttons["frame.camera"].exists)
+        XCTAssertGreaterThanOrEqual(app.buttons["frame.back"].frame.height, 44)
         app.buttons["frame.back"].tap()
         XCTAssertTrue(app.staticTexts["stage.select.title"].waitForExistence(timeout: 5))
     }

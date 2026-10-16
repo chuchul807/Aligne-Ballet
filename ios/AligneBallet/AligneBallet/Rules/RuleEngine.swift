@@ -1,6 +1,11 @@
 import Foundation
 
 enum RuleEngine {
+    static var allRuleIDs: [String] {
+        (CommonRules.all + ArabesqueRules.all + AttitudeRules.all + RetireRules.all
+         + ALaSecondeRules.all + TenduCroiseRules.all).map(\.id)
+    }
+
     static func evaluate(rules: [Rule], context: RuleContext) -> [Observation] {
         rules.compactMap { rule in
             guard rule.positions.contains(context.position) else { return nil }

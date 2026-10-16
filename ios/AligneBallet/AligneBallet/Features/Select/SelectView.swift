@@ -23,26 +23,27 @@ extension PoseName {
 
 struct SelectView: View {
     @ObservedObject var store: AnalysisSessionStore
+    @Environment(\.locale) private var locale
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                Text("SELECT YOUR POSE")
+                Text(LocalizedCopy.text("select.eyebrow", locale: locale))
                     .font(.caption.weight(.bold))
                     .tracking(2)
                     .foregroundStyle(AligneStyle.accent)
 
-                Text("Choose your ballet position")
+                Text(LocalizedCopy.text("select.title", locale: locale))
                     .font(.system(.title, design: .serif, weight: .semibold))
                     .foregroundStyle(AligneStyle.deep)
                     .accessibilityIdentifier("stage.select.title")
 
-                Text("Select one of five positions, then tell us which leg supports your weight.")
+                Text(LocalizedCopy.text("select.instructions", locale: locale))
                     .font(.body)
                     .foregroundStyle(AligneStyle.muted)
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Position")
+                    Text(LocalizedCopy.text("select.position", locale: locale))
                         .font(.headline)
                         .foregroundStyle(AligneStyle.deep)
                     ForEach(PoseName.allCases, id: \.self) { pose in
@@ -69,12 +70,12 @@ struct SelectView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Supporting leg")
+                    Text(LocalizedCopy.text("select.supporting-leg", locale: locale))
                         .font(.headline)
                         .foregroundStyle(AligneStyle.deep)
-                    Picker("Supporting leg", selection: $store.supportingSide) {
-                        Text("Left").tag(SupportingSide.left)
-                        Text("Right").tag(SupportingSide.right)
+                    Picker(LocalizedCopy.text("select.supporting-leg", locale: locale), selection: $store.supportingSide) {
+                        Text(LocalizedCopy.text("select.left", locale: locale)).tag(SupportingSide.left)
+                        Text(LocalizedCopy.text("select.right", locale: locale)).tag(SupportingSide.right)
                     }
                     .pickerStyle(.segmented)
                     .accessibilityIdentifier("supporting-side")
@@ -82,8 +83,8 @@ struct SelectView: View {
 
                 Label(
                     store.expectedView == .front
-                        ? "Recommended view: front"
-                        : "Recommended view: three-quarter side",
+                        ? LocalizedCopy.text("select.view-front", locale: locale)
+                        : LocalizedCopy.text("select.view-side", locale: locale),
                     systemImage: "viewfinder"
                 )
                 .font(.subheadline)
@@ -93,7 +94,7 @@ struct SelectView: View {
                 .background(AligneStyle.soft, in: RoundedRectangle(cornerRadius: 12))
                 .accessibilityIdentifier("recommended-view")
 
-                Button("Continue") {
+                Button(LocalizedCopy.text("select.continue", locale: locale)) {
                     store.requestStage(.frame)
                 }
                 .buttonStyle(PrimaryAligneButtonStyle())

@@ -4,6 +4,7 @@ import UIKit
 
 struct FrameView: View {
     @ObservedObject var store: AnalysisSessionStore
+    @Environment(\.locale) private var locale
     var photoService: any PhotoSelectionServing = PhotoSelectionService()
     var cameraAuthorizer: any CameraAuthorizing = SystemCameraAuthorizer()
 
@@ -15,23 +16,23 @@ struct FrameView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                Text("FRAME YOUR PHOTO")
+                Text(LocalizedCopy.text("frame.eyebrow", locale: locale))
                     .font(.caption.weight(.bold))
                     .tracking(2)
                     .foregroundStyle(AligneStyle.accent)
 
-                Text("One dancer. Full body. Clear light.")
+                Text(LocalizedCopy.text("frame.title", locale: locale))
                     .font(.system(.title, design: .serif, weight: .semibold))
                     .foregroundStyle(AligneStyle.deep)
                     .accessibilityIdentifier("stage.frame.title")
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Label("Keep your head, hands and feet inside the photo.", systemImage: "person.crop.rectangle")
-                    Label("Only one dancer should be visible.", systemImage: "person")
+                    Label(LocalizedCopy.text("frame.head-feet", locale: locale), systemImage: "person.crop.rectangle")
+                    Label(LocalizedCopy.text("frame.one-dancer", locale: locale), systemImage: "person")
                     Label(
                         store.expectedView == .front
-                            ? "Face the camera for this position."
-                            : "Turn to a three-quarter side view.",
+                            ? LocalizedCopy.text("frame.front", locale: locale)
+                            : LocalizedCopy.text("frame.side", locale: locale),
                         systemImage: "camera.viewfinder"
                     )
                 }
@@ -41,14 +42,14 @@ struct FrameView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(AligneStyle.soft, in: RoundedRectangle(cornerRadius: 14))
 
-                Button("Take a photo", systemImage: "camera") {
+                Button(LocalizedCopy.text("frame.camera", locale: locale), systemImage: "camera") {
                     Task { await openCamera() }
                 }
                 .buttonStyle(PrimaryAligneButtonStyle())
                 .accessibilityIdentifier("frame.camera")
 
                 PhotosPicker(selection: $selectedItem, matching: .images) {
-                    Label("Choose from Photos", systemImage: "photo.on.rectangle")
+                    Label(LocalizedCopy.text("frame.photos", locale: locale), systemImage: "photo.on.rectangle")
                         .font(.headline)
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .foregroundStyle(AligneStyle.deep)
@@ -71,13 +72,16 @@ struct FrameView: View {
                 }
 
                 if let photoError {
-                    Text(photoError.localizedKey)
+                    Text(LocalizedCopy.text(photoError.localizedKey, locale: locale))
                         .foregroundStyle(.red)
                         .accessibilityIdentifier("frame.photo-error")
                 }
 
-                Button("Back to selection") { store.requestStage(.select) }
-                    .frame(minHeight: 44)
+                Button { store.requestStage(.select) } label: {
+                    Text(LocalizedCopy.text("frame.back", locale: locale))
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .contentShape(Rectangle())
+                }
                     .accessibilityIdentifier("frame.back")
             }
             .padding(24)
@@ -91,21 +95,20 @@ struct FrameView: View {
                 acceptPhoto(data)
             }, onCancel: { showingCamera = false })
         }
-        .alert("Camera access", isPresented: Binding(
+        .alert(LocalizedCopy.text("frame.camera-alert", locale: locale), isPresented: Binding(
             get: { cameraNotice != nil },
             set: { if !$0 { cameraNotice = nil } }
         )) {
             if cameraNotice == .denied || cameraNotice == .restricted {
-                Button("Open Settings") {
+                Button(LocalizedCopy.text("common.settings", locale: locale)) {
                     guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
                     UIApplication.shared.open(url)
                 }
             }
-            Button("OK", role: .cancel) { cameraNotice = nil }
+            Button(LocalizedCopy.text("common.ok", locale: locale), role: .cancel) { cameraNotice = nil }
         } message: {
-            Text(cameraNotice == .unavailable
-                 ? "Camera is not available on this device. Choose a photo instead."
-                 : "Allow camera access in Settings to take a photo.")
+            Text(LocalizedCopy.text(cameraNotice == .unavailable
+                 ? "frame.camera-unavailable" : "frame.camera-denied", locale: locale))
         }
     }
 

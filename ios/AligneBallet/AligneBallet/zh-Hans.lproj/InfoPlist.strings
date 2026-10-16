@@ -1,1 +1,2 @@
 "NSCameraUsageDescription" = "ALIGNÉ 使用相机在 iPhone 本机分析芭蕾动作。除非你主动保存结果，照片不会离开设备。";
+"NSPhotoLibraryAddUsageDescription" = "仅当你点击“保存”时，ALIGNÉ 才会将带标注的动作结果加入照片图库；应用不会保存原始照片。";

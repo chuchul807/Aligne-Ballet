@@ -49,6 +49,22 @@ final class AnalysisSessionStore: ObservableObject {
 
     init(runner: any AnalysisRunning = LiveAnalysisRunner()) {
         self.runner = runner
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-aligne-ui-test-result") {
+            let image = UIGraphicsImageRenderer(size: CGSize(width: 600, height: 800))
+                .image { context in
+                    UIColor.white.setFill()
+                    context.fill(CGRect(x: 0, y: 0, width: 600, height: 800))
+                }
+            analysisState = .success(
+                AnalysisResult(sessionID: "ui-test", position: .arabesque, landmarks: [],
+                               topCorrections: [], fullBodyReview: [], annotations: [],
+                               createdAt: "2026-10-16T00:00:00Z"),
+                image
+            )
+            stage = .result
+        }
+        #endif
     }
 
     var expectedView: ViewType {

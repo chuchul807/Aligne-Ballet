@@ -4,5 +4,7 @@
 <dict>
     <key>NSCameraUsageDescription</key>
     <string>ALIGNÉ uses the camera to analyse a ballet pose on your iPhone. Photos stay on this device unless you choose to save a result.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>ALIGNÉ saves an annotated ballet result to your Photos only when you tap Save. The original photo is not saved by the app.</string>
 </dict>
 </plist>
