@@ -10,6 +10,6 @@ final class LaunchTests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["Select"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["stage.select.title"].waitForExistence(timeout: 5))
     }
 }

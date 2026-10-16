@@ -189,11 +189,12 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 000000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				A12000000000000000000001 /* XCLocalSwiftPackageReference "MediaPipeTasks" */,
+				A12000000000000000000001 /* XCLocalSwiftPackageReference "../MediaPipeTasks" */,
 			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 000000000000000000000020 /* Products */;
@@ -399,6 +400,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -436,6 +438,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -590,7 +593,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		A12000000000000000000001 /* XCLocalSwiftPackageReference "MediaPipeTasks" */ = {
+		A12000000000000000000001 /* XCLocalSwiftPackageReference "../MediaPipeTasks" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ../MediaPipeTasks;
 		};
@@ -599,7 +602,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		A12000000000000000000002 /* MediaPipeTasksVision */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A12000000000000000000001 /* XCLocalSwiftPackageReference "MediaPipeTasks" */;
+			package = A12000000000000000000001 /* XCLocalSwiftPackageReference "../MediaPipeTasks" */;
 			productName = MediaPipeTasksVision;
 		};
 /* End XCSwiftPackageProductDependency section */
