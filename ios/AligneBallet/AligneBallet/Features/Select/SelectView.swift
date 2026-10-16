@@ -54,8 +54,16 @@ struct SelectView: View {
                                 Image(systemName: store.position == pose
                                       ? "largecircle.fill.circle" : "circle")
                                     .foregroundStyle(AligneStyle.accent)
-                                Text(pose.displayName)
-                                    .foregroundStyle(AligneStyle.deep)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(pose.displayName)
+                                        .font(.headline)
+                                        .foregroundStyle(AligneStyle.deep)
+                                    Text(LocalizedCopy.text(
+                                        "pose.description.\(pose.rawValue)", locale: locale
+                                    ))
+                                    .font(.subheadline)
+                                    .foregroundStyle(AligneStyle.muted)
+                                }
                                 Spacer()
                             }
                             .padding(14)
@@ -64,6 +72,10 @@ struct SelectView: View {
                                         in: RoundedRectangle(cornerRadius: 12))
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(
+                            pose.displayName + ". "
+                                + LocalizedCopy.text("pose.description.\(pose.rawValue)", locale: locale)
+                        )
                         .accessibilityIdentifier("pose.\(pose.rawValue)")
                         .accessibilityAddTraits(store.position == pose ? .isSelected : [])
                     }

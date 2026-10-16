@@ -9,6 +9,8 @@ struct FrameView: View {
     var cameraAuthorizer: any CameraAuthorizing = SystemCameraAuthorizer()
 
     @State private var selectedItem: PhotosPickerItem?
+    @State private var photoLoadGate = PhotoLoadGate()
+    @State private var photoLoadTask: Task<Void, Never>?
     @State private var showingCamera = false
     @State private var cameraNotice: CameraPermissionStatus?
     @State private var photoError: ImageInputError?
@@ -60,11 +62,14 @@ struct FrameView: View {
                 }
                 .accessibilityIdentifier("frame.photos")
                 .onChange(of: selectedItem) { item in
-                    Task { await loadPhoto(item) }
+                    photoLoadTask?.cancel()
+                    let token = photoLoadGate.begin()
+                    photoLoadTask = Task { await loadPhoto(item, token: token) }
                 }
 
                 if ProcessInfo.processInfo.arguments.contains("-aligne-ui-test-photo") {
                     Button("Use sample photo") {
+                        cancelPhotoLoading()
                         acceptPhoto(Self.samplePhoto())
                     }
                     .frame(minHeight: 44)
@@ -77,7 +82,10 @@ struct FrameView: View {
                         .accessibilityIdentifier("frame.photo-error")
                 }
 
-                Button { store.requestStage(.select) } label: {
+                Button {
+                    cancelPhotoLoading()
+                    store.requestStage(.select)
+                } label: {
                     Text(LocalizedCopy.text("frame.back", locale: locale))
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .contentShape(Rectangle())
@@ -89,10 +97,11 @@ struct FrameView: View {
             .frame(maxWidth: .infinity)
         }
         .background(AligneStyle.page)
+        .onDisappear { cancelPhotoLoading() }
         .sheet(isPresented: $showingCamera) {
             CameraPicker(onImage: { data in
                 showingCamera = false
-                acceptPhoto(data)
+                if store.stage == .frame { acceptPhoto(data) }
             }, onCancel: { showingCamera = false })
         }
         .alert(LocalizedCopy.text("frame.camera-alert", locale: locale), isPresented: Binding(
@@ -113,7 +122,9 @@ struct FrameView: View {
     }
 
     private func openCamera() async {
+        cancelPhotoLoading()
         let access = await CameraAccess.resolve(using: cameraAuthorizer)
+        guard store.stage == .frame else { return }
         switch access {
         case .authorized:
             showingCamera = true
@@ -124,15 +135,27 @@ struct FrameView: View {
         }
     }
 
-    private func loadPhoto(_ item: PhotosPickerItem?) async {
+    private func loadPhoto(_ item: PhotosPickerItem?, token: Int) async {
         do {
             guard let data = try await photoService.loadData(from: item) else { return }
+            guard !Task.isCancelled,
+                  photoLoadGate.mayAccept(token, stage: store.stage) else { return }
             acceptPhoto(data)
         } catch let error as ImageInputError {
+            guard !Task.isCancelled,
+                  photoLoadGate.mayAccept(token, stage: store.stage) else { return }
             photoError = error
         } catch {
+            guard !Task.isCancelled,
+                  photoLoadGate.mayAccept(token, stage: store.stage) else { return }
             photoError = .decodeFailed
         }
+    }
+
+    private func cancelPhotoLoading() {
+        photoLoadGate.invalidate()
+        photoLoadTask?.cancel()
+        photoLoadTask = nil
     }
 
     private func acceptPhoto(_ data: Data) {

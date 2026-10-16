@@ -1,5 +1,7 @@
 # ALIGNÉ ballet feedback MVP
 
+The production website remains the deployed product. A separate native SwiftUI iPhone implementation now lives in [`ios/AligneBallet`](ios/AligneBallet/README.md); it has not yet passed iPhone 13 or iOS 16/17 device acceptance and is not an App Store release.
+
 ## What ALIGNÉ does
 
 ALIGNÉ is a browser-based ballet practice assistant that turns a single full-body photo into focused correction suggestions and an annotated image of the dancer's pose. The dancer selects a ballet position and supporting side, follows the recommended camera-angle and framing guidance, and uploads a photo. ALIGNÉ first checks whether the required body areas are visible, then applies position-specific standards to the detected body landmarks. The result highlights relevant areas on the photo and prioritizes practical adjustments for that particular position.
@@ -47,6 +49,7 @@ Future work can expand ALIGNÉ to more ballet positions, improve joint-location 
 
 - [Architecture and repository organization](docs/architecture.md)
 - [Implementation plans](docs/implementation-plans/)
+- [Native iPhone app setup and verification](ios/AligneBallet/README.md)
 
 ## Production and deployment
 

@@ -10,6 +10,7 @@ actor LiveAnalysisRunner: AnalysisRunning {
     private var detector: MediaPipePoseDetector?
 
     func analyze(_ request: AnalysisRequest) async -> AnalysisOutcome {
+        if Task.isCancelled { return .cancelled }
         if detector == nil {
             guard let modelURL = Bundle.main.url(
                 forResource: "pose_landmarker_heavy", withExtension: "task"
@@ -18,6 +19,7 @@ actor LiveAnalysisRunner: AnalysisRunning {
             }
             detector = loaded
         }
+        if Task.isCancelled { return .cancelled }
         guard let detector else { return .failure(.modelUnavailable) }
         return await AnalysisPipeline(detector: detector).analyze(request)
     }
@@ -93,6 +95,9 @@ final class AnalysisSessionStore: ObservableObject {
                       self.generation == currentGeneration else { return }
                 self.analysisTask = nil
                 switch outcome {
+                case .cancelled:
+                    self.analysisState = .idle
+                    self.stage = .frame
                 case let .retake(report):
                     self.analysisState = .retake(report)
                     self.stage = .check

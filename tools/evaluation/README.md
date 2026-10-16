@@ -25,3 +25,7 @@ This protocol is the product acceptance check for ALIGNÉ's feedback quality. It
 7. In a later calibration round, replace or calibrate the initial owner labels with labels reviewed by qualified ballet teachers and retain the review provenance.
 
 Synthetic fixtures are useful for proving deterministic rule behavior, but they cannot satisfy this human-agreement release criterion. They do not substitute for the owned/licensed, pre-labelled real-photo set.
+
+## Website / iPhone paired review
+
+For the native iPhone release, use the same licensed photo, selected position, and supporting side in both apps. Keep the photo and raw landmarks outside Git. For each pair record a private case ID, device/OS, app revision, assessability, ordered Top 3 `region + direction` pairs, annotation commands, and whole-analysis time. Assessability must agree. When both are assessable, require at least two matching Top 3 pairs; if either side returns fewer than two pairs conservatively, every returned pair must match. Record unmatched and unassessable cases for review rather than loosening thresholds. The deterministic fixture in `tests/fixtures/ios-domain-parity.json` checks numeric measurements and rules, but it is not a substitute for this real-photo review.

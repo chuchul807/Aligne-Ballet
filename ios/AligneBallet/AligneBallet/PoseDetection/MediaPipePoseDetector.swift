@@ -3,6 +3,23 @@ import Foundation
 import MediaPipeTasksVision
 import UIKit
 
+private final class DetectionCancellationFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var cancelled = false
+
+    func cancel() {
+        lock.lock()
+        cancelled = true
+        lock.unlock()
+    }
+
+    var isCancelled: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return cancelled
+    }
+}
+
 final class MediaPipePoseDetector: PoseDetecting, @unchecked Sendable {
     private let queue = DispatchQueue(label: "online.aligneballet.pose-detection", qos: .userInitiated)
     private let landmarker: PoseLandmarker
@@ -18,27 +35,36 @@ final class MediaPipePoseDetector: PoseDetecting, @unchecked Sendable {
     }
 
     func detect(image: CGImage) async throws -> LandmarkSet {
-        try await withCheckedThrowingContinuation { continuation in
-            queue.async {
-                do {
-                    let mediaImage = try MPImage(uiImage: UIImage(cgImage: image))
-                    let result = try self.landmarker.detect(image: mediaImage)
-                    let people = result.landmarks.map { pose in
-                        pose.map { point in
-                            PoseLandmarkValue(
-                                x: Double(point.x), y: Double(point.y), z: Double(point.z),
-                                visibility: point.visibility?.doubleValue,
-                                presence: point.presence?.doubleValue
-                            )
+        try Task.checkCancellation()
+        let cancellation = DetectionCancellationFlag()
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                queue.async {
+                    do {
+                        guard !cancellation.isCancelled else { throw CancellationError() }
+                        let mediaImage = try MPImage(uiImage: UIImage(cgImage: image))
+                        guard !cancellation.isCancelled else { throw CancellationError() }
+                        let result = try self.landmarker.detect(image: mediaImage)
+                        guard !cancellation.isCancelled else { throw CancellationError() }
+                        let people = result.landmarks.map { pose in
+                            pose.map { point in
+                                PoseLandmarkValue(
+                                    x: Double(point.x), y: Double(point.y), z: Double(point.z),
+                                    visibility: point.visibility?.doubleValue,
+                                    presence: point.presence?.doubleValue
+                                )
+                            }
                         }
+                        continuation.resume(returning: Self.mapPeople(
+                            people, width: image.width, height: image.height
+                        ))
+                    } catch {
+                        continuation.resume(throwing: error)
                     }
-                    continuation.resume(returning: Self.mapPeople(
-                        people, width: image.width, height: image.height
-                    ))
-                } catch {
-                    continuation.resume(throwing: error)
                 }
             }
+        } onCancel: {
+            cancellation.cancel()
         }
     }
 

@@ -24,6 +24,7 @@ enum AnalysisError: String, Error, Sendable {
 }
 
 enum AnalysisOutcome {
+    case cancelled
     case retake(QualityReport)
     case success(AnalysisResult, UIImage)
     case failure(AnalysisError)
@@ -37,14 +38,19 @@ struct AnalysisPipeline {
     }
 
     func analyze(_ request: AnalysisRequest) async -> AnalysisOutcome {
+        if Task.isCancelled { return .cancelled }
         let normalized: NormalizedImage
         do {
             normalized = try normalizer.normalize(data: request.imageData)
         } catch let error as ImageInputError {
+            if Task.isCancelled { return .cancelled }
             return .retake(Self.imageRetake(error))
         } catch {
+            if Task.isCancelled { return .cancelled }
             return .retake(Self.reasonReport(.decodeFailed))
         }
+
+        if Task.isCancelled { return .cancelled }
 
         let image = normalized.cgImage
         let size = PixelSize(width: image.width, height: image.height)
@@ -52,15 +58,20 @@ struct AnalysisPipeline {
         do {
             metrics = try ImageMetricsCalculator.calculate(image: image)
         } catch {
+            if Task.isCancelled { return .cancelled }
             return .failure(.renderingFailed)
         }
+
+        if Task.isCancelled { return .cancelled }
 
         let whole: LandmarkSet
         do {
             whole = try await detector.detect(image: image)
         } catch {
+            if Task.isCancelled { return .cancelled }
             return .failure(.detectionFailed)
         }
+        if Task.isCancelled { return .cancelled }
         let first = QualityEvaluator.evaluate(QualityInput(
             landmarks: whole, position: request.position,
             supportingSide: request.supportingSide, expectedView: request.expectedView,
@@ -88,18 +99,24 @@ struct AnalysisPipeline {
                                              resized: normalized.wasResized))
         }
 
+        if Task.isCancelled { return .cancelled }
+
         let cropped: CGImage
         do {
             cropped = try FocusedCrop.crop(image: image, rect: rect)
         } catch {
+            if Task.isCancelled { return .cancelled }
             return .failure(.renderingFailed)
         }
+        if Task.isCancelled { return .cancelled }
         let detected: LandmarkSet
         do {
             detected = try await detector.detect(image: cropped)
         } catch {
+            if Task.isCancelled { return .cancelled }
             return .failure(.detectionFailed)
         }
+        if Task.isCancelled { return .cancelled }
         guard detected.people.count == 1 else {
             return .retake(Self.reasonReport(.unstablePoseLandmarks,
                                              regions: first.unassessableRegions,
@@ -144,6 +161,8 @@ struct AnalysisPipeline {
             ))
         }
 
+        if Task.isCancelled { return .cancelled }
+
         let observations = RuleEngine.evaluate(
             rules: Self.rules(for: request.position),
             context: RuleContext(
@@ -173,10 +192,13 @@ struct AnalysisPipeline {
             fullBodyReview: summary.fullBodyReview, annotations: commands,
             createdAt: ISO8601DateFormatter().string(from: Date())
         )
+        if Task.isCancelled { return .cancelled }
         do {
             let annotated = try render(image, commands, mapped)
+            if Task.isCancelled { return .cancelled }
             return .success(result, annotated)
         } catch {
+            if Task.isCancelled { return .cancelled }
             return .failure(.renderingFailed)
         }
     }

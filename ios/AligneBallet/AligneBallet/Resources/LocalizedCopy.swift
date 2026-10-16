@@ -18,6 +18,7 @@ enum LocalizedCopy {
 
     static var requiredKeys: [String] {
         uiKeys
+        + PoseName.allCases.map { "pose.description.\($0.rawValue)" }
         + BodyRegion.allCases.map { "region.\($0.rawValue)" }
         + QualityReasonCode.allCases.map { "quality.\($0.rawValue)" }
         + ["image.error.unsupported-type", "image.error.file-too-large",
@@ -30,7 +31,11 @@ enum LocalizedCopy {
     }
 
     static func text(_ key: String, locale: Locale = .current) -> String {
-        let folder = locale.identifier.hasPrefix("zh") ? "zh-Hans" : "en"
+        let language = locale.identifier.replacingOccurrences(of: "_", with: "-").lowercased()
+        let usesSimplifiedChinese = language == "zh" || language == "zh-hans"
+            || language.hasPrefix("zh-hans-")
+            || ["zh-cn", "zh-sg", "zh-my"].contains(language)
+        let folder = usesSimplifiedChinese ? "zh-Hans" : "en"
         guard let path = Bundle.main.path(forResource: folder, ofType: "lproj"),
               let bundle = Bundle(path: path) else { return key }
         return bundle.localizedString(forKey: key, value: key, table: "Localizable")

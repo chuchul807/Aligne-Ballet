@@ -2017,6 +2017,36 @@
         }
       }
     },
+    "pose.description.arabesque": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "One leg extends behind with the torso lifted." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "一条腿向后伸展，上身保持延展。" } }
+      }
+    },
+    "pose.description.attitude-derriere": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The lifted leg bends behind the body." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "动作腿在身体后方向上抬起并弯曲。" } }
+      }
+    },
+    "pose.description.retire-passe": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The working foot rests near the supporting knee." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "动作脚靠近支撑腿膝部。" } }
+      }
+    },
+    "pose.description.a-la-seconde": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "One leg extends to the side with an upright torso." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "一条腿向侧面伸展，上身保持直立。" } }
+      }
+    },
+    "pose.description.tendu-croise-devant": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The pointed working foot reaches forward across the body." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "动作脚绷直，向身体前方交叉伸出。" } }
+      }
+    },
     "select.position": {
       "localizations": {
         "en": {

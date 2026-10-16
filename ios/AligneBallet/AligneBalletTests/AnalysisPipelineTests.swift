@@ -2,6 +2,37 @@ import XCTest
 @testable import AligneBallet
 
 final class AnalysisPipelineTests: XCTestCase {
+    actor PausingFirstDetector: PoseDetecting {
+        let first: LandmarkSet
+        private var callCount = 0
+        private var pending: CheckedContinuation<LandmarkSet, Error>?
+        private var started: CheckedContinuation<Void, Never>?
+
+        init(_ first: LandmarkSet) { self.first = first }
+
+        func detect(image: CGImage) async throws -> LandmarkSet {
+            callCount += 1
+            if callCount > 1 { return first }
+            return try await withCheckedThrowingContinuation { continuation in
+                pending = continuation
+                started?.resume()
+                started = nil
+            }
+        }
+
+        func waitForFirstPass() async {
+            if callCount > 0 { return }
+            await withCheckedContinuation { started = $0 }
+        }
+
+        func releaseFirstPass() {
+            pending?.resume(returning: first)
+            pending = nil
+        }
+
+        func calls() -> Int { callCount }
+    }
+
     actor FakeDetector: PoseDetecting {
         private let results: [LandmarkSet]
         private let failAtCall: Int?
@@ -165,5 +196,33 @@ final class AnalysisPipelineTests: XCTestCase {
         guard case let .retake(report) = outcome else { return XCTFail("Expected retake") }
         XCTAssertEqual(report.reasons.first?.code, .unstablePoseLandmarks)
         XCTAssertTrue(report.unassessableRegions.contains(.workingLeg))
+    }
+
+    func testCancellationAfterFirstPassSkipsSecondPassAndRender() async {
+        let detector = PausingFirstDetector(whole([TestLandmarkFactory.person()]))
+        let pipeline = AnalysisPipeline(detector: detector, render: { _, _, _ in
+            XCTFail("Cancelled work must not render")
+            throw AnalysisError.renderingFailed
+        })
+        let task = Task { await pipeline.analyze(request()) }
+        await detector.waitForFirstPass()
+        task.cancel()
+        await detector.releaseFirstPass()
+        let outcome = await task.value
+        guard case .cancelled = outcome else { return XCTFail("Expected cancellation") }
+        let calls = await detector.calls()
+        XCTAssertEqual(calls, 1)
+    }
+
+    func testAlreadyCancelledRequestDoesNotBeginInference() async {
+        let detector = FakeDetector([whole([TestLandmarkFactory.person()])])
+        let task = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return await AnalysisPipeline(detector: detector).analyze(request())
+        }
+        let outcome = await task.value
+        guard case .cancelled = outcome else { return XCTFail("Expected cancellation") }
+        let calls = await detector.calls()
+        XCTAssertEqual(calls, 0)
     }
 }

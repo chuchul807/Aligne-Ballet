@@ -29,4 +29,22 @@ final class LocalizationTests: XCTestCase {
             XCTAssertFalse(rendered.contains(rule), rule)
         }
     }
+
+    func testEveryPoseHasDistinctEnglishAndSimplifiedChineseDescription() {
+        for pose in PoseName.allCases {
+            let key = "pose.description.\(pose.rawValue)"
+            let en = LocalizedCopy.text(key, locale: Locale(identifier: "en"))
+            let zh = LocalizedCopy.text(key, locale: Locale(identifier: "zh-Hans"))
+            XCTAssertNotEqual(en, key)
+            XCTAssertNotEqual(zh, key)
+            XCTAssertNotEqual(en, zh)
+        }
+    }
+
+    func testTraditionalChineseFallsBackToEnglish() {
+        let key = "select.title"
+        let english = LocalizedCopy.text(key, locale: Locale(identifier: "en"))
+        XCTAssertEqual(LocalizedCopy.text(key, locale: Locale(identifier: "zh-Hant")), english)
+        XCTAssertEqual(LocalizedCopy.text(key, locale: Locale(identifier: "zh-TW")), english)
+    }
 }
