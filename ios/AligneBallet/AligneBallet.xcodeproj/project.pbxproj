@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A11000000000000000000001 /* ios-domain-parity.json in Resources */ = {isa = PBXBuildFile; fileRef = A11000000000000000000002 /* ios-domain-parity.json */; };
+		A12000000000000000000003 /* MediaPipeTasksVision in Frameworks */ = {isa = PBXBuildFile; productRef = A12000000000000000000002 /* MediaPipeTasksVision */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +57,7 @@
 		000000000000000130000000 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				A12000000000000000000003 /* MediaPipeTasksVision in Frameworks */,
 			);
 		};
 		7DB02D1B3081C88400A777AF /* Frameworks */ = {
@@ -109,6 +111,9 @@
 				000000000000000000000010 /* AligneBallet */,
 			);
 			name = AligneBallet;
+			packageProductDependencies = (
+				A12000000000000000000002 /* MediaPipeTasksVision */,
+			);
 			productName = AligneBallet;
 			productReference = 000000000000000000000120 /* AligneBallet.app */;
 			productType = "com.apple.product-type.application";
@@ -187,6 +192,9 @@
 			);
 			mainGroup = 000000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A12000000000000000000001 /* XCLocalSwiftPackageReference "MediaPipeTasks" */,
+			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 000000000000000000000020 /* Products */;
 			projectDirPath = "";
@@ -580,6 +588,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A12000000000000000000001 /* XCLocalSwiftPackageReference "MediaPipeTasks" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../MediaPipeTasks;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A12000000000000000000002 /* MediaPipeTasksVision */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A12000000000000000000001 /* XCLocalSwiftPackageReference "MediaPipeTasks" */;
+			productName = MediaPipeTasksVision;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 000000000000000000000000 /* Project object */;
 }

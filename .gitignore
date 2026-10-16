@@ -10,6 +10,7 @@ playwright-report/
 test-results/
 public/models/
 public/vendor/mediapipe/
+ios/AligneBallet/AligneBallet/Models/
 .dev.vars*
 ios/**/xcuserdata/
 *.xcuserstate
