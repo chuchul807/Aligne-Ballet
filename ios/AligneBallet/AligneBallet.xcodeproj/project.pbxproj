@@ -6,6 +6,10 @@
 	objectVersion = 90;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A11000000000000000000001 /* ios-domain-parity.json in Resources */ = {isa = PBXBuildFile; fileRef = A11000000000000000000002 /* ios-domain-parity.json */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		7DB02D223081C88500A777AF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		000000000000000000000120 /* AligneBallet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AligneBallet.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7DB02D1E3081C88400A777AF /* AligneBalletTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AligneBalletTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7DB02D2B3081C8AA00A777AF /* AligneBalletUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AligneBalletUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A11000000000000000000002 /* ios-domain-parity.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "ios-domain-parity.json"; path = "../../tests/fixtures/ios-domain-parity.json"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -72,6 +77,7 @@
 				000000000000000000000010 /* AligneBallet */,
 				7DB02D1F3081C88500A777AF /* AligneBalletTests */,
 				7DB02D2C3081C8AA00A777AF /* AligneBalletUITests */,
+				A11000000000000000000002 /* ios-domain-parity.json */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -202,6 +208,7 @@
 		7DB02D1C3081C88400A777AF /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				A11000000000000000000001 /* ios-domain-parity.json in Resources */,
 			);
 		};
 		7DB02D293081C8AA00A777AF /* Resources */ = {
