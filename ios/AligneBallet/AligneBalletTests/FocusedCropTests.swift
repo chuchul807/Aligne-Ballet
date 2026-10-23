@@ -63,6 +63,26 @@ final class FocusedCropTests: XCTestCase {
         XCTAssertEqual(cropped.height, 393)
     }
 
+    func testCropKeepsTopAndBottomInOriginalOrder() throws {
+        let image = TestImageFactory.image(width: 800, height: 1200) { _, y in
+            y < 600 ? (255, 0, 0, 255) : (0, 0, 255, 255)
+        }
+        let cropped = try FocusedCrop.crop(
+            image: image,
+            rect: CropRect(left: 100, top: 200, width: 600, height: 800)
+        )
+
+        let sourceTop = TestImageFactory.pixel(image, x: 400, y: 300)
+        let sourceBottom = TestImageFactory.pixel(image, x: 400, y: 900)
+        let croppedTop = TestImageFactory.pixel(cropped, x: 300, y: 100)
+        let croppedBottom = TestImageFactory.pixel(cropped, x: 300, y: 700)
+        XCTAssertNotEqual(sourceTop.red, sourceBottom.red)
+        XCTAssertEqual(croppedTop.red, sourceTop.red)
+        XCTAssertEqual(croppedTop.blue, sourceTop.blue)
+        XCTAssertEqual(croppedBottom.red, sourceBottom.red)
+        XCTAssertEqual(croppedBottom.blue, sourceBottom.blue)
+    }
+
     private func sizedPerson(torsoPixels: Double, extentPixels: Double) -> [Landmark] {
         let shoulderY = 256.0 / 1024.0
         let hipY = (256.0 + torsoPixels) / 1024.0

@@ -25,7 +25,7 @@ enum AnnotationRenderer {
         let structuralRadius = max(2.5, shorterSide / 220)
         let pointByName = Dictionary(
             landmarks.map { point in
-                (point.name, CGPoint(x: point.x * Double(width), y: (1 - point.y) * Double(height)))
+                (point.name, CGPoint(x: point.x * Double(width), y: point.y * Double(height)))
             },
             uniquingKeysWith: { _, latest in latest }
         )
@@ -73,7 +73,7 @@ enum AnnotationRenderer {
                     guard let start = pointByName[anchor] else { continue }
                     let end = CGPoint(
                         x: start.x + dx * Double(width),
-                        y: start.y - dy * Double(height)
+                        y: start.y + dy * Double(height)
                     )
                     drawArrow(context, from: start, to: end, lineWidth: lineWidth)
                     if marked.insert(id).inserted {

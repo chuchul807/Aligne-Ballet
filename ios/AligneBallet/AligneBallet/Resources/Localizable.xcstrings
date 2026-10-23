@@ -1,2148 +1,2344 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "region.supporting-leg": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Supporting leg"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld." : {
+
+    },
+    "ALIGNÉ" : {
+
+    },
+    "analysis.error.detection" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pose detection failed. Please try another photo."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支撑腿"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "动作检测失败，请尝试另一张照片。"
           }
         }
       }
     },
-    "region.working-leg": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Working leg"
+    "analysis.error.model-unavailable" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The on-device pose model is unavailable. Reinstall the app or try again."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "动作腿"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本机动作模型不可用，请重新安装应用或稍后重试。"
           }
         }
       }
     },
-    "region.pelvis": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pelvis"
+    "analysis.error.rendering" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not draw the result. Please try another photo."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "骨盆"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法绘制分析结果，请尝试另一张照片。"
           }
         }
       }
     },
-    "region.torso": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Torso"
+    "check.failure" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analysis could not finish"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "躯干"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分析未能完成"
           }
         }
       }
     },
-    "region.shoulders-arms": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Shoulders and arms"
+    "check.loading" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analysing your photo…"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "肩膀与手臂"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在分析照片…"
           }
         }
       }
     },
-    "region.head": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Head"
+    "check.retake" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please retake this photo"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "头部"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请重新拍摄这张照片"
           }
         }
       }
     },
-    "region.feet": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Feet"
+    "check.retry" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose another photo"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "双脚"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择另一张照片"
           }
         }
       }
     },
-    "analysis.error.detection": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pose detection failed. Please try another photo."
+    "check.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking your pose"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "动作检测失败，请尝试另一张照片。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在检查动作"
           }
         }
       }
     },
-    "analysis.error.model-unavailable": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The on-device pose model is unavailable. Reinstall the app or try again."
+    "common.ok" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本机动作模型不可用，请重新安装应用或稍后重试。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "好"
           }
         }
       }
     },
-    "analysis.error.rendering": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not draw the result. Please try another photo."
+    "common.settings" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法绘制分析结果，请尝试另一张照片。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开设置"
           }
         }
       }
     },
-    "check.failure": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Analysis could not finish"
+    "feedback.a-la-seconde-foot-not-pointed.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lengthen through your ankle and point your working toes."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分析未能完成"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展脚踝，绷长脚尖。"
           }
         }
       }
     },
-    "check.loading": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Analysing your photo…"
+    "feedback.a-la-seconde-foot-not-pointed.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your working foot may be shortening the leg line; lengthen through the toes."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在分析照片…"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展脚踝，绷长脚尖（根据当前照片判断）。"
           }
         }
       }
     },
-    "check.retake": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Please retake this photo"
+    "feedback.a-la-seconde-pelvis-out-of-line.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bring your pelvis closer to level while keeping the working leg long."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请重新拍摄这张照片"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持动作腿伸长，同时让骨盆更接近水平。"
           }
         }
       }
     },
-    "check.retry": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose another photo"
+    "feedback.a-la-seconde-pelvis-out-of-line.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pelvic line may be lifting more than the leg height requires."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "选择另一张照片"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持动作腿伸长，同时让骨盆更接近水平（根据当前照片判断）。"
           }
         }
       }
     },
-    "check.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Checking your pose"
+    "feedback.a-la-seconde-turnout-not-visible.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotate your working leg outward until the heel is slightly visible."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在检查动作"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在舒适范围内向外转动动作腿，让脚跟线条稍微可见。"
           }
         }
       }
     },
-    "common.ok": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OK"
+    "feedback.a-la-seconde-turnout-not-visible.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The working heel line is unclear; show a little more heel if comfortable."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "好"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在舒适范围内向外转动动作腿，让脚跟线条稍微可见（根据当前照片判断）。"
           }
         }
       }
     },
-    "common.settings": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open Settings"
+    "feedback.a-la-seconde-working-knee-bent.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lengthen and straighten your working leg."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "打开设置"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展并拉直动作腿。"
           }
         }
       }
     },
-    "feedback.a-la-seconde-foot-not-pointed.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lengthen through your ankle and point your working toes."
+    "feedback.a-la-seconde-working-knee-bent.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your working knee appears slightly bent; lengthen through the leg."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展脚踝，绷长脚尖。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展并拉直动作腿（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.a-la-seconde-foot-not-pointed.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your working foot may be shortening the leg line; lengthen through the toes."
+    "feedback.a-la-seconde-working-leg-not-side.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move your working leg outward into the side plane without forcing it lower."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展脚踝，绷长脚尖（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让动作腿向侧面延伸，不必强行压低。"
           }
         }
       }
     },
-    "feedback.a-la-seconde-pelvis-out-of-line.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bring your pelvis closer to level while keeping the working leg long."
+    "feedback.a-la-seconde-working-leg-not-side.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your working leg may be drifting away from the side plane; guide it slightly outward."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保持动作腿伸长，同时让骨盆更接近水平。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让动作腿向侧面延伸，不必强行压低（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.a-la-seconde-pelvis-out-of-line.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your pelvic line may be lifting more than the leg height requires."
+    "feedback.arabesque-lower-leg-for-pelvis.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lower your working leg slightly and re-level your pelvis."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保持动作腿伸长，同时让骨盆更接近水平（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稍微放低动作腿，并让骨盆重新保持水平。"
           }
         }
       }
     },
-    "feedback.a-la-seconde-turnout-not-visible.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rotate your working leg outward until the heel is slightly visible."
+    "feedback.arabesque-lower-leg-for-pelvis.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pelvis may be lifting with the leg; lower the leg slightly and re-level it."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在舒适范围内向外转动动作腿，让脚跟线条稍微可见。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稍微放低动作腿，并让骨盆重新保持水平（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.a-la-seconde-turnout-not-visible.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The working heel line is unclear; show a little more heel if comfortable."
+    "feedback.arabesque-torso-collapse.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lengthen your torso forward and upward."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在舒适范围内向外转动动作腿，让脚跟线条稍微可见（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让躯干向前上方延伸。"
           }
         }
       }
     },
-    "feedback.a-la-seconde-working-knee-bent.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lengthen and straighten your working leg."
+    "feedback.arabesque-torso-collapse.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your torso appears compressed; lengthen forward and upward."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展并拉直动作腿。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让躯干向前上方延伸（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.a-la-seconde-working-knee-bent.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your working knee appears slightly bent; lengthen through the leg."
+    "feedback.arabesque-working-knee-bent.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lengthen and straighten your working leg."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展并拉直动作腿（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展并拉直动作腿。"
           }
         }
       }
     },
-    "feedback.a-la-seconde-working-leg-not-side.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Move your working leg outward into the side plane without forcing it lower."
+    "feedback.arabesque-working-knee-bent.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your working knee appears slightly bent; lengthen through the leg."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让动作腿向侧面延伸，不必强行压低。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展并拉直动作腿（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.a-la-seconde-working-leg-not-side.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your working leg may be drifting away from the side plane; guide it slightly outward."
+    "feedback.arabesque-working-leg-too-low.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lengthen your working leg back and slightly upward without changing your pelvis."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让动作腿向侧面延伸，不必强行压低（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持骨盆稳定，将动作腿向后上方延伸。"
           }
         }
       }
     },
-    "feedback.arabesque-lower-leg-for-pelvis.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lower your working leg slightly and re-level your pelvis."
+    "feedback.arabesque-working-leg-too-low.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your working leg may be dropping; reach it back and slightly upward while keeping the pelvis level."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "稍微放低动作腿，并让骨盆重新保持水平。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持骨盆稳定，将动作腿向后上方延伸（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.arabesque-lower-leg-for-pelvis.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your pelvis may be lifting with the leg; lower the leg slightly and re-level it."
+    "feedback.attitude-level-pelvis.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lower your working leg slightly and level your pelvis."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "稍微放低动作腿，并让骨盆重新保持水平（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稍微放低动作腿，保持骨盆水平。"
           }
         }
       }
     },
-    "feedback.arabesque-torso-collapse.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lengthen your torso forward and upward."
+    "feedback.attitude-level-pelvis.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pelvis may be lifting with the thigh; lower the leg slightly and re-level it."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让躯干向前上方延伸。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稍微放低动作腿，保持骨盆水平（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.arabesque-torso-collapse.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your torso appears compressed; lengthen forward and upward."
+    "feedback.attitude-lift-thigh.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lift your working thigh slightly while keeping your pelvis level."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让躯干向前上方延伸（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持骨盆稳定，将动作大腿稍微抬高。"
           }
         }
       }
     },
-    "feedback.arabesque-working-knee-bent.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lengthen and straighten your working leg."
+    "feedback.attitude-lift-thigh.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your working thigh appears low; lift it slightly without changing the pelvis."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展并拉直动作腿。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持骨盆稳定，将动作大腿稍微抬高（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.arabesque-working-knee-bent.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your working knee appears slightly bent; lengthen through the leg."
+    "feedback.attitude-working-knee-too-closed.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open the angle behind your working knee slightly."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展并拉直动作腿（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稍微打开动作膝后方的角度。"
           }
         }
       }
     },
-    "feedback.arabesque-working-leg-too-low.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lengthen your working leg back and slightly upward without changing your pelvis."
+    "feedback.attitude-working-knee-too-closed.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The angle behind your working knee may be too closed; open it slightly."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保持骨盆稳定，将动作腿向后上方延伸。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稍微打开动作膝后方的角度（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.arabesque-working-leg-too-low.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your working leg may be dropping; reach it back and slightly upward while keeping the pelvis level."
+    "feedback.attitude-working-knee-too-straight.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soften your working knee into a clearer attitude shape."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保持骨盆稳定，将动作腿向后上方延伸（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稍微弯曲动作膝，形成更清晰的 attitude 形态。"
           }
         }
       }
     },
-    "feedback.attitude-level-pelvis.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lower your working leg slightly and level your pelvis."
+    "feedback.attitude-working-knee-too-straight.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your working knee appears nearly straight; soften it into the attitude shape."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "稍微放低动作腿，保持骨盆水平。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稍微弯曲动作膝，形成更清晰的 attitude 形态（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.attitude-level-pelvis.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your pelvis may be lifting with the thigh; lower the leg slightly and re-level it."
+    "feedback.head-extreme-lateral-tilt.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bring your head closer to the line of your torso."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "稍微放低动作腿，保持骨盆水平（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让头部更接近躯干的延长线。"
           }
         }
       }
     },
-    "feedback.attitude-lift-thigh.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lift your working thigh slightly while keeping your pelvis level."
+    "feedback.head-extreme-lateral-tilt.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your head appears strongly tilted; bring it slightly closer to your torso line."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保持骨盆稳定，将动作大腿稍微抬高。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让头部更接近躯干的延长线（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.attitude-lift-thigh.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your working thigh appears low; lift it slightly without changing the pelvis."
+    "feedback.left-arm-line-collapsed.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lengthen through your left elbow to restore the arm line."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保持骨盆稳定，将动作大腿稍微抬高（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展左肘，恢复手臂线条。"
           }
         }
       }
     },
-    "feedback.attitude-working-knee-too-closed.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open the angle behind your working knee slightly."
+    "feedback.left-arm-line-collapsed.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your left elbow appears compressed; lengthen gently through the arm."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "稍微打开动作膝后方的角度。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展左肘，恢复手臂线条（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.attitude-working-knee-too-closed.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The angle behind your working knee may be too closed; open it slightly."
+    "feedback.pelvis-unlevel.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From this view, level the visible line of your pelvis."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "稍微打开动作膝后方的角度（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从这个角度看，请让骨盆保持水平。"
           }
         }
       }
     },
-    "feedback.attitude-working-knee-too-straight.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Soften your working knee into a clearer attitude shape."
+    "feedback.pelvis-unlevel.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From this view, your pelvis may appear uneven."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "稍微弯曲动作膝，形成更清晰的 attitude 形态。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从这个角度看，请让骨盆保持水平（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.attitude-working-knee-too-straight.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your working knee appears nearly straight; soften it into the attitude shape."
+    "feedback.retire-open-working-knee.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From this front view, move your visible working knee slightly farther to the side."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "稍微弯曲动作膝，形成更清晰的 attitude 形态（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从正面看，让动作膝稍微向外打开。"
           }
         }
       }
     },
-    "feedback.head-extreme-lateral-tilt.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bring your head closer to the line of your torso."
+    "feedback.retire-open-working-knee.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From this front view, your working knee may appear close to the standing side."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让头部更接近躯干的延长线。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从正面看，让动作膝稍微向外打开（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.head-extreme-lateral-tilt.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your head appears strongly tilted; bring it slightly closer to your torso line."
+    "feedback.retire-place-foot-at-knee.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bring your working foot closer to the supporting knee."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让头部更接近躯干的延长线（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让动作脚更靠近支撑腿膝盖。"
           }
         }
       }
     },
-    "feedback.left-arm-line-collapsed.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lengthen through your left elbow to restore the arm line."
+    "feedback.retire-place-foot-at-knee.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your working foot appears away from the supporting knee; bring it closer."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展左肘，恢复手臂线条。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让动作脚更靠近支撑腿膝盖（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.left-arm-line-collapsed.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your left elbow appears compressed; lengthen gently through the arm."
+    "feedback.right-arm-line-collapsed.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lengthen through your right elbow to restore the arm line."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展左肘，恢复手臂线条（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展右肘，恢复手臂线条。"
           }
         }
       }
     },
-    "feedback.pelvis-unlevel.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "From this view, level the visible line of your pelvis."
+    "feedback.right-arm-line-collapsed.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your right elbow appears compressed; lengthen gently through the arm."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从这个角度看，请让骨盆保持水平。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展右肘，恢复手臂线条（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.pelvis-unlevel.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "From this view, your pelvis may appear uneven."
+    "feedback.shoulders-unlevel.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lower the raised shoulder slightly."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从这个角度看，请让骨盆保持水平（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稍微放低较高的一侧肩膀。"
           }
         }
       }
     },
-    "feedback.retire-open-working-knee.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "From this front view, move your visible working knee slightly farther to the side."
+    "feedback.shoulders-unlevel.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One shoulder appears higher; soften it downward."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从正面看，让动作膝稍微向外打开。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稍微放低较高的一侧肩膀（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.retire-open-working-knee.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "From this front view, your working knee may appear close to the standing side."
+    "feedback.supporting-knee-bent.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Straighten your supporting knee."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从正面看，让动作膝稍微向外打开（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸直支撑腿的膝盖。"
           }
         }
       }
     },
-    "feedback.retire-place-foot-at-knee.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bring your working foot closer to the supporting knee."
+    "feedback.supporting-knee-bent.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your supporting knee appears slightly bent; try lengthening it."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让动作脚更靠近支撑腿膝盖。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸直支撑腿的膝盖（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.retire-place-foot-at-knee.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your working foot appears away from the supporting knee; bring it closer."
+    "feedback.supporting-lateral-offset.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From this front view, bring your supporting hip and ankle into closer side-to-side alignment."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让动作脚更靠近支撑腿膝盖（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从正面看，请让支撑侧髋部与脚踝更接近同一竖线。"
           }
         }
       }
     },
-    "feedback.right-arm-line-collapsed.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lengthen through your right elbow to restore the arm line."
+    "feedback.supporting-lateral-offset.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There is not enough evidence to confirm your side-to-side support alignment."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展右肘，恢复手臂线条。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从正面看，请让支撑侧髋部与脚踝更接近同一竖线（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.right-arm-line-collapsed.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your right elbow appears compressed; lengthen gently through the arm."
+    "feedback.tendu-crossing-too-small.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reach your working foot slightly farther across while keeping both knees straight."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展右肘，恢复手臂线条（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "双膝保持伸直，让动作脚稍微向交叉方向延伸。"
           }
         }
       }
     },
-    "feedback.shoulders-unlevel.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lower the raised shoulder slightly."
+    "feedback.tendu-crossing-too-small.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The croise crossing may look narrow; reach the working foot a little farther across."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "稍微放低较高的一侧肩膀。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "双膝保持伸直，让动作脚稍微向交叉方向延伸（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.shoulders-unlevel.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "One shoulder appears higher; soften it downward."
+    "feedback.tendu-foot-not-pointed.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lengthen through your ankle and point your working toes."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "稍微放低较高的一侧肩膀（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展脚踝，绷长脚尖。"
           }
         }
       }
     },
-    "feedback.supporting-knee-bent.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Straighten your supporting knee."
+    "feedback.tendu-foot-not-pointed.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your working foot may be shortening the tendu line; lengthen through the toes."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸直支撑腿的膝盖。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展脚踝，绷长脚尖（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.supporting-knee-bent.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your supporting knee appears slightly bent; try lengthening it."
+    "feedback.tendu-working-foot-lifted.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reach your working toes back to the floor."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸直支撑腿的膝盖（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让动作脚尖轻轻回到地面。"
           }
         }
       }
     },
-    "feedback.supporting-lateral-offset.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "From this front view, bring your supporting hip and ankle into closer side-to-side alignment."
+    "feedback.tendu-working-foot-lifted.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your working toes may be lifting; reach them gently toward the floor."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从正面看，请让支撑侧髋部与脚踝更接近同一竖线。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让动作脚尖轻轻回到地面（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.supporting-lateral-offset.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "There is not enough evidence to confirm your side-to-side support alignment."
+    "feedback.tendu-working-knee-bent.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lengthen and straighten your working leg."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从正面看，请让支撑侧髋部与脚踝更接近同一竖线（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展并拉直动作腿。"
           }
         }
       }
     },
-    "feedback.tendu-crossing-too-small.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reach your working foot slightly farther across while keeping both knees straight."
+    "feedback.tendu-working-knee-bent.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your working knee appears slightly bent; lengthen through the leg."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "双膝保持伸直，让动作脚稍微向交叉方向延伸。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伸展并拉直动作腿（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.tendu-crossing-too-small.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The croise crossing may look narrow; reach the working foot a little farther across."
+    "feedback.torso-off-support.high" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bring your torso back over your supporting side."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "双膝保持伸直，让动作脚稍微向交叉方向延伸（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让躯干重新回到支撑腿上方。"
           }
         }
       }
     },
-    "feedback.tendu-foot-not-pointed.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lengthen through your ankle and point your working toes."
+    "feedback.torso-off-support.medium" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your torso appears slightly off your supporting side; bring it back toward centre."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展脚踝，绷长脚尖。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让躯干重新回到支撑腿上方（根据当前照片判断）。"
           }
         }
       }
     },
-    "feedback.tendu-foot-not-pointed.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your working foot may be shortening the tendu line; lengthen through the toes."
+    "frame.back" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to selection"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展脚踝，绷长脚尖（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回动作选择"
           }
         }
       }
     },
-    "feedback.tendu-working-foot-lifted.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reach your working toes back to the floor."
+    "frame.camera" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take a photo"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让动作脚尖轻轻回到地面。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拍摄照片"
           }
         }
       }
     },
-    "feedback.tendu-working-foot-lifted.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your working toes may be lifting; reach them gently toward the floor."
+    "frame.camera-alert" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera access"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让动作脚尖轻轻回到地面（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相机访问"
           }
         }
       }
     },
-    "feedback.tendu-working-knee-bent.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lengthen and straighten your working leg."
+    "frame.camera-denied" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow camera access in Settings to take a photo."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展并拉直动作腿。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“设置”中允许相机访问后再拍摄。"
           }
         }
       }
     },
-    "feedback.tendu-working-knee-bent.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your working knee appears slightly bent; lengthen through the leg."
+    "frame.camera-unavailable" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera is not available on this device. Choose a photo instead."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "伸展并拉直动作腿（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此设备无法使用相机，请从照片中选择。"
           }
         }
       }
     },
-    "feedback.torso-off-support.high": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bring your torso back over your supporting side."
+    "frame.eyebrow" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FRAME YOUR PHOTO"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让躯干重新回到支撑腿上方。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "准备照片"
           }
         }
       }
     },
-    "feedback.torso-off-support.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your torso appears slightly off your supporting side; bring it back toward centre."
+    "frame.front" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face the camera for this position."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让躯干重新回到支撑腿上方（根据当前照片判断）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这个动作请面向镜头。"
           }
         }
       }
     },
-    "frame.back": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Back to selection"
+    "frame.head-feet" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep your head, hands and feet inside the photo."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "返回动作选择"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确保头部、双手和双脚都在画面内。"
           }
         }
       }
     },
-    "frame.camera": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Take a photo"
+    "frame.one-dancer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only one dancer should be visible."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "拍摄照片"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面中只保留一位舞者。"
           }
         }
       }
     },
-    "frame.camera-alert": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Camera access"
+    "frame.photos" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose from Photos"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "相机访问"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从照片中选择"
           }
         }
       }
     },
-    "frame.camera-denied": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Allow camera access in Settings to take a photo."
+    "frame.side" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn to a three-quarter side view."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请在“设置”中允许相机访问后再拍摄。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请转向四分之三侧面。"
           }
         }
       }
     },
-    "frame.camera-unavailable": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Camera is not available on this device. Choose a photo instead."
+    "frame.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One dancer. Full body. Clear light."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此设备无法使用相机，请从照片中选择。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人入镜，全身清晰，光线充足。"
           }
         }
       }
     },
-    "frame.eyebrow": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "FRAME YOUR PHOTO"
+    "image.error.decode" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not open this photo."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "准备照片"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法打开这张照片。"
           }
         }
       }
     },
-    "frame.front": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Face the camera for this position."
+    "image.error.file-too-large" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The photo is too large. Choose an image under 12 MB."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "这个动作请面向镜头。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照片太大，请选择小于 12 MB 的图片。"
           }
         }
       }
     },
-    "frame.head-feet": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keep your head, hands and feet inside the photo."
+    "image.error.memory" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not enough memory to open this photo."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "确保头部、双手和双脚都在画面内。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内存不足，无法打开这张照片。"
           }
         }
       }
     },
-    "frame.one-dancer": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Only one dancer should be visible."
+    "image.error.normalisation" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not prepare this photo. Try another image."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "画面中只保留一位舞者。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法处理这张照片，请尝试另一张。"
           }
         }
       }
     },
-    "frame.photos": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose from Photos"
+    "image.error.too-small" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The photo is too small to analyse."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从照片中选择"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照片太小，无法分析。"
           }
         }
       }
     },
-    "frame.side": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Turn to a three-quarter side view."
+    "image.error.unsupported-type" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a supported image format."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请转向四分之三侧面。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择支持的图片格式。"
           }
         }
       }
     },
-    "frame.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "One dancer. Full body. Clear light."
+    "pose.description.a-la-seconde" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One leg extends to the side with an upright torso."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "一人入镜，全身清晰，光线充足。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一条腿向侧面伸展，上身保持直立。"
           }
         }
       }
     },
-    "image.error.decode": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not open this photo."
+    "pose.description.arabesque" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One leg extends behind with the torso lifted."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法打开这张照片。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一条腿向后伸展，上身保持延展。"
           }
         }
       }
     },
-    "image.error.file-too-large": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The photo is too large. Choose an image under 12 MB."
+    "pose.description.attitude-derriere" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The lifted leg bends behind the body."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "照片太大，请选择小于 12 MB 的图片。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "动作腿在身体后方向上抬起并弯曲。"
           }
         }
       }
     },
-    "image.error.memory": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not enough memory to open this photo."
+    "pose.description.retire-passe" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The working foot rests near the supporting knee."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "内存不足，无法打开这张照片。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "动作脚靠近支撑腿膝部。"
           }
         }
       }
     },
-    "image.error.normalisation": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not prepare this photo. Try another image."
+    "pose.description.tendu-croise-devant" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The pointed working foot reaches forward across the body."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法处理这张照片，请尝试另一张。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "动作脚绷直，向身体前方交叉伸出。"
           }
         }
       }
     },
-    "image.error.too-small": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The photo is too small to analyse."
+    "quality.blurred" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold the camera steady and retake the photo."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "照片太小，无法分析。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请保持相机稳定后重拍。"
           }
         }
       }
     },
-    "image.error.unsupported-type": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose a supported image format."
+    "quality.body-out-of-frame" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep your entire body inside the photo."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请选择支持的图片格式。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请让全身都在画面内。"
           }
         }
       }
     },
-    "quality.blurred": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hold the camera steady and retake the photo."
+    "quality.decode-failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This photo could not be opened. Choose another photo."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请保持相机稳定后重拍。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法打开这张照片，请选择另一张。"
           }
         }
       }
     },
-    "quality.body-out-of-frame": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keep your entire body inside the photo."
+    "quality.image-memory-failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not enough memory to open this photo. Try a smaller image."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请让全身都在画面内。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开照片时内存不足，请尝试较小的图片。"
           }
         }
       }
     },
-    "quality.decode-failed": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This photo could not be opened. Choose another photo."
+    "quality.image-too-small" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The photo resolution is too low. Use a larger image."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法打开这张照片，请选择另一张。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照片分辨率太低，请使用更大的图片。"
           }
         }
       }
     },
-    "quality.image-memory-failed": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not enough memory to open this photo. Try a smaller image."
+    "quality.insufficient-pose-evidence" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The pose is not clear enough to analyse. Retake in better light."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "打开照片时内存不足，请尝试较小的图片。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "动作证据不足。请在更好的光线下重拍。"
           }
         }
       }
     },
-    "quality.image-too-small": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The photo resolution is too low. Use a larger image."
+    "quality.low-contrast" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The dancer does not stand out enough from the background."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "照片分辨率太低，请使用更大的图片。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "舞者与背景的对比不足，请换一个背景。"
           }
         }
       }
     },
-    "quality.insufficient-pose-evidence": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The pose is not clear enough to analyse. Retake in better light."
+    "quality.multiple-people" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More than one person was detected. Retake with one dancer."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "动作证据不足。请在更好的光线下重拍。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检测到多个人。请只保留一位舞者后重拍。"
           }
         }
       }
     },
-    "quality.low-contrast": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The dancer does not stand out enough from the background."
+    "quality.no-person" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No dancer was detected. Retake with your full body visible."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "舞者与背景的对比不足，请换一个背景。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未检测到舞者。请让全身清晰入镜后重拍。"
           }
         }
       }
     },
-    "quality.multiple-people": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "More than one person was detected. Retake with one dancer."
+    "quality.normalisation-failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This photo could not be prepared. Try a smaller export or retake."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "检测到多个人。请只保留一位舞者后重拍。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法处理这张照片。请尝试较小的图片或重拍。"
           }
         }
       }
     },
-    "quality.no-person": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No dancer was detected. Retake with your full body visible."
+    "quality.required-joints-not-visible" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some required joints are hidden. Retake with arms and legs visible."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未检测到舞者。请让全身清晰入镜后重拍。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "必要关节被遮挡。请让手臂和双腿清晰可见。"
           }
         }
       }
     },
-    "quality.normalisation-failed": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This photo could not be prepared. Try a smaller export or retake."
+    "quality.subject-too-small" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move closer so the dancer fills more of the photo."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法处理这张照片。请尝试较小的图片或重拍。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请靠近拍摄，让舞者在照片中更大。"
           }
         }
       }
     },
-    "quality.required-joints-not-visible": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Some required joints are hidden. Retake with arms and legs visible."
+    "quality.too-bright" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The photo is too bright. Reduce glare and retake."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "必要关节被遮挡。请让手臂和双腿清晰可见。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照片太亮，请减少眩光后重拍。"
           }
         }
       }
     },
-    "quality.subject-too-small": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Move closer so the dancer fills more of the photo."
+    "quality.too-dark" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The photo is too dark. Retake in brighter light."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请靠近拍摄，让舞者在照片中更大。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照片太暗，请在更亮的光线下重拍。"
           }
         }
       }
     },
-    "quality.too-bright": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The photo is too bright. Reduce glare and retake."
+    "quality.unstable-pose-landmarks" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joint positions were inconsistent. Retake from a steady angle."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "照片太亮，请减少眩光后重拍。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关节定位不稳定。请保持镜头稳定后重拍。"
           }
         }
       }
     },
-    "quality.too-dark": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The photo is too dark. Retake in brighter light."
+    "quality.wrong-camera-view" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retake from the recommended camera angle."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "照片太暗，请在更亮的光线下重拍。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请按建议的拍摄角度重拍。"
           }
         }
       }
     },
-    "quality.unstable-pose-landmarks": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Joint positions were inconsistent. Retake from a steady angle."
+    "region.feet" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feet"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "关节定位不稳定。请保持镜头稳定后重拍。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "双脚"
           }
         }
       }
     },
-    "quality.wrong-camera-view": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Retake from the recommended camera angle."
+    "region.head" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Head"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请按建议的拍摄角度重拍。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "头部"
           }
         }
       }
     },
-    "result.disclaimer": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This feedback supports practice and does not replace guidance from a qualified ballet teacher."
+    "region.pelvis" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pelvis"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "这些反馈仅辅助练习，不能替代合格芭蕾教师的指导。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "骨盆"
           }
         }
       }
     },
-    "result.full-review": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Full-body review"
+    "region.shoulders-arms" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shoulders and arms"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全身检查"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "肩膀与手臂"
           }
         }
       }
     },
-    "result.image-label": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Annotated ballet pose"
+    "region.supporting-leg" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supporting leg"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "带标注的芭蕾动作照片"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支撑腿"
           }
         }
       }
     },
-    "result.no-correction": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No reliable correction found in this view."
+    "region.torso" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Torso"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此角度下没有发现可可靠判断的调整建议。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "躯干"
           }
         }
       }
     },
-    "result.reset": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Analyse another photo"
+    "region.working-leg" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Working leg"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分析另一张照片"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "动作腿"
           }
         }
       }
     },
-    "result.save": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save annotated photo"
+    "result.disclaimer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This feedback supports practice and does not replace guidance from a qualified ballet teacher."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存标注照片"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这些反馈仅辅助练习，不能替代合格芭蕾教师的指导。"
           }
         }
       }
     },
-    "result.save-denied": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Allow Photos add access in Settings to save this result."
+    "result.full-review" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full-body review"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请在“设置”中允许添加照片，才能保存结果。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全身检查"
           }
         }
       }
     },
-    "result.save-failed": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not save this result. Please try again."
+    "result.image-label" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annotated ballet pose"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法保存结果，请重试。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "带标注的芭蕾动作照片"
           }
         }
       }
     },
-    "result.saved": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saved to Photos"
+    "result.no-correction" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No reliable correction found in this view."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已保存到照片"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此角度下没有发现可可靠判断的调整建议。"
           }
         }
       }
     },
-    "result.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your result"
+    "result.reset" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyse another photo"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分析结果"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分析另一张照片"
           }
         }
       }
     },
-    "result.top-three": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Priority corrections"
+    "result.save" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save annotated photo"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "优先调整建议"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存标注照片"
           }
         }
       }
     },
-    "review.clear": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clear"
+    "result.save-denied" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow Photos add access in Settings to save this result."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未见明显问题"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“设置”中允许添加照片，才能保存结果。"
           }
         }
       }
     },
-    "review.finding": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Finding"
+    "result.save-failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not save this result. Please try again."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "需要调整"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存结果，请重试。"
           }
         }
       }
     },
-    "review.insufficient": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not enough evidence in this photo to recommend a change."
+    "result.saved" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved to Photos"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "这张照片的证据不足，无法给出调整建议。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存到照片"
           }
         }
       }
     },
-    "review.no-visible-issue": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No visible issue found in this view."
+    "result.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your result"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此角度下未见明显问题。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分析结果"
           }
         }
       }
     },
-    "review.occluded": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unable to assess this area reliably because the joint may be obscured or inconsistent."
+    "result.top-three" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Priority corrections"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "关节可能被遮挡或定位不稳定，无法可靠评估该部位。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "优先调整建议"
           }
         }
       }
     },
-    "review.unassessable": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not assessable"
+    "review.clear" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法可靠评估"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未见明显问题"
           }
         }
       }
     },
-    "select.continue": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continue"
+    "review.finding" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finding"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "继续"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要调整"
           }
         }
       }
     },
-    "select.eyebrow": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SELECT YOUR POSE"
+    "review.insufficient" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not enough evidence in this photo to recommend a change."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "选择动作"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这张照片的证据不足，无法给出调整建议。"
           }
         }
       }
     },
-    "select.instructions": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Select one of five positions, then tell us which leg supports your weight."
+    "review.no-visible-issue" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No visible issue found in this view."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从五个动作中选择一个，并指出支撑腿。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此角度下未见明显问题。"
           }
         }
       }
     },
-    "select.left": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Left"
+    "review.occluded" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to assess this area reliably because the joint may be obscured or inconsistent."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "左腿"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关节可能被遮挡或定位不稳定，无法可靠评估该部位。"
           }
         }
       }
     },
-    "pose.description.arabesque": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "One leg extends behind with the torso lifted." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "一条腿向后伸展，上身保持延展。" } }
+    "review.unassessable" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not assessable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法可靠评估"
+          }
+        }
       }
     },
-    "pose.description.attitude-derriere": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "The lifted leg bends behind the body." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "动作腿在身体后方向上抬起并弯曲。" } }
+    "select.continue" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续"
+          }
+        }
       }
     },
-    "pose.description.retire-passe": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "The working foot rests near the supporting knee." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "动作脚靠近支撑腿膝部。" } }
+    "select.eyebrow" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SELECT YOUR POSE"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择动作"
+          }
+        }
       }
     },
-    "pose.description.a-la-seconde": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "One leg extends to the side with an upright torso." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "一条腿向侧面伸展，上身保持直立。" } }
+    "select.instructions" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select one of five positions, then tell us which leg supports your weight."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从五个动作中选择一个，并指出支撑腿。"
+          }
+        }
       }
     },
-    "pose.description.tendu-croise-devant": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "The pointed working foot reaches forward across the body." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "动作脚绷直，向身体前方交叉伸出。" } }
+    "select.left" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Left"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "左腿"
+          }
+        }
       }
     },
-    "select.position": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Position"
+    "select.position" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Position"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "动作"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "动作"
           }
         }
       }
     },
-    "select.right": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Right"
+    "select.right" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Right"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "右腿"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "右腿"
           }
         }
       }
     },
-    "select.supporting-leg": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Supporting leg"
+    "select.supporting-leg" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supporting leg"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支撑腿"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支撑腿"
           }
         }
       }
     },
-    "select.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose your ballet position"
+    "select.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose your ballet position"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "选择芭蕾动作"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择芭蕾动作"
           }
         }
       }
     },
-    "select.view-front": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recommended view: front"
+    "select.view-front" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended view: front"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "建议拍摄角度：正面"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建议拍摄角度：正面"
           }
         }
       }
     },
-    "select.view-side": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recommended view: three-quarter side"
+    "select.view-side" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended view: three-quarter side"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "建议拍摄角度：四分之三侧面"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建议拍摄角度：四分之三侧面"
           }
         }
       }
+    },
+    "Use sample photo" : {
+
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }
